@@ -21,17 +21,27 @@ jobs:
         os-release:
           - ubuntu-latest
           - windows-latest
+      fail-fast: false
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+          
+      # Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
 
-      - run: npm ci
-      - run: npm run test
+      # Install dependencies
+      - name: Install dependencies
+        run: npm ci
+        
+      # Run tests
+      - name: Run tests
+        run: npm run test
 
   coverage:
     name: collect coverage
@@ -40,13 +50,23 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+          
+      # Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: package.json
+          cache: 'npm'
 
-      - run: npm ci
+      # Install dependencies
+      - name: Install dependencies
+        run: npm ci
 
-      - run: npm run test:unit
+      # Run unit tests with coverage
+      - name: Run unit tests with coverage
+        run: npm run test:unit
+        
+      # Upload coverage reports
       - uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -54,7 +74,8 @@ jobs:
 
       # - run: rm -rf coverage
 
-      # - run: npm run test:integration
+      # - name: Run integration tests
+      #   run: npm run test:integration
       # - uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # v3
       #   with:
       #     token: ${{ secrets.CODECOV_TOKEN }}

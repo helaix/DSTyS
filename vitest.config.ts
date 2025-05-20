@@ -8,8 +8,16 @@ export default defineConfig({
     exclude: ['build', 'node_modules'],
     coverage: {
       exclude: ['build', ...coverageConfigDefaults.exclude],
-      provider: 'v8'
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80
     },
+    environment: 'node',
+    globals: true,
+    include: ['**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     testTimeout: 30000
   },
   plugins: [tsconfigPaths()]

@@ -1,11 +1,14 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "files": {
-    "include": ["*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.json"]
+    "include": ["*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.json"],
+    "ignore": ["build/**", "node_modules/**", "coverage/**"]
   },
   "formatter": {
     "lineWidth": 120,
-    "useEditorconfig": true
+    "useEditorconfig": true,
+    "indentStyle": "space",
+    "indentWidth": 2
   },
   "javascript": {
     "formatter": {
@@ -16,9 +19,12 @@
     }
   },
   "linter": {
+    "enabled": true,
     "rules": {
       "complexity": {
-        "useLiteralKeys": "off"
+        "useLiteralKeys": "off",
+        "noExcessiveCognitiveComplexity": "error",
+        "noVoid": "error"
       },
       "correctness": {
         "noUndeclaredDependencies": "error",
@@ -26,10 +32,14 @@
         "noUnusedImports": "error",
         "noUnusedPrivateClassMembers": "error",
         "noUnusedVariables": "error",
-        "useImportExtensions": "error"
+        "useImportExtensions": "error",
+        "noConstantCondition": "error",
+        "noEmptyInterface": "error",
+        "noInferrableTypes": "error"
       },
       "performance": {
-        "noBarrelFile": "error"
+        "noBarrelFile": "error",
+        "noDelete": "error"
       },
       "style": {
         "noDefaultExport": "error",
@@ -49,14 +59,24 @@
         },
         "useFilenamingConvention": "error",
         "useNamingConvention": "error",
-        "useNodeAssertStrict": "error"
+        "useNodeAssertStrict": "error",
+        "useShorthandArrayType": "error",
+        "useSingleCaseStatement": "error",
+        "useSingleVarDeclarator": "error",
+        "useTemplate": "error"
       },
       "suspicious": {
-        "noEmptyBlockStatements": "error"
+        "noEmptyBlockStatements": "error",
+        "noExplicitAny": "error",
+        "noConsoleLog": "error",
+        "noDebugger": "error",
+        "noDoubleEquals": "error",
+        "noImplicitAnyLet": "error",
+        "noShadowRestrictedNames": "error"
       }
     }
   },
   "organizeImports": {
-    "enabled": false
+    "enabled": true
   }
 }

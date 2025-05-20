@@ -8,23 +8,17 @@ on:
 
 jobs:
   build:
-    name: build on node@${{ matrix.node-version }}
+    name: build on bun@latest
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version:
-          - 22
-          - 24
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: ${{ matrix.node-version }}
+          bun-version: latest
 
-      - run: npm ci
-      - run: npm run check
-      - run: npm run build
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun run build

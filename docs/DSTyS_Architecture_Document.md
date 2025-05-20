@@ -275,21 +275,214 @@ const answerer = new ChainOfThought({
 });
 ```
 
-### 4.3 Error Handling
-DSTyS uses Effect for comprehensive error handling.
+### 4.3 Leveraging Effect's Type System
+
+DSTyS leverages Effect's powerful type system to provide compile-time safety for errors, dependencies, and success values. The Effect type has three type parameters:
 
 ```typescript
-// Example Error Handling
-const result = await pipe(
-  answerer.predict({ question: "What is the capital of France?" }),
-  Effect.catchTag("RateLimitError", (error) => 
-    Effect.delay(Effect.retry(error), 1000)
+// General form of an Effect
+//    ┌─── Represents the success type
+//    │ ┌─── Represents the error type
+//    │ │ ┌─── Represents required dependencies
+//    ↓ ↓ ↓
+Effect<Success, Error, Requirements>
+```
+
+#### 4.3.1 Type-Safe Error Handling
+
+Unlike traditional TypeScript where errors are not tracked in the type system, Effect makes errors part of the type signature:
+
+```typescript
+// Traditional TypeScript - errors are not tracked in the type system
+const divide = (a: number, b: number): number => {
+  if (b === 0) {
+    throw new Error("Cannot divide by zero");
+  }
+  return a / b;
+};
+
+// Effect approach - errors are tracked in the type system
+class DivisionError {
+  readonly _tag = "DivisionError";
+  constructor(readonly message: string) {}
+}
+
+const divide = (a: number, b: number): Effect.Effect<number, DivisionError, never> =>
+  b === 0
+    ? Effect.fail(new DivisionError("Cannot divide by zero"))
+    : Effect.succeed(a / b);
+```
+
+This allows for compile-time checking of error handling:
+
+```typescript
+// The type signature tells us exactly what can go wrong
+const calculateAverage = (values: number[]): Effect.Effect<number, DivisionError, never> =>
+  Effect.gen(function* () {
+    const sum = values.reduce((acc, val) => acc + val, 0);
+    // TypeScript knows this might fail with DivisionError
+    const average = yield* divide(sum, values.length);
+    return average;
+  });
+
+// We must handle the error or propagate it
+const safeCalculateAverage = (values: number[]): Effect.Effect<number, never, never> =>
+  calculateAverage(values).pipe(
+    Effect.catchTag("DivisionError", (error) => 
+      Effect.succeed(0) // Provide a default value in case of error
+    )
+  );
+```
+
+#### 4.3.2 Tagged Errors for Pattern Matching
+
+Effect uses tagged errors to enable precise error handling through pattern matching:
+
+```typescript
+// Define different error types with unique tags
+class NetworkError {
+  readonly _tag = "NetworkError";
+  constructor(readonly message: string) {}
+}
+
+class ValidationError {
+  readonly _tag = "ValidationError";
+  constructor(readonly field: string, readonly message: string) {}
+}
+
+class AuthError {
+  readonly _tag = "AuthError";
+  constructor(readonly reason: string) {}
+}
+
+// Function that can fail with different error types
+const fetchUserData = (userId: string): Effect.Effect<UserData, NetworkError | ValidationError | AuthError, never> => {
+  // Implementation...
+};
+
+// Handle specific error types
+const result = await fetchUserData("user123").pipe(
+  Effect.catchTag("NetworkError", (error) => 
+    Effect.retry(fetchUserData("user123"), { 
+      schedule: Schedule.exponential(100, 2),
+      times: 3
+    })
   ),
-  Effect.catchTag("ModelError", (error) => 
-    Effect.fail(new Error(`Model error: ${error.message}`))
+  Effect.catchTag("ValidationError", (error) => 
+    Effect.succeed({ name: "Unknown", id: "user123" }) // Default data
+  ),
+  Effect.catchTag("AuthError", (error) => 
+    Effect.fail(new Error(`Authentication failed: ${error.reason}`))
   ),
   Effect.runPromise
 );
+```
+
+#### 4.3.3 Dependency Injection with Context.Tag
+
+Effect provides a powerful dependency injection system using `Context.Tag`:
+
+```typescript
+import { Effect, Context } from "effect";
+
+// Define a service interface
+interface LoggerService {
+  log: (message: string) => Effect.Effect<void, never, never>;
+  error: (message: string, error?: unknown) => Effect.Effect<void, never, never>;
+}
+
+// Create a service tag
+class Logger extends Context.Tag("LoggerService")<Logger, LoggerService>() {}
+
+// Implement the service
+const ConsoleLoggerLive: Effect.Layer<Logger, never, never> = Effect.layer({
+  build: () => ({
+    log: (message) => Effect.sync(() => console.log(message)),
+    error: (message, error) => Effect.sync(() => console.error(message, error))
+  })
+});
+
+// Use the service in your application code
+const program = Effect.gen(function* () {
+  // Access the logger service
+  const logger = yield* Logger;
+  
+  yield* logger.log("Starting application...");
+  
+  try {
+    // Application logic
+    yield* logger.log("Application running");
+  } catch (error) {
+    yield* logger.error("Application error", error);
+  }
+});
+
+// Provide the implementation at the edge of your application
+const runnable = program.pipe(
+  Effect.provide(ConsoleLoggerLive)
+);
+
+Effect.runPromise(runnable);
+```
+
+#### 4.3.4 Composing Services with Dependencies
+
+Services can depend on other services, creating a dependency graph that Effect manages automatically:
+
+```typescript
+// Database service
+interface DatabaseService {
+  query: (sql: string) => Effect.Effect<QueryResult, DatabaseError, never>;
+}
+
+class Database extends Context.Tag("DatabaseService")<Database, DatabaseService>() {}
+
+// User repository service that depends on Database
+interface UserRepositoryService {
+  findById: (id: string) => Effect.Effect<User, DatabaseError | NotFoundError, never>;
+}
+
+class UserRepository extends Context.Tag("UserRepositoryService")<UserRepository, UserRepositoryService>() {}
+
+// Implementation of UserRepository that depends on Database
+const UserRepositoryLive: Effect.Layer<UserRepository, never, Database> = Effect.layer({
+  build: (context) => {
+    // Get the database service from the context
+    const db = context.get(Database);
+    
+    return {
+      findById: (id) => Effect.gen(function* () {
+        const result = yield* db.query(`SELECT * FROM users WHERE id = '${id}'`);
+        
+        if (result.rows.length === 0) {
+          return yield* Effect.fail(new NotFoundError(`User with id ${id} not found`));
+        }
+        
+        return result.rows[0] as User;
+      })
+    };
+  }
+});
+
+// Application code that uses UserRepository
+const getUserDetails = (userId: string): Effect.Effect<UserDetails, DatabaseError | NotFoundError, UserRepository> =>
+  Effect.gen(function* () {
+    const userRepo = yield* UserRepository;
+    const user = yield* userRepo.findById(userId);
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email
+    };
+  });
+
+// Provide all dependencies at the edge of your application
+const runnable = getUserDetails("user123").pipe(
+  Effect.provide(UserRepositoryLive),
+  Effect.provide(DatabaseLive)
+);
+
+Effect.runPromise(runnable);
 ```
 
 ### 4.4 API Documentation
@@ -732,4 +925,3 @@ When creating your own Architecture Document, be sure to:
 - Address all non-functional requirements
 - Outline a comprehensive testing strategy
 - Create a realistic implementation plan with phases and milestones
-

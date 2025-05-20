@@ -15,6 +15,10 @@ Icon
 ## Editors and IDE
 *.sublime*
 *.code-workspace
+.idea/
+.vscode/
+*.iml
+*.iws
 
 ## Node.js
 lib-cov
@@ -41,3 +45,32 @@ coverage
 
 ## API keys and secrets
 .env
+
+## Python (for DSPy reference code)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints

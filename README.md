@@ -1,6 +1,26 @@
-# TypeScript Library Starter
+# DSTyS - DSPy in TypeScript with Effect
 
-A modern, zero-config template for building high-quality TypeScript libraries. Built with ESM-first architecture and powered by SWC for blazing-fast compilation, this starter kit provides everything you need to create, test, and publish professional TypeScript packages.
+A TypeScript + Effect rewrite of [DSPy](https://github.com/stanfordnlp/dspy), aiming to bring the powerful programming model for foundation models to the TypeScript ecosystem.
+
+## 🚀 Project Goal
+
+DSTyS aims to implement the DSPy programming model in TypeScript, leveraging the [Effect](https://effect.website/) library for functional programming paradigms. This project will:
+
+- Reimplement DSPy core functionality in TypeScript
+- Provide an idiomatic TypeScript API for working with foundation models
+- Leverage Effect for robust error handling and functional programming patterns
+- Support the same programming patterns and workflows as the original DSPy
+
+## 📘 What is DSPy?
+
+[DSPy](https://github.com/stanfordnlp/dspy) is a framework for programming with foundation models (like GPT-4, Claude, etc.) created by Stanford NLP. Instead of prompt engineering, DSPy offers a programming model that allows for:
+
+- **Composable modules**: Build complex pipelines with reusable components
+- **Automatic optimization**: DSPy can optimize prompts and pipeline configurations
+- **Declarative signatures**: Specify inputs and outputs clearly with type annotations
+- **Testing and evaluation**: Systematic ways to test and evaluate LM-based systems
+
+The full DSPy Python repository is included in this project as a reference implementation.
 
 ## ✨ Key Features
 
@@ -28,13 +48,9 @@ A modern, zero-config template for building high-quality TypeScript libraries. B
 
 ## Getting Started
 
-1. Click "Use this template" on GitHub
-2. Clone your new repository
-3. Search and replace the following:
-   - `ts-lib-starter` → your package name
-   - `2BAD` → your name/organization (except `@2bad/tsconfig` references)
-4. Run `npm install`
-5. Start developing!
+1. Clone the repository
+2. Run `npm install`
+3. Start developing!
 
 ## Available Scripts
 
@@ -53,19 +69,12 @@ npm run fix:format  # or just the format code with Biome
 ## Package Structure
 
 ```
-├── source/         # Source code
+├── source/         # Source code for the TypeScript implementation
+├── dspy/           # Original DSPy Python implementation (reference)
 ├── tests/          # Test files
 ├── build/          # Compiled output (generated)
 └── package.json    # Package configuration
 ```
-
-## Why Use This Template?
-
-- **Performance First**: SWC compilation is significantly faster than traditional TypeScript compilation
-- **Modern Standards**: Built with current best practices and modern JavaScript features
-- **Quality Focused**: Comprehensive testing and linting setup ensures high-quality code
-- **Production Ready**: Includes all necessary configurations for building and publishing packages
-- **Actively Maintained**: Regular updates to dependencies and features
 
 ## Requirements
 
@@ -74,8 +83,8 @@ npm run fix:format  # or just the format code with Biome
 
 ## License
 
-MIT © 2BAD
+MIT
 
 ---
 
-This template is part of the [@2bad](https://github.com/2BAD) ecosystem of development tools.
+Note: The DSPy library is included as a reference and is subject to its own [license](https://github.com/stanfordnlp/dspy/blob/main/LICENSE) (MIT License).

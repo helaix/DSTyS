@@ -17,19 +17,19 @@
 **Rule Title:** Adherence to Workplan Template
 **Applies To:** All Workplan documents
 **Purpose:** Ensure consistency and completeness of task definition.
-**Scope:** Workplan creation and maintenance in `docs/planning/workplans/`.
-**Guideline:** All Workplans **MUST** follow the standard "Workplan Template" located at `docs/planning/templates/Workplan.md`. Key fields include:
-    *   `Workplan ID` (matches filename, e.g., `CORE-SignatureImplementation`).
-    *   `Project`: DSTyS.
-    *   `Status`: (Not Started, Draft, In Progress, Blocked, In Review, Completed) - **MUST be kept current.**
-    *   `Target Primary Agent(s)`: **CRITICAL** (e.g., "Codex", "CodeGen", "Human+Cursor").
-    *   `Prerequisites (Dependencies)`: Links to other Workplan IDs or document states.
-    *   `Detailed Tasks / Implementation Checklist`: Granular steps.
-    *   `Technical Specifications / Proposed Implementation`: Detailed technical approach.
-    *   `Testing Strategy / Verification Steps`: **CRITICAL**.
+**Scope:** Workplan creation and maintenance.
+**Guideline:** All Workplans **MUST** follow the standard "Workplan Template" located at `docs/planning/templates/Workplan.md`. For granular workplans in `Documentation/Plans/`, key fields include:
+    *   `Task ID`: Unique identifier for the granular task (e.g., `CORE-FieldImpl-01-TypeDef`). This ID is used for filenames and internal references.
+    *   `Problem Statement`: Clearly defines what this specific granular task needs to solve.
+    *   `Proposed Implementation`: Details the solution for this specific task, including what to test and how.
+    *   `Dependencies`: Lists prerequisite knowledge, components, or other granular Task IDs.
+    *   `Implementation Checklist`: Step-by-step sub-tasks for this granular workplan.
+    *   `Verification Steps`: How to confirm this specific granular task works correctly.
+    *   `Status`: (Not Started, In Progress, Blocked, In Review, Completed) - **MUST be kept current.**
+    *   `Target Primary Agent(s)`: (e.g., "Codex", "CodeGen", "Human+Cursor").
     *   `Decision Authority`, `Questions/Uncertainties`, `Acceptable Tradeoffs`, `Notes & Decisions Log`.
-**Rationale:** Standardizes task definition and tracking.
-**Reference:** `docs/planning/templates/Workplan.md`
+**Rationale:** Standardizes task definition and tracking for both high-level epics and granular tasks.
+**Reference:** `docs/planning/templates/Workplan.md`, `Documentation/Plans/README.md`
 
 ---
 **Rule ID:** `DSTYS-WP-EXEC-003`
@@ -97,8 +97,13 @@
 **Purpose:** Ensure Workplans are organized, identifiable, and traceable.
 **Scope:** Workplan management.
 **Guideline:**
-    *   Workplans **MUST** be stored in the `docs/planning/workplans/` directory.
-    *   The filename **MUST** match the Workplan Identifier (e.g., `CORE-SignatureImplementation.md`).
-    *   Workplans SHOULD link to relevant Linear tickets (if used), and PRs/commits SHOULD link back to Workplan IDs.
-    *   The `docs/planning/workplans/Outline.md` serves as the master index.
-**Rationale:** Facilitates organization and cross-referencing of project artifacts.
+    *   **Granular Workplans:**
+        *   MUST be stored in the `Documentation/Plans/` directory.
+        *   The filename MUST follow the format: `PARENT-Epic-Abbrev-XX-TaskName.md` (e.g., `CORE-FieldImpl-01-TypeDef.md`). The `Task ID` field within the document MUST match this.
+        *   These workplans SHOULD link to relevant Linear tickets, and PRs/commits SHOULD link back to these granular Task IDs.
+    *   **Epic Overviews (Refactored Original Workplans):**
+        *   Original comprehensive workplans are refactored into "Epic Overviews" and typically reside in `docs/planning/workplans/` with a name like `EPIC-OriginalName.md`.
+        *   These Epic Overviews link to the granular workplans derived from them.
+    *   The `docs/planning/workplans/Outline.md` serves as the master index for all workplans, including links to granular plans and epic overviews.
+**Rationale:** Facilitates organization and cross-referencing of project artifacts, distinguishing between high-level epics and detailed tasks.
+**Reference:** `Documentation/Plans/README.md`

@@ -10,10 +10,13 @@ export default defineConfig({
       exclude: ['build', ...coverageConfigDefaults.exclude],
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80
+      // For v8 coverage provider, thresholds need to be in the 'thresholds' property
+      thresholds: {
+        branches: 80,
+        functions: 80,
+        lines: 80,
+        statements: 80
+      }
     },
     environment: 'node',
     globals: true,

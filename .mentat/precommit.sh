@@ -8,10 +8,22 @@ fi
 # Verify Bun version
 echo "Using Bun $(bun --version 2>/dev/null || echo "not available, please run setup.sh first")"
 
+# Fix TypeScript import paths - add .js extension to local imports
+echo "Fixing TypeScript import paths..."
+find ./source -type f -name "*.ts" -exec sed -i 's/from \(['"'"'"]\)\.\//from \1\.\//g; s/from \(['"'"'"]\)\.\.\/\([^'"'"'"]*\)$/from \1\.\.\/\2.js\1/g; s/from \(['"'"'"]\)\.\([^\.][^'"'"'"]*\)$/from \1\.\2.js\1/g' {} \;
+
 # Run formatters and linters with fix flags
 echo "Running code fixes..."
 bun run fix:code || echo "Fix:code failed, but continuing..."
 bun run fix:format || echo "Fix:format failed, but continuing..."
+
+# Special fix for any vs unknown
+echo "Replacing 'any' with 'unknown' in TypeScript files..."
+find ./source -type f -name "*.ts" -exec sed -i 's/: any;/: unknown;/g; s/: any)/: unknown)/g; s/: any$/: unknown/g' {} \;
+
+# Fix common issues with Number.isNaN and Number.NaN
+echo "Fixing common Number usage issues..."
+find ./source -type f -name "*.ts" -exec sed -i 's/!isNaN(/!Number.isNaN(/g; s/ NaN/ Number.NaN/g' {} \;
 
 # Run type checking and other checks
 echo "Running linting and type checking..."

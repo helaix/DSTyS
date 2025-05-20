@@ -4,4 +4,4 @@
  */
 
 // Re-export from aggregation
-export * from './aggregation';
+export * from './aggregation.js'

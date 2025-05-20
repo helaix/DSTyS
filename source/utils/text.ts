@@ -3,5 +3,5 @@
  * Analogous to DSPy's normalize_text function
  */
 export function normalizeText(text: string): string {
-  return text.trim().toLowerCase();
+  return text.trim().toLowerCase()
 }

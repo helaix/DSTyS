@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { isNonEmptyString, isPositiveNumber, isValidEmail, ensureNonEmptyString } from './validation'
+import { describe, expect, it } from 'vitest'
+import { ensureNonEmptyString, isNonEmptyString, isPositiveNumber, isValidEmail } from './validation.js'
 
 describe('Validation Utils', () => {
   describe('isNonEmptyString', () => {
@@ -37,8 +37,8 @@ describe('Validation Utils', () => {
       expect(isPositiveNumber(-0.1)).toBe(false)
     })
 
-    it('should return false for NaN and non-number values', () => {
-      expect(isPositiveNumber(NaN)).toBe(false)
+    it('should return false for Number.NaN and non-number values', () => {
+      expect(isPositiveNumber(Number.NaN)).toBe(false)
       expect(isPositiveNumber('123')).toBe(false)
       expect(isPositiveNumber(null)).toBe(false)
       expect(isPositiveNumber(undefined)).toBe(false)
@@ -95,4 +95,3 @@ describe('Validation Utils', () => {
     })
   })
 })
-

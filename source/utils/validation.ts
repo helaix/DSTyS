@@ -13,7 +13,7 @@ export const isNonEmptyString = (value: unknown): boolean => {
  * @returns True if the value is a positive number, false otherwise
  */
 export const isPositiveNumber = (value: unknown): boolean => {
-  return typeof value === 'number' && !isNaN(value) && value > 0
+  return typeof value === 'number' && !Number.isNaN(value) && value > 0
 }
 
 /**
@@ -23,7 +23,7 @@ export const isPositiveNumber = (value: unknown): boolean => {
  */
 export const isValidEmail = (value: unknown): boolean => {
   if (typeof value !== 'string') return false
-  
+
   // Simple email validation regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(value)
@@ -42,4 +42,3 @@ export const ensureNonEmptyString = (value: unknown, errorMessage = 'Value must 
   }
   return value as string
 }
-

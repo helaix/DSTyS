@@ -10,15 +10,17 @@ on:
 
 jobs:
   test:
-    name: test on ${{ matrix.os-release }}
+    name: test on ${{ matrix.os-release }} node@${{ matrix.node-version }}
     runs-on: ${{ matrix.os-release }}
 
     strategy:
       matrix:
+        node-version:
+          - 22
+          - 24
         os-release:
           - ubuntu-latest
-          # Temporarily remove Windows until Bun support improves
-          # - windows-latest
+          - windows-latest
       fail-fast: false
 
     steps:
@@ -26,37 +28,20 @@ jobs:
         with:
           persist-credentials: false
           
-      # Setup Node.js first as a fallback
+      # Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 18
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
-          
-      # Setup Bun
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@1f59d0dbfd12c2bf89de218c857a0c8e56e0c16a # v1
-        with:
-          bun-version: "1.0.30" # Specify a stable version
-        
-      # Cache dependencies
-      - name: Cache Bun dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun/install/cache
-            node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
 
       # Install dependencies
       - name: Install dependencies
-        run: bun install --frozen-lockfile || npm ci
+        run: npm ci
         
       # Run tests
       - name: Run tests
-        run: bun run test || npm run test
+        run: npm run test
 
   coverage:
     name: collect coverage
@@ -66,37 +51,20 @@ jobs:
         with:
           persist-credentials: false
           
-      # Setup Node.js first as a fallback
+      # Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 18
+          node-version-file: package.json
           cache: 'npm'
-          
-      # Setup Bun
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@1f59d0dbfd12c2bf89de218c857a0c8e56e0c16a # v1
-        with:
-          bun-version: "1.0.30" # Specify a stable version
-        
-      # Cache dependencies
-      - name: Cache Bun dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun/install/cache
-            node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
 
       # Install dependencies
       - name: Install dependencies
-        run: bun install --frozen-lockfile || npm ci
+        run: npm ci
 
       # Run unit tests with coverage
       - name: Run unit tests with coverage
-        run: bun run test:unit || npm run test:unit
+        run: npm run test:unit
         
       # Upload coverage reports
       - uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5
@@ -107,7 +75,7 @@ jobs:
       # - run: rm -rf coverage
 
       # - name: Run integration tests
-      #   run: bun run test:integration || npm run test:integration
+      #   run: npm run test:integration
       # - uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # v3
       #   with:
       #     token: ${{ secrets.CODECOV_TOKEN }}

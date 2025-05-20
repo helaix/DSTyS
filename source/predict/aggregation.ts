@@ -1,4 +1,4 @@
-import type { Prediction } from '../primitives/prediction.js'
+import { Prediction } from '../primitives/prediction.js'
 import type { Completion, Completions } from '../primitives/prediction.js'
 
 type NormalizeFunction = (text: string) => string
@@ -6,6 +6,14 @@ type NormalizeFunction = (text: string) => string
 /**
  * Helper function to extract completions from various input types
  * Helps to reduce complexity of the main function
+ *
+ * @param input - The input data structure containing completions
+ * @returns An array of Completion objects
+ */
+/**
+ * Helper function to extract completions from various input types
+ * @param input - The input data structure containing completions
+ * @returns An array of Completion objects
  */
 function getCompletionsArray(input: Completions | Prediction | Completion[]): Completion[] {
   if (Array.isArray(input)) {
@@ -48,7 +56,7 @@ export function majority(
   const majorityValue = findMajorityValue(valueCounts)
 
   // In case we didn't find a majority, return the first completion
-  if (majorityValue === undefined) {
+  if (majorityValue === undefined && completions[0]) {
     return new Prediction([completions[0]])
   }
 
@@ -63,11 +71,27 @@ export function majority(
   }
 
   // Fallback (should never reach here)
-  return new Prediction([completions[0]])
+  if (completions[0]) {
+    return new Prediction([completions[0]])
+  }
+
+  return new Prediction([])
 }
 
 /**
  * Count occurrences of each field value
+ *
+ * @param completions - Array of completions to analyze
+ * @param field - The field to extract values from
+ * @param normalize - Optional normalization function for the values
+ * @returns A map of normalized values to their occurrence counts
+ */
+/**
+ * Count occurrences of each field value
+ * @param completions - Array of completions to analyze
+ * @param field - The field to extract values from
+ * @param normalize - Optional normalization function for the values
+ * @returns A map of normalized values to their occurrence counts
  */
 function countValues(completions: Completion[], field: string, normalize?: NormalizeFunction): Map<string, number> {
   const valueCounts = new Map<string, number>()
@@ -84,6 +108,14 @@ function countValues(completions: Completion[], field: string, normalize?: Norma
 
 /**
  * Find the value with the highest count
+ *
+ * @param valueCounts - Map of values to their occurrence counts
+ * @returns The value with the highest count, or undefined if the map is empty
+ */
+/**
+ * Find the value with the highest count
+ * @param valueCounts - Map of values to their occurrence counts
+ * @returns The value with the highest count, or undefined if the map is empty
  */
 function findMajorityValue(valueCounts: Map<string, number>): string | undefined {
   let majorityValue: string | undefined

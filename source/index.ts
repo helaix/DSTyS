@@ -1,4 +1,4 @@
-import type { go, where } from '~/quotes/parts.js'
+import { go, where } from '~/quotes/parts.js'
 
 // Keep the original export for test compatibility
 export const quote = `${go} ${where}`

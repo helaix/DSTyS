@@ -1,7 +1,7 @@
-import type { describe, expect, it } from 'vitest'
-import type { Completions, Prediction } from '../primitives/prediction.js'
-import type { normalizeText } from '../utils/text.js'
-import type { majority } from './aggregation.js'
+import { describe, expect, it } from 'vitest'
+import { Completions, Prediction } from '../primitives/prediction.js'
+import { normalizeText } from '../utils/text.js'
+import { majority } from './aggregation.js'
 
 describe('aggregation', () => {
   it('should find majority with Prediction', () => {
@@ -9,7 +9,7 @@ describe('aggregation', () => {
 
     const result = majority(prediction)
 
-    expect(result.first?.answer).toBe('2')
+    expect(result.first?.['answer']).toBe('2')
   })
 
   it('should find majority with Completions', () => {
@@ -17,7 +17,7 @@ describe('aggregation', () => {
 
     const result = majority(completions)
 
-    expect(result.first?.answer).toBe('2')
+    expect(result.first?.['answer']).toBe('2')
   })
 
   it('should find majority with array of completions', () => {
@@ -25,7 +25,7 @@ describe('aggregation', () => {
 
     const result = majority(completions)
 
-    expect(result.first?.answer).toBe('2')
+    expect(result.first?.['answer']).toBe('2')
   })
 
   it('should normalize values when finding majority', () => {
@@ -33,7 +33,7 @@ describe('aggregation', () => {
 
     const result = majority(completions, { normalize: normalizeText })
 
-    expect(result.first?.answer).toBe('2')
+    expect(result.first?.['answer']).toBe('2')
   })
 
   it('should find majority for a specific field', () => {
@@ -45,7 +45,7 @@ describe('aggregation', () => {
 
     const result = majority(completions, { field: 'other' })
 
-    expect(result.first?.other).toBe('1')
+    expect(result.first?.['other']).toBe('1')
   })
 
   it('should return first completion when there is no majority', () => {
@@ -54,6 +54,6 @@ describe('aggregation', () => {
     const result = majority(completions)
 
     // The first completion is returned in case of a tie
-    expect(result.first?.answer).toBe('2')
+    expect(result.first?.['answer']).toBe('2')
   })
 })

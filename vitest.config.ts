@@ -8,12 +8,12 @@ export default defineConfig({
     exclude: ['build', 'node_modules'],
     coverage: {
       exclude: [
-        'build', 
+        'build',
         ...coverageConfigDefaults.exclude,
         // Temporarily exclude dspy directory until coverage is improved
         'dspy/**',
         // Exclude test files themselves
-        '**/*.test.ts', 
+        '**/*.test.ts',
         '**/*.spec.ts'
       ],
       provider: 'v8',

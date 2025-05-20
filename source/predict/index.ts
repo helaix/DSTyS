@@ -1,8 +1,6 @@
-/**
- * Prediction module exports
- * This module contains components for generating, aggregating, and managing LLM completions/predictions
- */
+// Predict module for DSTyS
+// This module contains Predict and other predictive modules like ChainOfThought, ReAct
 
-// Import and re-export specific functions instead of using barrel exports
-import { majority } from './aggregation.ts'
-export { majority }
+export * from './aggregation';
+// Additional exports will be added as they are implemented
+

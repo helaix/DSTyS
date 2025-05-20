@@ -1,117 +1,70 @@
-# TEST-ToolTests
+# Epic Overview: Tool Tests Conversion (TEST-ToolTests)
 
 ## Task ID
-TEST-ToolTests
+TEST-ToolTests (Epic)
 
 ## Problem Statement
 To implement DSTyS using a test-driven development approach, we need to convert the Python DSPy tests for the Tool class to TypeScript with Effect TS integration. These tests will serve as the specification for the Tool implementation and ensure feature parity with the Python version while leveraging TypeScript's type system and Effect's functional programming patterns.
 
-## Proposed Implementation
-We will convert the Python tests for the Tool class to TypeScript, adapting them to work with the TypeScript type system and Effect TS patterns. The implementation will include:
+## Proposed Implementation (High-Level)
+We will convert the Python tests for the Tool class to TypeScript, adapting them to work with the TypeScript type system and Effect TS patterns. The process involves:
+1. Analyzing Python Tool tests (tool definition, execution, argument parsing, error handling).
+2. Re-implementing these tests in TypeScript using Vitest.
+3. Adapting test logic for TypeScript's static typing, Effect TS patterns (for tool execution), and Zod schema for argument validation.
+4. Creating necessary mocks for wrapped functions.
+The converted tests will guide the `CORE-ToolImplementation`.
 
-1. Analyzing the Python test files related to Tool functionality
-2. Creating equivalent TypeScript test files using Vitest
-3. Adapting the tests to use Effect TS for error handling and functional patterns
-4. Creating mock implementations of dependencies needed for testing
-5. Ensuring the tests cover all functionality of the Tool class
+## Components Involved (High-Level)
+- Vitest testing framework
+- TypeScript test files for `Tool`
+- Mocks for wrapped functions
+- Effect TS and Zod testing patterns
 
-The test conversion will follow these principles:
-- Maintain the same test coverage and assertions as the Python version
-- Adapt to TypeScript's static typing system
-- Integrate Effect TS patterns for handling effects and errors
-- Use Vitest for test execution and assertions
-- Create reusable test utilities for common patterns
-
-The converted tests will serve as the specification for the Tool implementation, which will be developed in a subsequent task (CORE-ToolImplementation).
-
-## Components Involved
-- Testing framework
-- Tool class tests
-- Module class integration
-- Effect TS integration
-- Test utilities and mocks
-
-## Dependencies
+## Dependencies (Original)
 - SETUP-ProjectStructure (must be completed first)
 - SETUP-DependencyManagement (must be completed first)
-- TEST-Framework (must be completed first)
-- TEST-ConversionTemplate (must be completed first)
-- TEST-FieldTests (must be completed first)
-- CORE-FieldImplementation (must be completed first)
-- TEST-SignatureTests (must be completed first)
-- CORE-SignatureImplementation (must be completed first)
-- TEST-ModuleTests (must be completed first)
-- CORE-ModuleImplementation (must be completed first)
+- TEST-Framework (Vitest setup, Effect test utilities)
+- TEST-ConversionTemplate (guidelines for test conversion)
+- CORE-ModuleImplementation (if Tool is a Module or used by Modules)
 
-## Implementation Checklist
-- [ ] Identify all Python test files related to Tool functionality
-  - [ ] Locate tests in the primitives directory
-  - [ ] Identify any other relevant test files
-- [ ] Analyze the test structure and patterns
-  - [ ] Identify test cases and assertions
-  - [ ] Identify dependencies and mocks
-  - [ ] Identify Python-specific patterns that need adaptation
-- [ ] Create TypeScript test files
-  - [ ] Create directory structure for tests
-  - [ ] Create test files with equivalent structure
-  - [ ] Convert test cases to TypeScript
-- [ ] Adapt tests for TypeScript and Effect TS
-  - [ ] Convert dynamic typing patterns to static typing
-  - [ ] Integrate Effect TS for error handling
-  - [ ] Use Zod for type validation
-- [ ] Create mock implementations
-  - [ ] Create mocks for dependencies
-  - [ ] Create test utilities for common patterns
-- [ ] Verify test coverage
-  - [ ] Ensure all Python test cases are covered
-  - [ ] Add TypeScript-specific test cases if needed
-- [ ] Document test patterns and utilities
-  - [ ] Document how to write similar tests
-  - [ ] Document how to use the test utilities
+## Granular Workplans
+- [TEST-TlTests-01-IdentifyPyTests](../../Documentation/Plans/TEST-TlTests-01-IdentifyPyTests.md) - Identify Python Tool tests
+- [TEST-TlTests-02-AnalyzeStructure](../../Documentation/Plans/TEST-TlTests-02-AnalyzeStructure.md) - Analyze test structure and patterns
+- [TEST-TlTests-03-CreateTSFiles](../../Documentation/Plans/TEST-TlTests-03-CreateTSFiles.md) - Create TypeScript test files
+- [TEST-TlTests-04-AdaptTests](../../Documentation/Plans/TEST-TlTests-04-AdaptTests.md) - Adapt tests for TypeScript & Effect
+- [TEST-TlTests-05-CreateMocks](../../Documentation/Plans/TEST-TlTests-05-CreateMocks.md) - Create mock implementations
+- [TEST-TlTests-06-VerifyCoverage](../../Documentation/Plans/TEST-TlTests-06-VerifyCoverage.md) - Verify test coverage
+- [TEST-TlTests-07-DocumentPatterns](../../Documentation/Plans/TEST-TlTests-07-DocumentPatterns.md) - Document test patterns
 
-## Verification Steps
-1. Run the converted tests with `npm run test src/tests/primitives/tool.test.ts`
-2. Verify that all tests fail (since the implementation doesn't exist yet)
-3. Verify that the test failures provide clear guidance for implementation
-4. Run test coverage analysis to ensure all aspects of Tool functionality are covered
-5. Review the tests to ensure they follow TypeScript and Effect TS best practices
-6. Verify that the tests can be used as a specification for the Tool implementation
-
-## Decision Authority
+## Decision Authority (Original)
 - Independent decisions:
-  - Test file organization and naming
-  - Test utility implementation details
-  - Mock implementation details
-  - TypeScript-specific test adaptations
+  - Test file organization and naming.
+  - Test utility implementation details.
+  - Mock implementation details.
+  - TypeScript-specific test adaptations.
 
 - Requires user input:
-  - Any significant deviations from Python test coverage
-  - Additional test cases not present in Python version
-  - Changes to the expected behavior of Tool
+  - Any significant deviations from Python test coverage.
+  - Additional test cases not present in Python version.
+  - Changes to the expected behavior of Tool.
 
-## Questions/Uncertainties
+## Questions/Uncertainties (Original)
 
 ### Blocking
-- How should we handle Python's tool execution in TypeScript?
-- How should we integrate Effect TS patterns for handling tool execution?
-- How should we handle Python's dynamic tool registration in TypeScript?
+- How should we handle Python's tool execution in TypeScript, especially argument parsing and schema definition?
+- How should we integrate Effect TS patterns for handling tool execution (sync/async, errors)?
 
 ### Non-blocking
-- Exact test organization can be refined over time
-- Test utility implementation details can be adjusted based on experience
-- Additional test cases can be added as needed
+- Exact test organization can be refined over time.
+- Test utility implementation details can be adjusted based on experience.
 
-## Acceptable Tradeoffs
-- We may need to adapt some Python test patterns to work better with TypeScript
-- Initial test coverage may not be 100% identical to Python version
-- Some Python-specific features may need different approaches in TypeScript
-- We may need to create additional test utilities not present in the Python version
+## Acceptable Tradeoffs (Original)
+- We may need to adapt some Python test patterns to work better with TypeScript.
+- Argument schema definition in TypeScript will likely be more explicit (e.g., using Zod) than Python's introspection.
 
 ## Status
-Not Started
+In Progress (Refactored into granular tasks)
 
 ## Notes
-- The Tool class is an important component for external tool integration, so its tests are critical
-- The test conversion should focus on maintaining functional equivalence while leveraging TypeScript features
-- Effect TS integration is a key aspect of the TypeScript implementation
-- These tests will build on the patterns established in the previous test conversions
+- The Tool class is important for agentic behaviors; its tests are critical.
+- Test conversion should focus on maintaining functional equivalence for tool definition, execution, and error handling.

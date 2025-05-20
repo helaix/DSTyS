@@ -1,120 +1,80 @@
-# CORE-ToolImplementation
+# Epic Overview: Tool Implementation (CORE-ToolImplementation)
 
 ## Task ID
-CORE-ToolImplementation
+CORE-ToolImplementation (Epic)
 
 ## Problem Statement
-The Tool class is an important component of the DSTyS library, enabling integration with external tools and functions. We need to implement the Tool class with TypeScript's type system and integrate it with Module, Effect for error handling and functional patterns, and ensure it supports tool execution and error handling. The implementation must pass all the tests created in the TEST-ToolTests task.
+The Tool class is an important component of the DSTyS library, enabling integration with external tools and functions (e.g., calculators, search engines, APIs). We need to implement the Tool class with TypeScript's type system, integrate it with Module concepts (as Tools can be seen as simple modules), use Effect for error handling during tool execution, and ensure it supports dynamic invocation by agentic modules like ReAct. The implementation must pass all the tests created in the TEST-ToolTests task.
 
-## Proposed Implementation
-We will implement the Tool class in TypeScript, integrating it with Module, Effect for error handling and functional patterns, and ensuring it supports tool execution and error handling. The implementation will include:
-
-1. Creating the Tool class definition with TypeScript generics
-2. Implementing tool execution logic
-3. Creating tool registration and management
-4. Implementing error handling for tool execution
-5. Using Effect for error handling and functional patterns
-6. Implementing serialization and deserialization
+## Proposed Implementation (High-Level)
+We will implement the `Tool` class in TypeScript. Key aspects include:
+- Defining the `Tool` class structure, which will wrap a user-provided function.
+- Automatically inferring or allowing explicit definition of the tool's name, description, and input arguments (name, type, description for each argument). This metadata is crucial for LMs to decide when and how to use the tool.
+- Implementing an execution method (e.g., `tool.execute(args)`) that calls the wrapped function with provided arguments, handles type validation for arguments, and manages errors using Effect.
+- Supporting both synchronous and asynchronous tool functions.
+- Implementing serialization/deserialization for tool definitions if tools are to be part of saved module state (less common for tools themselves, more for modules that *use* tools).
 
 The implementation will follow these principles:
-- Leverage TypeScript's type system for compile-time safety
-- Use Effect for error handling and functional patterns
-- Maintain compatibility with the Python DSPy API
-- Provide a type-safe and developer-friendly API
-- Support tool execution and error handling
+- Leverage TypeScript's type system for defining tool argument schemas (possibly using Zod or Pydantic-like models).
+- Use Effect for handling errors during tool execution (e.g., function throws an error, argument validation fails).
+- Maintain conceptual compatibility with Python DSPy's `Tool` API.
+- Provide a type-safe and developer-friendly API for defining and using tools.
 
-The Tool implementation will enable integration with external tools and functions, particularly for use with ReAct and other advanced prediction modules.
+The `Tool` implementation will enable modules like `ReAct` to dynamically invoke external functionalities.
 
-## Components Involved
-- Tool class
-- Module integration
-- Effect integration
-- Tool execution
-- Error handling
+## Components Involved (High-Level)
+- `Tool` class
+- Argument schema inference/definition (potentially using Zod or reflection)
+- Tool execution logic (sync and async)
+- Effect integration for error handling
 
-## Dependencies
+## Dependencies (Original)
 - SETUP-ProjectStructure (must be completed first)
 - SETUP-DependencyManagement (must be completed first)
 - TEST-ToolTests (must be completed first)
-- CORE-FieldImplementation (must be completed first)
-- CORE-SignatureImplementation (must be completed first)
-- CORE-ModuleImplementation (must be completed first)
+- CORE-FieldImplementation (for argument definitions, if aligned)
+- CORE-SignatureImplementation (if tool I/O is modeled as a signature)
+- CORE-ModuleImplementation (if Tool itself is a Module or used by Modules)
 - Effect library
+- Zod library (for argument validation)
 
-## Implementation Checklist
-- [ ] Create Tool class definition
-  - [ ] Define Tool interface with generics
-  - [ ] Implement tool metadata
-  - [ ] Create tool factory function
-- [ ] Implement tool execution
-  - [ ] Create execution logic
-  - [ ] Implement input validation
-  - [ ] Handle output validation
-- [ ] Create tool registration
-  - [ ] Implement tool registry
-  - [ ] Create registration methods
-  - [ ] Implement tool discovery
-- [ ] Implement error handling
-  - [ ] Create error types
-  - [ ] Implement error handling logic
-  - [ ] Create error reporting
-- [ ] Implement Effect integration
-  - [ ] Use Effect for error handling
-  - [ ] Create Effect-based execution
-  - [ ] Implement functional patterns
-- [ ] Implement serialization and deserialization
-  - [ ] Create JSON serialization
-  - [ ] Implement deserialization
-  - [ ] Handle complex tool structures
-- [ ] Ensure test compatibility
-  - [ ] Verify all tests pass
-  - [ ] Address any issues or edge cases
-  - [ ] Optimize implementation if needed
+## Granular Workplans
+- [CORE-ToolImpl-01-ClassDef](../../Documentation/Plans/CORE-ToolImpl-01-ClassDef.md) - Create Tool class definition
+- [CORE-ToolImpl-02-Execution](../../Documentation/Plans/CORE-ToolImpl-02-Execution.md) - Implement tool execution logic (sync/async)
+- [CORE-ToolImpl-03-ArgParsing](../../Documentation/Plans/CORE-ToolImpl-03-ArgParsing.md) - Implement argument parsing and schema generation
+- [CORE-ToolImpl-04-ErrorHandling](../../Documentation/Plans/CORE-ToolImpl-04-ErrorHandling.md) - Implement error handling for tool execution
+- [CORE-ToolImpl-05-EffectIntegration](../../Documentation/Plans/CORE-ToolImpl-05-EffectIntegration.md) - Deepen Effect integration for execution flow
+- [CORE-ToolImpl-06-Serialization](../../Documentation/Plans/CORE-ToolImpl-06-Serialization.md) - Implement serialization (if applicable for tool definitions)
+- [CORE-ToolImpl-07-TestCompatibility](../../Documentation/Plans/CORE-ToolImpl-07-TestCompatibility.md) - Ensure test compatibility
 
-## Verification Steps
-1. Run the Tool tests with `npm run test src/tests/primitives/tool.test.ts`
-2. Verify that all tests pass
-3. Check that the implementation follows TypeScript and Effect TS best practices
-4. Verify that the Tool class works correctly with Module
-5. Ensure that the Tool class can be used for external tool integration
-6. Check that the implementation is compatible with the Python DSPy API
-7. Verify that the implementation handles edge cases correctly
-
-## Decision Authority
+## Decision Authority (Original)
 - Independent decisions:
-  - Implementation details
-  - TypeScript-specific adaptations
-  - Utility function implementation
-  - Error handling details
+  - Internal implementation of argument parsing and validation.
+  - TypeScript-specific adaptations for wrapping user functions.
+  - Error handling details for tool execution failures.
 
 - Requires user input:
-  - Any significant deviations from Python API
-  - Additional features not present in Python version
-  - Changes to the expected behavior of Tool
+  - Any significant deviations from Python DSPy's `Tool` API.
+  - Strategy for argument schema generation/inference if significantly different from Python's inspect-based approach.
 
-## Questions/Uncertainties
+## Questions/Uncertainties (Original)
 
 ### Blocking
-- How should we handle Python's tool execution in TypeScript?
-- What is the best way to implement tool registration in TypeScript?
-- How should we handle asynchronous tool execution with Effect?
+- How to best infer argument schemas (names, types, descriptions) from TypeScript functions, especially for complex types or if decorators are not heavily used. Runtime type information in JS/TS is limited.
+- Handling asynchronous tool functions seamlessly.
 
 ### Non-blocking
-- Exact implementation details can be refined over time
-- Utility function implementation can be adjusted based on experience
-- Additional features can be added as needed
+- The exact format for representing tool argument schemas internally.
+- Support for advanced features like dynamic tool registration/discovery if not part of core Python DSPy `Tool`.
 
-## Acceptable Tradeoffs
-- We may need to adapt some Python patterns to work better with TypeScript
-- Initial implementation may not include all Python features
-- Some Python-specific features may need different approaches in TypeScript
-- We may need to create additional utilities not present in the Python version
+## Acceptable Tradeoffs (Original)
+- May require more explicit type/schema definitions for tool arguments in TypeScript compared to Python's dynamic introspection, to ensure type safety.
+- Initial implementation might focus on tools with simple primitive arguments, with complex object/Pydantic model arguments handled iteratively.
 
 ## Status
-Not Started
+In Progress (Refactored into granular tasks)
 
 ## Notes
-- The Tool class is an important component for external tool integration, so its implementation is critical
-- The implementation should focus on maintaining functional equivalence while leveraging TypeScript features
-- Effect TS integration is a key aspect of the TypeScript implementation
-- This implementation will build on the patterns established in the previous implementations
+- The `Tool` class is crucial for enabling agentic behaviors and interactions with external systems.
+- Type safety in argument passing and robust error handling during execution are key priorities.
+- Effect TS integration will manage the asynchronous and fallible nature of tool calls.

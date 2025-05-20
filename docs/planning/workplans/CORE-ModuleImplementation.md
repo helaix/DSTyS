@@ -1,120 +1,86 @@
-# CORE-ModuleImplementation
+# Epic Overview: Module Implementation (CORE-ModuleImplementation)
 
 ## Task ID
-CORE-ModuleImplementation
+CORE-ModuleImplementation (Epic)
 
 ## Problem Statement
-The Module class is a core component of the DSTyS library, serving as the base class for all modules in the system. We need to implement the Module class with TypeScript's type system and integrate it with Signature, Effect for error handling and functional patterns, and ensure it supports composition and parameter management. The implementation must pass all the tests created in the TEST-ModuleTests task.
+The Module class is a core component of the DSTyS library, serving as the base class for all modules in the system (e.g., Predict, ChainOfThought, ReAct). We need to implement the Module class with TypeScript's type system, integrate it with Signature for defining I/O, use Effect for error handling and functional patterns, and ensure it supports composition and parameter management (like few-shot demos). The implementation must pass all the tests created in the TEST-ModuleTests task.
 
-## Proposed Implementation
-We will implement the Module class in TypeScript, integrating it with Signature, Effect for error handling and functional patterns, and ensuring it supports composition and parameter management. The implementation will include:
-
-1. Creating the Module class definition with TypeScript generics
-2. Implementing the forward method for processing inputs
-3. Creating parameter management functionality
-4. Implementing module composition
-5. Using Effect for error handling and functional patterns
-6. Implementing serialization and deserialization
+## Proposed Implementation (High-Level)
+We will implement the `Module` base class in TypeScript. Key aspects include:
+- Defining the `Module` class structure, possibly as an abstract class or interface that other modules will implement/extend.
+- Implementing a `forward` method signature that concrete modules will override to define their logic. This method will likely be asynchronous and return an `Effect`.
+- Establishing mechanisms for parameter management, such as storing and accessing few-shot demonstrations (`demos`) and Language Model (`lm`) configurations.
+- Supporting module composition, allowing complex pipelines to be built from simpler modules.
+- Integrating Effect TS for robust error handling and to manage asynchronous operations within the `forward` method.
+- Implementing serialization and deserialization for saving and loading module states (including parameters and potentially sub-modules).
 
 The implementation will follow these principles:
-- Leverage TypeScript's type system for compile-time safety
-- Use Effect for error handling and functional patterns
-- Maintain compatibility with the Python DSPy API
-- Provide a type-safe and developer-friendly API
-- Support composition and parameter management
+- Leverage TypeScript's type system for compile-time safety and clear interfaces.
+- Use Effect for error handling and functional composition of asynchronous tasks.
+- Maintain conceptual compatibility with the Python DSPy `Module` API.
+- Provide a type-safe and developer-friendly API for creating and composing modules.
+- Support essential features like parameter management (demos, LMs) and state serialization.
 
-The Module implementation will serve as a foundation for all other modules in the system, including Predict and other prediction modules.
+The `Module` implementation will serve as the foundation for all other modules in the system.
 
-## Components Involved
-- Module class
-- Signature integration
-- Effect integration
-- Parameter management
-- Module composition
+## Components Involved (High-Level)
+- `Module` base class/interface
+- `Signature` integration for I/O definition
+- `Effect` integration for `forward` method and error handling
+- Parameter management (demos, LM instances)
+- Module composition logic
+- Serialization/deserialization mechanisms
 
-## Dependencies
+## Dependencies (Original)
 - SETUP-ProjectStructure (must be completed first)
 - SETUP-DependencyManagement (must be completed first)
 - TEST-ModuleTests (must be completed first)
 - CORE-FieldImplementation (must be completed first)
 - CORE-SignatureImplementation (must be completed first)
-- CORE-ExampleImplementation (must be completed first)
+- CORE-ExampleImplementation (for demos)
 - Effect library
 
-## Implementation Checklist
-- [ ] Create Module class definition
-  - [ ] Define Module interface with generics
-  - [ ] Implement module metadata
-  - [ ] Create module factory function
-- [ ] Implement forward method
-  - [ ] Create input validation
-  - [ ] Implement processing logic
-  - [ ] Handle output validation
-- [ ] Create parameter management
-  - [ ] Implement parameter storage
-  - [ ] Create parameter access methods
-  - [ ] Implement parameter updates
-- [ ] Implement module composition
-  - [ ] Create composition utilities
-  - [ ] Implement sub-module management
-  - [ ] Handle parameter propagation
-- [ ] Implement Effect integration
-  - [ ] Use Effect for error handling
-  - [ ] Create Effect-based processing
-  - [ ] Implement functional patterns
-- [ ] Implement serialization and deserialization
-  - [ ] Create JSON serialization
-  - [ ] Implement deserialization
-  - [ ] Handle complex module structures
-- [ ] Ensure test compatibility
-  - [ ] Verify all tests pass
-  - [ ] Address any issues or edge cases
-  - [ ] Optimize implementation if needed
+## Granular Workplans
+- [CORE-ModImpl-01-ClassDef](../../Documentation/Plans/CORE-ModImpl-01-ClassDef.md) - Create Module class definition
+- [CORE-ModImpl-02-ForwardMethod](../../Documentation/Plans/CORE-ModImpl-02-ForwardMethod.md) - Implement `forward` method (signature and base logic)
+- [CORE-ModImpl-03-ParamMgmt](../../Documentation/Plans/CORE-ModImpl-03-ParamMgmt.md) - Create parameter management (demos, LMs)
+- [CORE-ModImpl-04-Composition](../../Documentation/Plans/CORE-ModImpl-04-Composition.md) - Implement module composition
+- [CORE-ModImpl-05-EffectIntegration](../../Documentation/Plans/CORE-ModImpl-05-EffectIntegration.md) - Implement Effect integration
+- [CORE-ModImpl-06-Serialization](../../Documentation/Plans/CORE-ModImpl-06-Serialization.md) - Implement serialization and deserialization
+- [CORE-ModImpl-07-TestCompatibility](../../Documentation/Plans/CORE-ModImpl-07-TestCompatibility.md) - Ensure test compatibility
 
-## Verification Steps
-1. Run the Module tests with `npm run test src/tests/primitives/module.test.ts`
-2. Verify that all tests pass
-3. Check that the implementation follows TypeScript and Effect TS best practices
-4. Verify that the Module class works correctly with Signature
-5. Ensure that the Module class can be used as a base for other modules
-6. Check that the implementation is compatible with the Python DSPy API
-7. Verify that the implementation handles edge cases correctly
-
-## Decision Authority
+## Decision Authority (Original)
 - Independent decisions:
-  - Implementation details
-  - TypeScript-specific adaptations
-  - Utility function implementation
-  - Error handling details
+  - Implementation details of parameter storage and composition.
+  - TypeScript-specific adaptations for class structure.
+  - Utility function implementation.
+  - Error handling details within the base module.
 
 - Requires user input:
-  - Any significant deviations from Python API
-  - Additional features not present in Python version
-  - Changes to the expected behavior of Module
+  - Any significant deviations from Python DSPy's `Module` API or behavior.
+  - Design choices for how sub-modules are registered and accessed if different from Python's attribute-based approach.
 
-## Questions/Uncertainties
+## Questions/Uncertainties (Original)
 
 ### Blocking
-- How should we handle Python's class inheritance in TypeScript?
-- What is the best way to implement module composition in TypeScript?
-- How should we handle asynchronous operations with Effect?
+- How to best handle Python's dynamic class inheritance and attribute-based sub-module discovery in TypeScript.
+- What is the most idiomatic TypeScript/Effect way to implement module composition and parameter propagation?
+- How to manage asynchronous operations within the `forward` method using Effect effectively.
 
 ### Non-blocking
-- Exact implementation details can be refined over time
-- Utility function implementation can be adjusted based on experience
-- Additional features can be added as needed
+- Exact implementation details of serialization can be refined.
+- Specific utility functions for module introspection can be added iteratively.
 
-## Acceptable Tradeoffs
-- We may need to adapt some Python patterns to work better with TypeScript
-- Initial implementation may not include all Python features
-- Some Python-specific features may need different approaches in TypeScript
-- We may need to create additional utilities not present in the Python version
+## Acceptable Tradeoffs (Original)
+- May need to adapt some Python patterns (like dynamic attribute assignment for sub-modules) to more explicit TypeScript mechanisms (e.g., registration methods or typed constructors).
+- Initial implementation might focus on core `Module` capabilities, with advanced features like deep-copying strategies for parameters refined later.
 
 ## Status
-Not Started
+In Progress (Refactored into granular tasks)
 
 ## Notes
-- The Module class is a fundamental building block of the library, so its implementation is critical
-- The implementation should focus on maintaining functional equivalence while leveraging TypeScript features
-- Effect TS integration is a key aspect of the TypeScript implementation
-- This implementation will build on the patterns established in the previous implementations
+- The `Module` class is a fundamental building block of the library, so its implementation is critical.
+- The implementation should focus on maintaining functional equivalence while leveraging TypeScript features for better type safety and developer experience.
+- Effect TS integration is a key aspect of the TypeScript implementation, especially for the `forward` method.
+- This implementation will build on the patterns established in previous component implementations (Field, Signature, Example).

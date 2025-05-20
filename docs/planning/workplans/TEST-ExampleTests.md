@@ -1,115 +1,74 @@
-# TEST-ExampleTests
+# Epic Overview: Example Tests Conversion (TEST-ExampleTests)
 
 ## Task ID
-TEST-ExampleTests
+TEST-ExampleTests (Epic)
 
 ## Problem Statement
-To implement DSTyS using a test-driven development approach, we need to convert the Python DSPy tests for the Example class to TypeScript with Effect TS integration. These tests will serve as the specification for the Example implementation and ensure feature parity with the Python version while leveraging TypeScript's type system and Effect's functional programming patterns.
+To implement DSTyS using a test-driven development approach, we need to convert the Python DSPy tests for the `Example` class to TypeScript with Effect TS integration. These tests will serve as the specification for the `Example` implementation and ensure feature parity with the Python version while leveraging TypeScript's type system and Effect's functional programming patterns.
 
-## Proposed Implementation
-We will convert the Python tests for the Example class to TypeScript, adapting them to work with the TypeScript type system and Effect TS patterns. The implementation will include:
+## Proposed Implementation (High-Level)
+The process involves converting Python tests for the `Example` class to TypeScript, adapting them for TypeScript's static typing and Effect TS patterns for any operations that might involve validation or error handling (though `Example` itself is mostly a data container).
+1.  Analyze Python `Example` tests to understand their scope and assertions.
+2.  Re-implement these tests in TypeScript using Vitest.
+3.  Adapt test logic for TypeScript's type system (e.g., how dynamic attributes are handled).
+4.  Use Effect-based assertions if `Example` methods return `Effect` objects (e.g., for validation).
+5.  Create necessary mocks or test utilities.
+The converted tests will guide the `CORE-ExampleImplementation`.
 
-1. Analyzing the Python test files related to Example functionality
-2. Creating equivalent TypeScript test files using Vitest
-3. Adapting the tests to use Effect TS for error handling and functional patterns
-4. Creating mock implementations of dependencies needed for testing
-5. Ensuring the tests cover all functionality of the Example class
+## Components Involved (High-Level)
+- Vitest testing framework
+- TypeScript test files for `Example`
+- Mocks for any dependencies of `Example` during testing (e.g., `Signature` for validation tests)
+- Effect TS testing patterns
 
-The test conversion will follow these principles:
-- Maintain the same test coverage and assertions as the Python version
-- Adapt to TypeScript's static typing system
-- Integrate Effect TS patterns for handling effects and errors
-- Use Vitest for test execution and assertions
-- Create reusable test utilities for common patterns
-
-The converted tests will serve as the specification for the Example implementation, which will be developed in a subsequent task (CORE-ExampleImplementation).
-
-## Components Involved
-- Testing framework
-- Example class tests
-- Signature class integration
-- Effect TS integration
-- Test utilities and mocks
-
-## Dependencies
+## Dependencies (Original)
 - SETUP-ProjectStructure (must be completed first)
 - SETUP-DependencyManagement (must be completed first)
-- TEST-Framework (must be completed first)
-- TEST-ConversionTemplate (must be completed first)
-- TEST-FieldTests (must be completed first)
-- CORE-FieldImplementation (must be completed first)
-- TEST-SignatureTests (must be completed first)
-- CORE-SignatureImplementation (must be completed first)
+- TEST-Framework (Vitest setup, Effect test utilities)
+- TEST-ConversionTemplate (guidelines for test conversion)
+- TEST-FieldTests & CORE-FieldImplementation (if `Example` interacts with `Field`)
+- TEST-SignatureTests & CORE-SignatureImplementation (if `Example` interacts with `Signature`)
 
-## Implementation Checklist
-- [ ] Identify all Python test files related to Example functionality
-  - [ ] Locate tests in the primitives directory
-  - [ ] Identify any other relevant test files
-- [ ] Analyze the test structure and patterns
-  - [ ] Identify test cases and assertions
-  - [ ] Identify dependencies and mocks
-  - [ ] Identify Python-specific patterns that need adaptation
-- [ ] Create TypeScript test files
-  - [ ] Create directory structure for tests
-  - [ ] Create test files with equivalent structure
-  - [ ] Convert test cases to TypeScript
-- [ ] Adapt tests for TypeScript and Effect TS
-  - [ ] Convert dynamic typing patterns to static typing
-  - [ ] Integrate Effect TS for error handling
-  - [ ] Use Zod for type validation
-- [ ] Create mock implementations
-  - [ ] Create mocks for dependencies
-  - [ ] Create test utilities for common patterns
-- [ ] Verify test coverage
-  - [ ] Ensure all Python test cases are covered
-  - [ ] Add TypeScript-specific test cases if needed
-- [ ] Document test patterns and utilities
-  - [ ] Document how to write similar tests
-  - [ ] Document how to use the test utilities
+## Granular Workplans
+- [TEST-ExTests-01-IdentifyTests](../../Documentation/Plans/TEST-ExTests-01-IdentifyTests.md) - Identify Python Example tests
+- [TEST-ExTests-02-AnalyzeStructure](../../Documentation/Plans/TEST-ExTests-02-AnalyzeStructure.md) - Analyze test structure and patterns
+- [TEST-ExTests-03-CreateTSFiles](../../Documentation/Plans/TEST-ExTests-03-CreateTSFiles.md) - Create TypeScript test files
+- [TEST-ExTests-04-AdaptTests](../../Documentation/Plans/TEST-ExTests-04-AdaptTests.md) - Adapt tests for TypeScript & Effect
+- [TEST-ExTests-05-CreateMocks](../../Documentation/Plans/TEST-ExTests-05-CreateMocks.md) - Create mock implementations
+- [TEST-ExTests-06-VerifyCoverage](../../Documentation/Plans/TEST-ExTests-06-VerifyCoverage.md) - Verify test coverage
+- [TEST-ExTests-07-DocumentPatterns](../../Documentation/Plans/TEST-ExTests-07-DocumentPatterns.md) - Document test patterns
 
-## Verification Steps
-1. Run the converted tests with `npm run test src/tests/primitives/example.test.ts`
-2. Verify that all tests fail (since the implementation doesn't exist yet)
-3. Verify that the test failures provide clear guidance for implementation
-4. Run test coverage analysis to ensure all aspects of Example functionality are covered
-5. Review the tests to ensure they follow TypeScript and Effect TS best practices
-6. Verify that the tests can be used as a specification for the Example implementation
-
-## Decision Authority
+## Decision Authority (Original)
 - Independent decisions:
-  - Test file organization and naming
-  - Test utility implementation details
-  - Mock implementation details
-  - TypeScript-specific test adaptations
+  - Test file organization and naming.
+  - Test utility implementation details.
+  - Mock implementation details.
+  - TypeScript-specific test adaptations.
 
 - Requires user input:
-  - Any significant deviations from Python test coverage
-  - Additional test cases not present in Python version
-  - Changes to the expected behavior of Example
+  - Any significant deviations from Python test coverage.
+  - Additional test cases not present in Python version.
+  - Changes to the expected behavior of `Example` that impact tests.
 
-## Questions/Uncertainties
+## Questions/Uncertainties (Original)
 
 ### Blocking
-- How should we handle Python's dynamic object creation in TypeScript?
-- How should we integrate Effect TS patterns for error handling in tests?
-- How should we handle serialization and deserialization in TypeScript?
+- How to handle Python's dynamic object creation and attribute access in TypeScript tests for `Example`.
+- How to integrate Effect TS patterns for error handling in tests if `Example` methods become Effect-ful.
+- How serialization and deserialization tests for `Example` should be adapted to TypeScript.
 
 ### Non-blocking
-- Exact test organization can be refined over time
-- Test utility implementation details can be adjusted based on experience
-- Additional test cases can be added as needed
+- Exact test organization can be refined.
+- Test utility implementation details can be adjusted.
 
-## Acceptable Tradeoffs
-- We may need to adapt some Python test patterns to work better with TypeScript
-- Initial test coverage may not be 100% identical to Python version
-- Some Python-specific features may need different approaches in TypeScript
-- We may need to create additional test utilities not present in the Python version
+## Acceptable Tradeoffs (Original)
+- May need to adapt some Python test patterns to TypeScript idioms.
+- Initial test coverage might not be 100% identical if some Python-specific dynamic behaviors are not directly replicated.
 
 ## Status
-Not Started
+In Progress (Refactored into granular tasks)
 
 ## Notes
-- The Example class is a fundamental building block for few-shot learning, so its tests are critical
-- The test conversion should focus on maintaining functional equivalence while leveraging TypeScript features
-- Effect TS integration is a key aspect of the TypeScript implementation
-- These tests will build on the patterns established in the Field and Signature tests
+- The `Example` class is fundamental; its tests are critical for data handling integrity.
+- Test conversion should focus on behavioral equivalence.
+- These tests will build on patterns from `TEST-FieldTests` and `TEST-SignatureTests` if `Example` interacts with those.

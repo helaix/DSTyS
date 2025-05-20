@@ -1,8 +1,14 @@
-# DSPy Dependency Graph and Implementation Order
+# Epic Overview: DSPy Dependency Graph and Implementation Order (DEPENDENCY-Graph)
 
-This document outlines the dependency structure of the Python DSPy library and provides a recommended implementation order for DSTyS based on these dependencies.
+## Task ID
+DEPENDENCY-Graph (Epic)
 
-## Core Dependencies
+## Problem Statement
+Understanding the dependency structure of the Python DSPy library is crucial for planning a logical and efficient implementation order for DSTyS (DSPy in TypeScript). This document outlines these dependencies and proposes a phased approach for building DSTyS.
+
+## Core Dependencies (Conceptual)
+
+The fundamental components of DSPy and their primary dependencies can be visualized as:
 
 ```
 Field → Signature → Module → Prediction → Predictor Classes (Predict, ChainOfThought, etc.)
@@ -10,159 +16,85 @@ Field → Signature → Module → Prediction → Predictor Classes (Predict, Ch
 BaseLM → LM Implementations (OpenAI, Anthropic, etc.)
 ```
 
-## Detailed Dependency Structure
+This indicates that `Field` definitions are foundational for `Signature`s. `Signature`s define the contracts for `Module`s. `Module`s produce `Prediction`s, and specific `Predictor` classes (which are themselves `Module`s) utilize `LM` (Language Model) clients. `LM` clients derive from a `BaseLM`.
 
-1. **Base Types and Utilities**
-   - Field (signatures/field.py)
-   - Utility functions (utils/)
-   - Exception handling (utils/exceptions.py)
+## Detailed Dependency Structure (from Python DSPy)
 
-2. **Core Primitives**
-   - Signature (signatures/signature.py) → depends on Field
-   - Example (primitives/example.py) → depends on Signature
-   - Module (primitives/module.py) → depends on Signature
-   - Prediction (primitives/prediction.py) → depends on Example
-   - Tool (primitives/tool.py) → depends on Module
+A more detailed look at the Python DSPy codebase reveals the following interconnections:
 
-3. **Language Model Clients**
-   - BaseLM (clients/base_lm.py) → minimal dependencies
-   - LM (clients/lm.py) → depends on BaseLM
-   - Provider-specific clients (clients/openai.py, etc.) → depend on LM
-   - Caching (clients/cache.py) → depends on LM
+1.  **Base Types and Utilities**:
+    *   `Field` (`signatures/field.py`): Defines input/output field metadata.
+    *   Utility functions (`utils/`): General helpers.
+    *   Exception handling (`utils/exceptions.py`).
 
-4. **Prediction Modules**
-   - Predict (predict/predict.py) → depends on Module, Parameter, Prediction
-   - ChainOfThought (predict/chain_of_thought.py) → depends on Predict
-   - Other prediction modules → depend on Predict or ChainOfThought
+2.  **Core Primitives**:
+    *   `Signature` (`signatures/signature.py`): Depends on `Field`. Defines module I/O contracts.
+    *   `Example` (`primitives/example.py`): Represents data instances, often aligned with a `Signature`.
+    *   `Module` (`primitives/module.py`): Base class for all functional units. Uses `Signature`.
+    *   `Prediction` (`primitives/prediction.py`): Represents model outputs, often structured by an `Example` or `Signature`.
+    *   `Tool` (`primitives/tool.py`): Wraps functions for use by modules like `ReAct`. Conceptually a simple `Module`.
 
-5. **Retrieval Components**
-   - Base retriever (retrieve/retrieve.py) → depends on Module
-   - Specific retrievers → depend on base retriever
+3.  **Language Model Clients**:
+    *   `BaseLM` (`clients/base_lm.py`): Abstract base for LMs.
+    *   `LM` (`clients/lm.py`): Concrete LM client, depends on `BaseLM`.
+    *   Provider-specific clients (`clients/openai.py`, etc.): Depend on `LM`.
+    *   `Cache` (`clients/cache.py`): Used by `LM` for caching responses.
 
-6. **Optimization Components**
-   - Teleprompt base (teleprompt/teleprompt.py) → depends on Module, Predict
-   - Specific optimizers → depend on teleprompt base
+4.  **Prediction Modules**:
+    *   `Predict` (`predict/predict.py`): Core prediction module. Depends on `Module`, `Parameter`, `Prediction`.
+    *   `ChainOfThought` (`predict/chain_of_thought.py`): Depends on `Predict`.
+    *   Other prediction modules (ReAct, ProgramOfThought, etc.): Depend on `Predict` or `ChainOfThought`, and potentially `Tool`.
 
-## Implementation Order
+5.  **Retrieval Components**:
+    *   `Retrieve` (base retriever in `retrieve/retrieve.py`): Often a `Module`.
+    *   Specific retrievers (vector-based, etc.): Depend on the base retriever concept.
 
-Based on the dependency structure, here's the recommended implementation order for DSTyS:
+6.  **Optimization Components (Teleprompters)**:
+    *   `Teleprompter` (base in `teleprompt/teleprompt.py`): Depends on `Module`, `Predict`.
+    *   Specific optimizers (BootstrapFewShot, COPRO, etc.): Depend on `Teleprompter`.
+
+## Proposed DSTyS Implementation Order (Phased)
+
+This order aims to build foundational components first, allowing subsequent components to be built upon a stable base. Each phase represents a logical grouping of related functionalities.
 
 ### Phase 1: Foundation
-1. **Field** (signatures/field.ts)
-   - Core type for defining inputs and outputs
-   - Zod integration for validation
-   - Effect integration for error handling
-
-2. **Signature** (signatures/signature.ts)
-   - Depends on Field
-   - Defines input/output structure
-   - Type-safe validation
-
-3. **Example** (primitives/example.ts)
-   - Depends on Signature
-   - Represents examples for few-shot learning
-
-4. **Module** (primitives/module.ts)
-   - Depends on Signature
-   - Base class for all modules
-   - Composition and parameter management
-
-5. **Prediction** (primitives/prediction.ts)
-   - Depends on Example
-   - Represents model outputs
+*   **Field Implementation**: `CORE-FieldImpl-*`
+*   **Signature Implementation**: `CORE-SigImpl-*`
+*   **Example Implementation**: `CORE-ExImpl-*`
+*   **Module (Base) Implementation**: `CORE-ModImpl-*`
+*   **Prediction Implementation**: `CORE-PredImpl-*`
 
 ### Phase 2: Core Functionality
-6. **BaseLM** (clients/base_lm.ts)
-   - Base language model interface
-   - Minimal dependencies
-
-7. **LM** (clients/lm.ts)
-   - Depends on BaseLM
-   - Generic language model implementation
-
-8. **Predict** (predict/predict.ts)
-   - Depends on Module, Prediction
-   - Basic prediction functionality
-
-9. **Tool** (primitives/tool.ts)
-   - Depends on Module
-   - Tool integration
+*   **BaseLM & LM Implementation**: `LM-BaseLMImpl-*`, `LM-LMImpl-*`
+*   **Predict Module Implementation**: `PRED-PredictImpl-*`
+*   **Tool Implementation**: `CORE-ToolImpl-*`
 
 ### Phase 3: Extended Functionality
-10. **ChainOfThought** (predict/chain_of_thought.ts)
-    - Depends on Predict
-    - Reasoning-based prediction
-
-11. **Provider-specific clients** (clients/openai.ts, clients/anthropic.ts)
-    - Depend on LM
-    - Provider-specific implementations
-
-12. **Caching** (clients/cache.ts)
-    - Depends on LM
-    - Caching mechanisms
+*   **ChainOfThought Module Implementation**: `PRED-CoTImpl-*`
+*   **Provider-Specific LM Clients**: (e.g., `LM-OpenAIClientImpl-*`)
+*   **Caching for LMs**: `LM-CachingImpl-*`
 
 ### Phase 4: Advanced Components
-13. **Base retriever** (retrieve/retrieve.ts)
-    - Depends on Module
-    - Base retrieval functionality
+*   **Base Retriever Implementation**: `RETR-BaseRetrieverImpl-*`
+*   **ChainOfThoughtWithHint Module**: `PRED-CoTWithHintImpl-*`
+*   **ReAct Module**: `PRED-ReActImpl-*`
 
-14. **ChainOfThoughtWithHint** (predict/chain_of_thought_with_hint.ts)
-    - Depends on ChainOfThought
-    - Guided reasoning
+### Phase 5: Optimization and Further Advanced Features
+*   **Teleprompter (Base) Implementation**: `OPT-TelepromptImpl-*`
+*   **Specific Retriever Implementations**: (e.g., `RETR-VectorRetrieverImpl-*`)
+*   **Specific Optimizer Implementations**: (e.g., `OPT-BootstrapImpl-*`)
 
-15. **ReAct** (predict/react.ts)
-    - Depends on Predict, Tool
-    - Reasoning and acting
+*(Note: The `TEST-*` workplans for each component should precede their `CORE-*`, `LM-*`, `PRED-*`, etc., implementation workplans as per TDD methodology.)*
 
-### Phase 5: Optimization and Advanced Features
-16. **Teleprompt base** (teleprompt/teleprompt.ts)
-    - Depends on Module, Predict
-    - Base optimization functionality
+## Implementation Considerations for DSTyS
 
-17. **Specific retrievers** (retrieve/vector_retriever.ts, etc.)
-    - Depend on base retriever
-    - Specific retrieval implementations
+*   **Effect TS Integration**: Each component will be designed to leverage Effect TS for error handling, asynchronous operations, and resource management. This is a fundamental architectural choice for DSTyS.
+*   **Type Safety**: TypeScript's static typing will be used extensively. Zod will be used for runtime validation of data, especially at API boundaries or when dealing with dynamic structures.
+*   **Test-Driven Development (TDD)**: Porting Python DSPy tests to TypeScript/Vitest before implementing the corresponding DSTyS component is the primary development strategy.
+*   **Addressing Circular Dependencies**: Python DSPy has some circular dependencies (e.g., Module/Parameter, Predict/Module, LM/Adapters). The TypeScript implementation will aim to resolve these through careful interface design, dependency injection (via Effect Layers), or composition over inheritance where appropriate.
 
-18. **Specific optimizers** (teleprompt/bootstrap.ts, etc.)
-    - Depend on teleprompt base
-    - Specific optimization implementations
+## Status
+Archived (Serves as a foundational reference for project planning and task sequencing)
 
-## Implementation Considerations
-
-1. **Effect TS Integration**
-   - Each component should use Effect for error handling and functional patterns
-   - Effect should be used for asynchronous operations and error recovery
-   - Effect should be used for composing operations
-
-2. **Type Safety**
-   - TypeScript's type system should be leveraged for compile-time safety
-   - Zod should be used for runtime validation
-   - Generic types should be used for flexible, type-safe APIs
-
-3. **Test-Driven Development**
-   - Each component should have corresponding tests converted from Python
-   - Tests should be implemented before the component
-   - Tests should verify both functionality and type safety
-
-4. **Incremental Implementation**
-   - Follow the dependency order to ensure each component has its dependencies implemented
-   - Implement and test each component fully before moving to dependent components
-   - Start with the simplest components and build up to more complex ones
-
-## Circular Dependencies
-
-The Python DSPy codebase has some circular dependencies that should be addressed in the TypeScript implementation:
-
-1. **Module and Parameter**
-   - In Python, these have a circular dependency
-   - In TypeScript, consider using interfaces or type-only imports to break the cycle
-
-2. **Predict and Module**
-   - Predict extends Module but Module uses Predict
-   - Consider refactoring to use composition instead of inheritance
-
-3. **LM and Adapters**
-   - LM uses adapters but adapters use LM
-   - Consider using dependency injection to break the cycle
-
-By addressing these circular dependencies and following the recommended implementation order, the DSTyS project can be built in a structured, incremental manner with clear dependencies and minimal refactoring.
+## Notes
+This document provides a high-level overview of dependencies and a proposed implementation order. Detailed task breakdowns, technical specifications, and specific challenges for each component are covered in their respective granular workplan documents located in `Documentation/Plans/`. The `docs/planning/workplans/Outline.md` provides a comprehensive index to all these workplans.

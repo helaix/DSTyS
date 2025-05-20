@@ -1,78 +1,41 @@
-# TEST-FieldTests
+# Epic Overview: Field Tests Conversion (TEST-FieldTests)
 
 ## Task ID
-TEST-FieldTests
+TEST-FieldTests (Epic)
 
 ## Problem Statement
 To implement DSTyS using a test-driven development approach, we need to convert the Python DSPy tests for the Field type to TypeScript with Effect TS integration. These tests will serve as the specification for the Field implementation and ensure feature parity with the Python version while leveraging TypeScript's type system and Effect's functional programming patterns.
 
-## Proposed Implementation
-We will convert the Python tests for the Field type to TypeScript, adapting them to work with the TypeScript type system and Effect TS patterns. The implementation will include:
+## Proposed Implementation (High-Level)
+We will convert the Python tests for the Field type to TypeScript, adapting them to work with the TypeScript type system and Effect TS patterns. The process involves:
+1. Analyzing Python Field tests.
+2. Re-implementing these tests in TypeScript using Vitest.
+3. Adapting test logic for TypeScript's static typing and Effect TS patterns.
+4. Creating necessary mocks or test utilities.
+The converted tests will guide the `CORE-FieldImplementation`.
 
-1. Analyzing the Python test files related to Field functionality
-2. Creating equivalent TypeScript test files using Vitest
-3. Adapting the tests to use Effect TS for error handling and functional patterns
-4. Creating mock implementations of dependencies needed for testing
-5. Ensuring the tests cover all functionality of the Field type
+## Components Involved (High-Level)
+- Vitest testing framework
+- TypeScript test files for `Field`
+- Mocks for dependencies
+- Effect TS testing patterns
 
-The test conversion will follow these principles:
-- Maintain the same test coverage and assertions as the Python version
-- Adapt to TypeScript's static typing system
-- Integrate Effect TS patterns for handling effects and errors
-- Use Vitest for test execution and assertions
-- Create reusable test utilities for common patterns
-
-The converted tests will serve as the specification for the Field implementation, which will be developed in a subsequent task (CORE-FieldImplementation).
-
-## Components Involved
-- Testing framework
-- Field type tests
-- Effect TS integration
-- Zod integration for type validation
-- Test utilities and mocks
-
-## Dependencies
+## Dependencies (Original)
 - SETUP-ProjectStructure (must be completed first)
 - SETUP-DependencyManagement (must be completed first)
 - TEST-Framework (must be completed first)
 - TEST-ConversionTemplate (must be completed first)
 
-## Implementation Checklist
-- [ ] Identify all Python test files related to Field functionality
-  - [ ] Locate tests in the signatures directory
-  - [ ] Locate tests in the primitives directory
-  - [ ] Identify any other relevant test files
-- [ ] Analyze the test structure and patterns
-  - [ ] Identify test cases and assertions
-  - [ ] Identify dependencies and mocks
-  - [ ] Identify Python-specific patterns that need adaptation
-- [ ] Create TypeScript test files
-  - [ ] Create directory structure for tests
-  - [ ] Create test files with equivalent structure
-  - [ ] Convert test cases to TypeScript
-- [ ] Adapt tests for TypeScript and Effect TS
-  - [ ] Convert dynamic typing patterns to static typing
-  - [ ] Integrate Effect TS for error handling
-  - [ ] Use Zod for type validation
-- [ ] Create mock implementations
-  - [ ] Create mocks for dependencies
-  - [ ] Create test utilities for common patterns
-- [ ] Verify test coverage
-  - [ ] Ensure all Python test cases are covered
-  - [ ] Add TypeScript-specific test cases if needed
-- [ ] Document test patterns and utilities
-  - [ ] Document how to write similar tests
-  - [ ] Document how to use the test utilities
+## Granular Workplans
+- [TEST-FldTests-01-IdentifyPyTests](../../Documentation/Plans/TEST-FldTests-01-IdentifyPyTests.md) - Identify Python Field tests
+- [TEST-FldTests-02-AnalyzeStructure](../../Documentation/Plans/TEST-FldTests-02-AnalyzeStructure.md) - Analyze test structure and patterns
+- [TEST-FldTests-03-CreateTSFiles](../../Documentation/Plans/TEST-FldTests-03-CreateTSFiles.md) - Create TypeScript test files
+- [TEST-FldTests-04-AdaptTests](../../Documentation/Plans/TEST-FldTests-04-AdaptTests.md) - Adapt tests for TypeScript & Effect
+- [TEST-FldTests-05-CreateMocks](../../Documentation/Plans/TEST-FldTests-05-CreateMocks.md) - Create mock implementations
+- [TEST-FldTests-06-VerifyCoverage](../../Documentation/Plans/TEST-FldTests-06-VerifyCoverage.md) - Verify test coverage
+- [TEST-FldTests-07-DocumentPatterns](../../Documentation/Plans/TEST-FldTests-07-DocumentPatterns.md) - Document test patterns
 
-## Verification Steps
-1. Run the converted tests with `npm run test src/tests/signatures/field.test.ts`
-2. Verify that all tests fail (since the implementation doesn't exist yet)
-3. Verify that the test failures provide clear guidance for implementation
-4. Run test coverage analysis to ensure all aspects of Field functionality are covered
-5. Review the tests to ensure they follow TypeScript and Effect TS best practices
-6. Verify that the tests can be used as a specification for the Field implementation
-
-## Decision Authority
+## Decision Authority (Original)
 - Independent decisions:
   - Test file organization and naming
   - Test utility implementation details
@@ -84,7 +47,7 @@ The converted tests will serve as the specification for the Field implementation
   - Additional test cases not present in Python version
   - Changes to the expected behavior of Field
 
-## Questions/Uncertainties
+## Questions/Uncertainties (Original)
 
 ### Blocking
 - How should we handle Python's dynamic typing patterns in TypeScript?
@@ -96,17 +59,17 @@ The converted tests will serve as the specification for the Field implementation
 - Test utility implementation details can be adjusted based on experience
 - Additional test cases can be added as needed
 
-## Acceptable Tradeoffs
+## Acceptable Tradeoffs (Original)
 - We may need to adapt some Python test patterns to work better with TypeScript
 - Initial test coverage may not be 100% identical to Python version
 - Some Python-specific features may need different approaches in TypeScript
 - We may need to create additional test utilities not present in the Python version
 
 ## Status
-Not Started
+In Progress (Refactored into granular tasks)
 
 ## Notes
-- The Field type is a fundamental building block of the library, so its tests are critical
-- The test conversion should focus on maintaining functional equivalence while leveraging TypeScript features
-- Effect TS integration is a key aspect of the TypeScript implementation
-- These tests will serve as a model for converting other component tests
+- The Field type is a fundamental building block of the library, so its tests are critical.
+- The test conversion should focus on maintaining functional equivalence while leveraging TypeScript features.
+- Effect TS integration is a key aspect of the TypeScript implementation.
+- These tests will serve as a model for converting other component tests.

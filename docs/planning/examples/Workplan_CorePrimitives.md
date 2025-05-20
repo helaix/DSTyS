@@ -191,12 +191,12 @@ type ValidationError = {
   readonly message: string;
 };
 
-type ModuleError = 
+type ModuleError =
   | ValidationError
   | { readonly _tag: 'ForwardError'; readonly cause: unknown }
   | { readonly _tag: 'CompositionError'; readonly message: string };
 
-type PredictorError = 
+type PredictorError =
   | { readonly _tag: 'PredictionFailed'; readonly cause: unknown }
   | { readonly _tag: 'Timeout'; readonly milliseconds: number }
   | { readonly _tag: 'RetryLimitExceeded'; readonly attempts: number };
@@ -222,7 +222,7 @@ interface Module {
 // Predictor API
 interface Predictor {
   predict(
-    signature: Signature, 
+    signature: Signature,
     input: Record<string, any>
   ): Effect<never, PredictorError, Record<string, any>>;
 }
@@ -528,4 +528,3 @@ When creating your own Workplan, be sure to:
 - Include relevant diagrams and code examples
 - Define clear testing criteria and review standards
 - Address potential challenges and provide mitigation strategies
-

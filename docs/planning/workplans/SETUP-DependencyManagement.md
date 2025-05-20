@@ -120,4 +120,3 @@ Not Started
 - We should prioritize developer experience and ease of contribution
 - The bundling system should be optimized for both development and production use cases
 - We should consider using modern tools like changesets for version management
-

@@ -46,4 +46,3 @@ When using these examples:
 ## Contributing New Examples
 
 If you have created a document using one of the DSTy project templates that you believe would be valuable as an example, please consider contributing it to this directory. Follow the software development workflow process outlined in the [master issue](https://linear.app/helaix/issue/HLX-1401/software-development-workflow-template-master-issue) to submit your contribution.
-

@@ -110,4 +110,3 @@ Not Started
 - We should prioritize clarity and consistency over direct translation
 - The templates should be flexible enough to accommodate different testing needs
 - We should consider the differences in testing philosophy between Python and TypeScript
-

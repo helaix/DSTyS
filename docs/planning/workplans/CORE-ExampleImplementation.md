@@ -118,4 +118,3 @@ Not Started
 - The implementation should focus on maintaining functional equivalence while leveraging TypeScript features
 - Effect TS integration is a key aspect of the TypeScript implementation
 - This implementation will build on the patterns established in the Field and Signature implementations
-

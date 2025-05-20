@@ -1,19 +1,19 @@
-# TEST-ToolTests
+# TEST-PredictionTests
 
 ## Task ID
-TEST-ToolTests
+TEST-PredictionTests
 
 ## Problem Statement
-To implement DSTyS using a test-driven development approach, we need to convert the Python DSPy tests for the Tool class to TypeScript with Effect TS integration. These tests will serve as the specification for the Tool implementation and ensure feature parity with the Python version while leveraging TypeScript's type system and Effect's functional programming patterns.
+To implement DSTyS using a test-driven development approach, we need to convert the Python DSPy tests for the Prediction class to TypeScript with Effect TS integration. These tests will serve as the specification for the Prediction implementation and ensure feature parity with the Python version while leveraging TypeScript's type system and Effect's functional programming patterns.
 
 ## Proposed Implementation
-We will convert the Python tests for the Tool class to TypeScript, adapting them to work with the TypeScript type system and Effect TS patterns. The implementation will include:
+We will convert the Python tests for the Prediction class to TypeScript, adapting them to work with the TypeScript type system and Effect TS patterns. The implementation will include:
 
-1. Analyzing the Python test files related to Tool functionality
+1. Analyzing the Python test files related to Prediction functionality
 2. Creating equivalent TypeScript test files using Vitest
 3. Adapting the tests to use Effect TS for error handling and functional patterns
 4. Creating mock implementations of dependencies needed for testing
-5. Ensuring the tests cover all functionality of the Tool class
+5. Ensuring the tests cover all functionality of the Prediction class
 
 The test conversion will follow these principles:
 - Maintain the same test coverage and assertions as the Python version
@@ -22,12 +22,12 @@ The test conversion will follow these principles:
 - Use Vitest for test execution and assertions
 - Create reusable test utilities for common patterns
 
-The converted tests will serve as the specification for the Tool implementation, which will be developed in a subsequent task (CORE-ToolImplementation).
+The converted tests will serve as the specification for the Prediction implementation, which will be developed in a subsequent task (CORE-PredictionImplementation).
 
 ## Components Involved
 - Testing framework
-- Tool class tests
-- Module class integration
+- Prediction class tests
+- Example class integration
 - Effect TS integration
 - Test utilities and mocks
 
@@ -40,11 +40,13 @@ The converted tests will serve as the specification for the Tool implementation,
 - CORE-FieldImplementation (must be completed first)
 - TEST-SignatureTests (must be completed first)
 - CORE-SignatureImplementation (must be completed first)
+- TEST-ExampleTests (must be completed first)
+- CORE-ExampleImplementation (must be completed first)
 - TEST-ModuleTests (must be completed first)
 - CORE-ModuleImplementation (must be completed first)
 
 ## Implementation Checklist
-- [ ] Identify all Python test files related to Tool functionality
+- [ ] Identify all Python test files related to Prediction functionality
   - [ ] Locate tests in the primitives directory
   - [ ] Identify any other relevant test files
 - [ ] Analyze the test structure and patterns
@@ -70,12 +72,12 @@ The converted tests will serve as the specification for the Tool implementation,
   - [ ] Document how to use the test utilities
 
 ## Verification Steps
-1. Run the converted tests with `npm run test src/tests/primitives/tool.test.ts`
+1. Run the converted tests with `npm run test src/tests/primitives/prediction.test.ts`
 2. Verify that all tests fail (since the implementation doesn't exist yet)
 3. Verify that the test failures provide clear guidance for implementation
-4. Run test coverage analysis to ensure all aspects of Tool functionality are covered
+4. Run test coverage analysis to ensure all aspects of Prediction functionality are covered
 5. Review the tests to ensure they follow TypeScript and Effect TS best practices
-6. Verify that the tests can be used as a specification for the Tool implementation
+6. Verify that the tests can be used as a specification for the Prediction implementation
 
 ## Decision Authority
 - Independent decisions:
@@ -87,14 +89,14 @@ The converted tests will serve as the specification for the Tool implementation,
 - Requires user input:
   - Any significant deviations from Python test coverage
   - Additional test cases not present in Python version
-  - Changes to the expected behavior of Tool
+  - Changes to the expected behavior of Prediction
 
 ## Questions/Uncertainties
 
 ### Blocking
-- How should we handle Python's tool execution in TypeScript?
-- How should we integrate Effect TS patterns for handling tool execution?
-- How should we handle Python's dynamic tool registration in TypeScript?
+- How should we handle Python's inheritance from Example in TypeScript?
+- How should we integrate Effect TS patterns for handling completions?
+- How should we handle Python's dynamic attribute access in TypeScript?
 
 ### Non-blocking
 - Exact test organization can be refined over time
@@ -111,8 +113,7 @@ The converted tests will serve as the specification for the Tool implementation,
 Not Started
 
 ## Notes
-- The Tool class is an important component for external tool integration, so its tests are critical
+- The Prediction class is a fundamental building block for model outputs, so its tests are critical
 - The test conversion should focus on maintaining functional equivalence while leveraging TypeScript features
 - Effect TS integration is a key aspect of the TypeScript implementation
 - These tests will build on the patterns established in the previous test conversions
-

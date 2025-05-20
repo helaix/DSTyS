@@ -1,19 +1,19 @@
-# TEST-ExampleTests
+# TEST-ModuleTests
 
 ## Task ID
-TEST-ExampleTests
+TEST-ModuleTests
 
 ## Problem Statement
-To implement DSTyS using a test-driven development approach, we need to convert the Python DSPy tests for the Example class to TypeScript with Effect TS integration. These tests will serve as the specification for the Example implementation and ensure feature parity with the Python version while leveraging TypeScript's type system and Effect's functional programming patterns.
+To implement DSTyS using a test-driven development approach, we need to convert the Python DSPy tests for the Module class to TypeScript with Effect TS integration. These tests will serve as the specification for the Module implementation and ensure feature parity with the Python version while leveraging TypeScript's type system and Effect's functional programming patterns.
 
 ## Proposed Implementation
-We will convert the Python tests for the Example class to TypeScript, adapting them to work with the TypeScript type system and Effect TS patterns. The implementation will include:
+We will convert the Python tests for the Module class to TypeScript, adapting them to work with the TypeScript type system and Effect TS patterns. The implementation will include:
 
-1. Analyzing the Python test files related to Example functionality
+1. Analyzing the Python test files related to Module functionality
 2. Creating equivalent TypeScript test files using Vitest
 3. Adapting the tests to use Effect TS for error handling and functional patterns
 4. Creating mock implementations of dependencies needed for testing
-5. Ensuring the tests cover all functionality of the Example class
+5. Ensuring the tests cover all functionality of the Module class
 
 The test conversion will follow these principles:
 - Maintain the same test coverage and assertions as the Python version
@@ -22,11 +22,11 @@ The test conversion will follow these principles:
 - Use Vitest for test execution and assertions
 - Create reusable test utilities for common patterns
 
-The converted tests will serve as the specification for the Example implementation, which will be developed in a subsequent task (CORE-ExampleImplementation).
+The converted tests will serve as the specification for the Module implementation, which will be developed in a subsequent task (CORE-ModuleImplementation).
 
 ## Components Involved
 - Testing framework
-- Example class tests
+- Module class tests
 - Signature class integration
 - Effect TS integration
 - Test utilities and mocks
@@ -40,9 +40,11 @@ The converted tests will serve as the specification for the Example implementati
 - CORE-FieldImplementation (must be completed first)
 - TEST-SignatureTests (must be completed first)
 - CORE-SignatureImplementation (must be completed first)
+- TEST-ExampleTests (must be completed first)
+- CORE-ExampleImplementation (must be completed first)
 
 ## Implementation Checklist
-- [ ] Identify all Python test files related to Example functionality
+- [ ] Identify all Python test files related to Module functionality
   - [ ] Locate tests in the primitives directory
   - [ ] Identify any other relevant test files
 - [ ] Analyze the test structure and patterns
@@ -68,12 +70,12 @@ The converted tests will serve as the specification for the Example implementati
   - [ ] Document how to use the test utilities
 
 ## Verification Steps
-1. Run the converted tests with `npm run test src/tests/primitives/example.test.ts`
+1. Run the converted tests with `npm run test src/tests/primitives/module.test.ts`
 2. Verify that all tests fail (since the implementation doesn't exist yet)
 3. Verify that the test failures provide clear guidance for implementation
-4. Run test coverage analysis to ensure all aspects of Example functionality are covered
+4. Run test coverage analysis to ensure all aspects of Module functionality are covered
 5. Review the tests to ensure they follow TypeScript and Effect TS best practices
-6. Verify that the tests can be used as a specification for the Example implementation
+6. Verify that the tests can be used as a specification for the Module implementation
 
 ## Decision Authority
 - Independent decisions:
@@ -85,14 +87,14 @@ The converted tests will serve as the specification for the Example implementati
 - Requires user input:
   - Any significant deviations from Python test coverage
   - Additional test cases not present in Python version
-  - Changes to the expected behavior of Example
+  - Changes to the expected behavior of Module
 
 ## Questions/Uncertainties
 
 ### Blocking
-- How should we handle Python's dynamic object creation in TypeScript?
-- How should we integrate Effect TS patterns for error handling in tests?
-- How should we handle serialization and deserialization in TypeScript?
+- How should we handle Python's class inheritance in TypeScript?
+- How should we integrate Effect TS patterns for handling asynchronous operations?
+- How should we handle Python's dynamic method resolution in TypeScript?
 
 ### Non-blocking
 - Exact test organization can be refined over time
@@ -109,8 +111,7 @@ The converted tests will serve as the specification for the Example implementati
 Not Started
 
 ## Notes
-- The Example class is a fundamental building block for few-shot learning, so its tests are critical
+- The Module class is a fundamental building block of the library, so its tests are critical
 - The test conversion should focus on maintaining functional equivalence while leveraging TypeScript features
 - Effect TS integration is a key aspect of the TypeScript implementation
-- These tests will build on the patterns established in the Field and Signature tests
-
+- These tests will build on the patterns established in the previous test conversions

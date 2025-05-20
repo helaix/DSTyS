@@ -1,3 +1,85 @@
+# DSTyS Project Workplan Outline & Index
+
+This document provides a comprehensive outline and index of all workplans for the DSTyS project. Each item links to a detailed workplan document.
+
+## Project Overview
+
+DSTyS is a TypeScript implementation of Stanford NLP's DSPy framework, leveraging the Effect library for functional programming paradigms. The project aims to bring the powerful programming model for foundation models to the TypeScript ecosystem, enabling developers to build robust, composable, and optimizable AI systems using idiomatic TypeScript.
+
+## Implementation Approach
+
+The implementation will follow a test-driven development (TDD) approach by:
+1. Converting Python DSPy tests to TypeScript with Effect TS integration.
+2. Implementing components to make the tests pass.
+3. Refactoring the implementation while ensuring tests continue to pass.
+
+## Workplan Index
+
+The workplans are organized into phases and categories.
+
+### Phase 1: Project Setup and Testing Framework
+
+1.  **SETUP-ProjectStructure**: [Set up project structure, build system, and CI/CD pipeline](./SETUP-ProjectStructure.md)
+2.  **SETUP-DependencyManagement**: [Set up dependency management and package configuration](./SETUP-DependencyManagement.md)
+3.  **TEST-Framework**: [Set up testing framework with Effect TS integration](./TEST-Framework.md)
+4.  **TEST-ConversionTemplate**: [Create template for converting Python tests to TypeScript](./TEST-ConversionTemplate.md)
+
+### Phase 2: Core Foundation (Field, Signature, Example)
+
+5.  **TEST-FieldTests**: [Convert Python Field tests to TypeScript](./TEST-FieldTests.md)
+6.  **CORE-FieldImplementation**: [Implement Field type and validation](./CORE-FieldImplementation.md)
+7.  **TEST-SignatureTests**: [Convert Python Signature tests to TypeScript](./TEST-SignatureTests.md)
+8.  **CORE-SignatureImplementation**: [Implement Signature class](./CORE-SignatureImplementation.md)
+9.  **TEST-ExampleTests**: [Convert Python Example tests to TypeScript](./TEST-ExampleTests.md)
+10. **CORE-ExampleImplementation**: [Implement Example class](./CORE-ExampleImplementation.md)
+
+### Phase 3: Core Primitives (Module, Prediction, Tool)
+
+11. **TEST-ModuleTests**: [Convert Python Module tests to TypeScript](./TEST-ModuleTests.md)
+12. **CORE-ModuleImplementation**: [Implement Module base class](./CORE-ModuleImplementation.md)
+13. **TEST-PredictionTests**: [Convert Python Prediction tests to TypeScript](./TEST-PredictionTests.md)
+14. **CORE-PredictionImplementation**: [Implement Prediction class](./CORE-PredictionImplementation.md)
+15. **TEST-ToolTests**: [Convert Python Tool tests to TypeScript](./TEST-ToolTests.md)
+16. **CORE-ToolImplementation**: [Implement Tool class](./CORE-ToolImplementation.md)
+
+### Phase 4: Language Model Clients
+*(Workplans for LM-BaseLMTests, LM-BaseLMImplementation, LM-LMTests, LM-LMImplementation, LM-OpenAIClientTests, LM-OpenAIClientImplementation, LM-AnthropicClientTests, LM-AnthropicClientImplementation to be detailed here)*
+- ... (Links to individual workplan files)
+
+### Phase 5: Basic Prediction Modules
+*(Workplans for PRED-PredictImplementation, PRED-ChainOfThoughtImplementation, PRED-ChainOfThoughtWithHintImplementation, and their corresponding TEST-* workplans to be detailed here)*
+- ...
+
+### Phase 6: Caching and Utilities
+*(Workplans for LM-CachingImplementation, CORE-UtilityImplementation, and their corresponding TEST-* workplans to be detailed here)*
+- ...
+
+### Phase 7: Retrieval Components
+*(Workplans for RETR-BaseRetrieverImplementation, RETR-VectorRetrieverImplementation, and their corresponding TEST-* workplans to be detailed here)*
+- ...
+
+### Phase 8: Advanced Prediction Modules
+*(Workplans for PRED-ReActImplementation, PRED-ProgramOfThoughtImplementation, and their corresponding TEST-* workplans to be detailed here)*
+- ...
+
+### Phase 9: Optimization Components
+*(Workplans for OPT-TelepromptImplementation, OPT-BootstrapImplementation, and their corresponding TEST-* workplans to be detailed here)*
+- ...
+
+### Phase 10: Documentation and Release
+*(Workplans for DOC-APIReference, DOC-Tutorials, TEST-IntegrationTests, SETUP-ReleasePreparation to be detailed here)*
+- ...
+
+## General Considerations for Workplan Execution:
+
+*   **Specificity of "Python DSPy API Compatibility"**: Work plans aiming for compatibility should reference the "API and Behavior Mapping Document" (see `docs/planning/FollowUps.md`). Compatibility should be defined in terms of conceptual and behavioral equivalence, with specific TypeScript API signatures documented in the mapping document, rather than assuming direct 1:1 signature matches.
+*   **Resolution Path for "Blocking Questions"**: Each workplan should list its blocking questions. The Project Overview (`docs/planning/ProjectOverview.md`) will define a general process for escalating and resolving these (e.g., research spikes, ADRs). Work plan status should track the resolution of its blocking questions.
+*   **Consistent Application of Cross-Cutting Concerns**: Work plans for CORE/PRED/OPT components should reference and adhere to patterns established in dedicated ADRs or early `INFRA-*` work plans for logging, configuration management, global settings (`dspy.settings`), and advanced Effect TS patterns (DI via Layers, error hierarchies).
+*   **Integration of Test Conversion Guidelines**: Each `TEST-*` workplan should include a sub-task to adapt the `TEST-ConversionTemplate.md` for its specific component, documenting any unique challenges and solutions encountered during test conversion.
+*   **Feedback Loop Between Early and Later Work Plans**: The project will incorporate a periodic review mechanism (e.g., at the end of each phase, as mentioned in the Project Overview) to update subsequent work plans based on lessons learned from completed implementations. This ensures that estimates and approaches for later work plans remain realistic and informed by practical experience.
+
+Each workplan will follow the structure defined in `docs/planning/templates/Workplan.md`.
+We will start with the Phase 1 workplans and proceed sequentially through the phases as each set of workplans is completed.
 # DSTyS Project Workplan Outline (Final)
 
 This document provides a comprehensive outline of all workplans needed to implement the DSTyS project, following the Task Planning and Execution System template and incorporating both the test-driven development approach and the dependency graph analysis.

@@ -330,7 +330,7 @@ const calculateAverage = (values: number[]): Effect.Effect<number, DivisionError
 // We must handle the error or propagate it
 const safeCalculateAverage = (values: number[]): Effect.Effect<number, never, never> =>
   calculateAverage(values).pipe(
-    Effect.catchTag("DivisionError", (error) => 
+    Effect.catchTag("DivisionError", (error) =>
       Effect.succeed(0) // Provide a default value in case of error
     )
   );
@@ -364,16 +364,16 @@ const fetchUserData = (userId: string): Effect.Effect<UserData, NetworkError | V
 
 // Handle specific error types
 const result = await fetchUserData("user123").pipe(
-  Effect.catchTag("NetworkError", (error) => 
-    Effect.retry(fetchUserData("user123"), { 
+  Effect.catchTag("NetworkError", (error) =>
+    Effect.retry(fetchUserData("user123"), {
       schedule: Schedule.exponential(100, 2),
       times: 3
     })
   ),
-  Effect.catchTag("ValidationError", (error) => 
+  Effect.catchTag("ValidationError", (error) =>
     Effect.succeed({ name: "Unknown", id: "user123" }) // Default data
   ),
-  Effect.catchTag("AuthError", (error) => 
+  Effect.catchTag("AuthError", (error) =>
     Effect.fail(new Error(`Authentication failed: ${error.reason}`))
   ),
   Effect.runPromise

@@ -1,0 +1,549 @@
+---
+sidebar_position: 999
+---
+
+
+!!! warning "This page is outdated and may not be fully accurate in DSPy 2.5 and 2.6"
+
+
+# DSPy Cheatsheet
+
+This page will contain snippets for frequent usage patterns.
+
+## DSPy DataLoaders
+
+Import and initializing a DataLoader Object:
+
+```python
+import dspy
+from dspy.datasets import DataLoader
+
+dl = DataLoader()
+```
+
+### Loading from HuggingFace Datasets
+
+```python
+code_alpaca = dl.from_huggingface("HuggingFaceH4/CodeAlpaca_20K")
+```
+
+You can access the dataset of the splits by calling key of the corresponding split:
+
+```python
+train_dataset = code_alpaca['train']
+test_dataset = code_alpaca['test']
+```
+
+### Loading specific splits from HuggingFace
+
+You can also manually specify splits you want to include as a parameters and it'll return a dictionary where keys are splits that you specified:
+
+```python
+code_alpaca = dl.from_huggingface(
+    "HuggingFaceH4/CodeAlpaca_20K",
+    split = ["train", "test"],
+)
+
+print(f"Splits in dataset: {code_alpaca.keys()}")
+```
+
+If you specify a single split then dataloader will return a List of `dspy.Example` instead of dictionary:
+
+```python
+code_alpaca = dl.from_huggingface(
+    "HuggingFaceH4/CodeAlpaca_20K",
+    split = "train",
+)
+
+print(f"Number of examples in split: {len(code_alpaca)}")
+```
+
+You can slice the split just like you do with HuggingFace Dataset too:
+
+```python
+code_alpaca_80 = dl.from_huggingface(
+    "HuggingFaceH4/CodeAlpaca_20K",
+    split = "train[:80%]",
+)
+
+print(f"Number of examples in split: {len(code_alpaca_80)}")
+
+code_alpaca_20_80 = dl.from_huggingface(
+    "HuggingFaceH4/CodeAlpaca_20K",
+    split = "train[20%:80%]",
+)
+
+print(f"Number of examples in split: {len(code_alpaca_20_80)}")
+```
+
+### Loading specific subset from HuggingFace
+
+If a dataset has a subset you can pass it as an arg like you do with `load_dataset` in HuggingFace:
+
+```python
+gms8k = dl.from_huggingface(
+    "gsm8k",
+    "main",
+    input_keys = ("question",),
+)
+
+print(f"Keys present in the returned dict: {list(gms8k.keys())}")
+
+print(f"Number of examples in train set: {len(gms8k['train'])}")
+print(f"Number of examples in test set: {len(gms8k['test'])}")
+```
+
+### Loading from CSV
+
+```python
+dolly_100_dataset = dl.from_csv("dolly_subset_100_rows.csv",)
+```
+
+You can choose only selected columns from the csv by specifying them in the arguments:
+
+```python
+dolly_100_dataset = dl.from_csv(
+    "dolly_subset_100_rows.csv",
+    fields=("instruction", "context", "response"),
+    input_keys=("instruction", "context")
+)
+```
+
+### Splitting a List of `dspy.Example`
+
+```python
+splits = dl.train_test_split(dataset, train_size=0.8) # `dataset` is a List of dspy.Example
+train_dataset = splits['train']
+test_dataset = splits['test']
+```
+
+### Sampling from List of `dspy.Example`
+
+```python
+sampled_example = dl.sample(dataset, n=5) # `dataset` is a List of dspy.Example
+```
+
+## DSPy Programs
+
+### dspy.Signature
+
+```python
+class BasicQA(dspy.Signature):
+    """Answer questions with short factoid answers."""
+
+    question = dspy.InputField()
+    answer = dspy.OutputField(desc="often between 1 and 5 words")
+```
+
+### dspy.ChainOfThought
+
+```python
+generate_answer = dspy.ChainOfThought(BasicQA)
+
+# Call the predictor on a particular input alongside a hint.
+question='What is the color of the sky?'
+pred = generate_answer(question=question)
+```
+
+### dspy.ChainOfThoughtwithHint
+
+```python
+generate_answer = dspy.ChainOfThoughtWithHint(BasicQA)
+
+# Call the predictor on a particular input alongside a hint.
+question='What is the color of the sky?'
+hint = "It's what you often see during a sunny day."
+pred = generate_answer(question=question, hint=hint)
+```
+
+### dspy.ProgramOfThought
+
+```python
+pot = dspy.ProgramOfThought(BasicQA)
+
+question = 'Sarah has 5 apples. She buys 7 more apples from the store. How many apples does Sarah have now?'
+result = pot(question=question)
+
+print(f"Question: {question}")
+print(f"Final Predicted Answer (after ProgramOfThought process): {result.answer}")
+```
+
+### dspy.ReACT
+
+```python
+react_module = dspy.ReAct(BasicQA)
+
+question = 'Sarah has 5 apples. She buys 7 more apples from the store. How many apples does Sarah have now?'
+result = react_module(question=question)
+
+print(f"Question: {question}")
+print(f"Final Predicted Answer (after ReAct process): {result.answer}")
+```
+
+### dspy.Retrieve
+
+```python
+colbertv2_wiki17_abstracts = dspy.ColBERTv2(url='http://20.102.90.50:2017/wiki17_abstracts')
+dspy.settings.configure(rm=colbertv2_wiki17_abstracts)
+
+#Define Retrieve Module
+retriever = dspy.Retrieve(k=3)
+
+query='When was the first FIFA World Cup held?'
+
+# Call the retriever on a particular query.
+topK_passages = retriever(query).passages
+
+for idx, passage in enumerate(topK_passages):
+    print(f'{idx+1}]', passage, '\n')
+```
+
+## DSPy Metrics
+
+### Function as Metric
+
+To create a custom metric you can create a function that returns either a number or a boolean value:
+
+```python
+def parse_integer_answer(answer, only_first_line=True):
+    try:
+        if only_first_line:
+            answer = answer.strip().split('\n')[0]
+
+        # find the last token that has a number in it
+        answer = [token for token in answer.split() if any(c.isdigit() for c in token)][-1]
+        answer = answer.split('.')[0]
+        answer = ''.join([c for c in answer if c.isdigit()])
+        answer = int(answer)
+
+    except (ValueError, IndexError):
+        # print(answer)
+        answer = 0
+
+    return answer
+
+# Metric Function
+def gsm8k_metric(gold, pred, trace=None) -> int:
+    return int(parse_integer_answer(str(gold.answer))) == int(parse_integer_answer(str(pred.answer)))
+```
+
+### LLM as Judge
+
+```python
+class FactJudge(dspy.Signature):
+    """Judge if the answer is factually correct based on the context."""
+
+    context = dspy.InputField(desc="Context for the prediction")
+    question = dspy.InputField(desc="Question to be answered")
+    answer = dspy.InputField(desc="Answer for the question")
+    factually_correct = dspy.OutputField(desc="Is the answer factually correct based on the context?", prefix="Factual[Yes/No]:")
+
+judge = dspy.ChainOfThought(FactJudge)
+
+def factuality_metric(example, pred):
+    factual = judge(context=example.context, question=example.question, answer=pred.answer)
+    return int(factual=="Yes")
+```
+
+## DSPy Evaluation
+
+```python
+from dspy.evaluate import Evaluate
+
+evaluate_program = Evaluate(devset=devset, metric=your_defined_metric, num_threads=NUM_THREADS, display_progress=True, display_table=num_rows_to_display)
+
+evaluate_program(your_dspy_program)
+```
+
+## DSPy Optimizers
+
+### LabeledFewShot
+
+```python
+from dspy.teleprompt import LabeledFewShot
+
+labeled_fewshot_optimizer = LabeledFewShot(k=8)
+your_dspy_program_compiled = labeled_fewshot_optimizer.compile(student = your_dspy_program, trainset=trainset)
+```
+
+### BootstrapFewShot
+
+```python
+from dspy.teleprompt import BootstrapFewShot
+
+fewshot_optimizer = BootstrapFewShot(metric=your_defined_metric, max_bootstrapped_demos=4, max_labeled_demos=16, max_rounds=1, max_errors=5)
+
+your_dspy_program_compiled = fewshot_optimizer.compile(student = your_dspy_program, trainset=trainset)
+```
+
+#### Using another LM for compilation, specifying in teacher_settings
+
+```python
+from dspy.teleprompt import BootstrapFewShot
+
+fewshot_optimizer = BootstrapFewShot(metric=your_defined_metric, max_bootstrapped_demos=4, max_labeled_demos=16, max_rounds=1, max_errors=5, teacher_settings=dict(lm=gpt4))
+
+your_dspy_program_compiled = fewshot_optimizer.compile(student = your_dspy_program, trainset=trainset)
+```
+
+#### Compiling a compiled program - bootstrapping a bootstrapped program
+
+```python
+your_dspy_program_compiledx2 = teleprompter.compile(
+    your_dspy_program,
+    teacher=your_dspy_program_compiled,
+    trainset=trainset,
+)
+```
+
+#### Saving/loading a compiled program
+
+```python
+save_path = './v1.json'
+your_dspy_program_compiledx2.save(save_path)
+```
+
+```python
+loaded_program = YourProgramClass()
+loaded_program.load(path=save_path)
+```
+
+### BootstrapFewShotWithRandomSearch
+
+Detailed documentation on BootstrapFewShotWithRandomSearch can be found [here](deep-dive/optimizers/bootstrap-fewshot.md).
+
+```python
+from dspy.teleprompt import BootstrapFewShotWithRandomSearch
+
+fewshot_optimizer = BootstrapFewShotWithRandomSearch(metric=your_defined_metric, max_bootstrapped_demos=2, num_candidate_programs=8, num_threads=NUM_THREADS)
+
+your_dspy_program_compiled = fewshot_optimizer.compile(student = your_dspy_program, trainset=trainset, valset=devset)
+
+```
+
+Other custom configurations are similar to customizing the `BootstrapFewShot` optimizer.
+
+### Ensemble
+
+```python
+from dspy.teleprompt import BootstrapFewShotWithRandomSearch
+from dspy.teleprompt.ensemble import Ensemble
+
+fewshot_optimizer = BootstrapFewShotWithRandomSearch(metric=your_defined_metric, max_bootstrapped_demos=2, num_candidate_programs=8, num_threads=NUM_THREADS)
+your_dspy_program_compiled = fewshot_optimizer.compile(student = your_dspy_program, trainset=trainset, valset=devset)
+
+ensemble_optimizer = Ensemble(reduce_fn=dspy.majority)
+programs = [x[-1] for x in your_dspy_program_compiled.candidate_programs]
+your_dspy_program_compiled_ensemble = ensemble_optimizer.compile(programs[:3])
+```
+
+### BootstrapFinetune
+
+```python
+from dspy.teleprompt import BootstrapFewShotWithRandomSearch, BootstrapFinetune
+
+#Compile program on current dspy.settings.lm
+fewshot_optimizer = BootstrapFewShotWithRandomSearch(metric=your_defined_metric, max_bootstrapped_demos=2, num_threads=NUM_THREADS)
+your_dspy_program_compiled = tp.compile(your_dspy_program, trainset=trainset[:some_num], valset=trainset[some_num:])
+
+#Configure model to finetune
+config = dict(target=model_to_finetune, epochs=2, bf16=True, bsize=6, accumsteps=2, lr=5e-5)
+
+#Compile program on BootstrapFinetune
+finetune_optimizer = BootstrapFinetune(metric=your_defined_metric)
+finetune_program = finetune_optimizer.compile(your_dspy_program, trainset=some_new_dataset_for_finetuning_model, **config)
+
+finetune_program = your_dspy_program
+
+#Load program and activate model's parameters in program before evaluation
+ckpt_path = "saved_checkpoint_path_from_finetuning"
+LM = dspy.HFModel(checkpoint=ckpt_path, model=model_to_finetune)
+
+for p in finetune_program.predictors():
+    p.lm = LM
+    p.activated = False
+```
+
+### COPRO
+
+Detailed documentation on COPRO can be found [here](deep-dive/optimizers/copro.md).
+
+```python
+from dspy.teleprompt import COPRO
+
+eval_kwargs = dict(num_threads=16, display_progress=True, display_table=0)
+
+copro_teleprompter = COPRO(prompt_model=model_to_generate_prompts, metric=your_defined_metric, breadth=num_new_prompts_generated, depth=times_to_generate_prompts, init_temperature=prompt_generation_temperature, verbose=False)
+
+compiled_program_optimized_signature = copro_teleprompter.compile(your_dspy_program, trainset=trainset, eval_kwargs=eval_kwargs)
+```
+
+### MIPRO
+
+```python
+from dspy.teleprompt import MIPRO
+
+teleprompter = MIPRO(prompt_model=model_to_generate_prompts, task_model=model_that_solves_task, metric=your_defined_metric, num_candidates=num_new_prompts_generated, init_temperature=prompt_generation_temperature)
+
+kwargs = dict(num_threads=NUM_THREADS, display_progress=True, display_table=0)
+
+compiled_program_optimized_bayesian_signature = teleprompter.compile(your_dspy_program, trainset=trainset, num_trials=100, max_bootstrapped_demos=3, max_labeled_demos=5, eval_kwargs=kwargs)
+```
+
+### MIPROv2
+
+Note: detailed documentation can be found [here](deep-dive/optimizers/miprov2.md). `MIPROv2` is the latest extension of `MIPRO` which includes updates such as (1) improvements to instruction proposal and (2) more efficient search with minibatching.
+
+#### Optimizing with MIPROv2
+
+This shows how to perform an easy out-of-the box run with `auto=light`, which configures many hyperparameters for you and performs a light optimization run. You can alternatively set `auto=medium` or `auto=heavy` to perform longer optimization runs. The more detailed `MIPROv2` documentation [here](deep-dive/optimizers/miprov2.md) also provides more information about how to set hyperparameters by hand.
+
+```python
+# Import the optimizer
+from dspy.teleprompt import MIPROv2
+
+# Initialize optimizer
+teleprompter = MIPROv2(
+    metric=gsm8k_metric,
+    auto="light", # Can choose between light, medium, and heavy optimization runs
+)
+
+# Optimize program
+print(f"Optimizing program with MIPRO...")
+optimized_program = teleprompter.compile(
+    program.deepcopy(),
+    trainset=trainset,
+    max_bootstrapped_demos=3,
+    max_labeled_demos=4,
+    requires_permission_to_run=False,
+)
+
+# Save optimize program for future use
+optimized_program.save(f"mipro_optimized")
+
+# Evaluate optimized program
+print(f"Evaluate optimized program...")
+evaluate(optimized_program, devset=devset[:])
+```
+
+#### Optimizing instructions only with MIPROv2 (0-Shot)
+
+```python
+# Import the optimizer
+from dspy.teleprompt import MIPROv2
+
+# Initialize optimizer
+teleprompter = MIPROv2(
+    metric=gsm8k_metric,
+    auto="light", # Can choose between light, medium, and heavy optimization runs
+)
+
+# Optimize program
+print(f"Optimizing program with MIPRO...")
+optimized_program = teleprompter.compile(
+    program.deepcopy(),
+    trainset=trainset,
+    max_bootstrapped_demos=0,
+    max_labeled_demos=0,
+    requires_permission_to_run=False,
+)
+
+# Save optimize program for future use
+optimized_program.save(f"mipro_optimized")
+
+# Evaluate optimized program
+print(f"Evaluate optimized program...")
+evaluate(optimized_program, devset=devset[:])
+```
+
+### Signature Optimizer with Types
+
+```python
+from dspy.teleprompt.signature_opt_typed import optimize_signature
+from dspy.evaluate.metrics import answer_exact_match
+from dspy.functional import TypedChainOfThought
+
+compiled_program = optimize_signature(
+    student=TypedChainOfThought("question -> answer"),
+    evaluator=Evaluate(devset=devset, metric=answer_exact_match, num_threads=10, display_progress=True),
+    n_iterations=50,
+).program
+```
+
+### KNNFewShot
+
+```python
+from sentence_transformers import SentenceTransformer
+from dspy import Embedder
+from dspy.teleprompt import KNNFewShot
+from dspy import ChainOfThought
+
+knn_optimizer = KNNFewShot(k=3, trainset=trainset, vectorizer=Embedder(SentenceTransformer("all-MiniLM-L6-v2").encode))
+
+qa_compiled = knn_optimizer.compile(student=ChainOfThought("question -> answer"))
+```
+
+### BootstrapFewShotWithOptuna
+
+```python
+from dspy.teleprompt import BootstrapFewShotWithOptuna
+
+fewshot_optuna_optimizer = BootstrapFewShotWithOptuna(metric=your_defined_metric, max_bootstrapped_demos=2, num_candidate_programs=8, num_threads=NUM_THREADS)
+
+your_dspy_program_compiled = fewshot_optuna_optimizer.compile(student=your_dspy_program, trainset=trainset, valset=devset)
+```
+
+Other custom configurations are similar to customizing the `dspy.BootstrapFewShot` optimizer.
+
+## DSPy `Refine` and `BestofN`
+
+>`dspy.Suggest` and `dspy.Assert` are replaced by `dspy.Refine` and `dspy.BestofN` in DSPy 2.6.
+
+### BestofN
+
+Runs a module up to `N` times with different temperatures and returns the best prediction, as defined by the `reward_fn`, or the first prediction that passes the `threshold`.
+
+```python
+import dspy
+
+qa = dspy.ChainOfThought("question -> answer")
+def one_word_answer(args, pred):
+    return 1.0 if len(pred.answer) == 1 else 0.0
+best_of_3 = dspy.BestOfN(module=qa, N=3, reward_fn=one_word_answer, threshold=1.0)
+best_of_3(question="What is the capital of Belgium?").answer
+# Brussels
+```
+
+### Refine
+
+Refines a module by running it up to `N` times with different temperatures and returns the best prediction, as defined by the `reward_fn`, or the first prediction that passes the `threshold`. After each attempt (except the final one), `Refine` automatically generates detailed feedback about the module's performance and uses this feedback as hints for subsequent runs, creating an iterative refinement process.
+
+```python
+import dspy
+
+qa = dspy.ChainOfThought("question -> answer")
+def one_word_answer(args, pred):
+    return 1.0 if len(pred.answer) == 1 else 0.0
+best_of_3 = dspy.Refine(module=qa, N=3, reward_fn=one_word_answer, threshold=1.0)
+best_of_3(question="What is the capital of Belgium?").answer
+# Brussels
+```
+
+#### Error Handling
+
+By default, `Refine` will try to run the module up to N times until the threshold is met. If the module encounters an error, it will keep going up to N failed attempts. You can change this behavior by setting `fail_count` to a smaller number than `N`.
+
+```python
+refine = dspy.Refine(module=qa, N=3, reward_fn=one_word_answer, threshold=1.0, fail_count=1)
+...
+refine(question="What is the capital of Belgium?")
+# If we encounter just one failed attempt, the module will raise an error.
+```
+
+If you want to run the module up to N times without any error handling, you can set `fail_count` to `N`. This is the default behavior.
+
+```python
+refine = dspy.Refine(module=qa, N=3, reward_fn=one_word_answer, threshold=1.0, fail_count=3)
+...
+refine(question="What is the capital of Belgium?")
+```

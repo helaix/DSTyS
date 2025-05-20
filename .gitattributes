@@ -1,1 +1,2 @@
 eslint.config.mjs linguist-vendored
+dspy/** linguist-vendored

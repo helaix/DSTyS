@@ -63,7 +63,7 @@
 [Describe each major component of the system, its responsibilities, and how it interacts with other components.]
 
 ### 3.4 Component Diagrams
-[Include diagrams that illustrate the system architecture. Use appropriate notation (e.g., UML, C4 model).]
+[Include diagrams that illustrate the system architecture. Use appropriate notation (e.g., UML, C4 model). Include high-level diagrams here, and note if more detailed component interaction and data flow diagrams for key operations will be provided elsewhere or in a sub-section.]
 
 ```mermaid
 graph TD
@@ -114,6 +114,21 @@ graph TD
 
 ### 4.6 API Versioning Strategy
 [Describe the strategy for versioning APIs and handling backward compatibility.]
+
+### 4.7 Specific Effect TS Patterns per Architectural Layer
+[Detail how specific Effect TS patterns (e.g., `Effect.gen`, `Effect.all`, `Effect.Layer`, `Effect.Scope`, tagged error unions) will be applied within each major architectural component/layer (e.g., Core Primitives, LM Clients, Prediction Modules, Optimizers). Discuss how state will be managed functionally.]
+
+### 4.8 Architectural Strategy for Python's Dynamic Features
+[Reference or summarize an Architectural Decision Record (ADR) on "Translating Pythonic Dynamism". Propose concrete TypeScript/Effect patterns for handling Python features like metaclasses (for Signature), dynamic attribute assignment (for Predictor.demos), and runtime modification of signatures by modules.]
+
+### 4.9 Serialization/Deserialization Strategy
+[Outline the approach for serializing and deserializing Module states, including Predictor configurations and compiled optimizer states. Consider using Zod schemas for validation during deserialization, potentially integrated with Effect.Schema.]
+
+### 4.10 Concurrency and Parallelism Model
+[Detail how concurrency and parallelism will be achieved using Effect's concurrency primitives (e.g., `Effect.forEach(..., { concurrency: ... })`, Fibers). Specify strategies for batch processing, parallel LM calls, and tool use.]
+
+### 4.11 Extensibility Design
+[Define clear interfaces (perhaps using `Effect.Service` tags) for extension points like new LM providers, retrieval models, or optimizers. Outline the expected patterns for implementing these extensions in a type-safe and Effect-idiomatic way.]
 
 ## 5. Data Model
 
@@ -308,4 +323,3 @@ Remember that a good Architecture Document should:
 - Address non-functional requirements like performance, security, and scalability
 - Outline a comprehensive testing strategy
 - Be reviewed and approved by technical stakeholders before implementation begins
-

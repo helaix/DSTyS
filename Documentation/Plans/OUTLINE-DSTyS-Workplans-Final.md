@@ -321,6 +321,14 @@ The workplans are organized into the following categories:
 
 Once this outline is approved, we will proceed to create individual workplan files for each task following the Task Planning and Execution System template. Each workplan will be created in the `Documentation/Plans/` directory with the naming format `TaskID-Description.md` (e.g., `SETUP-ProjectStructure.md`, `TEST-FieldTests.md`).
 
+**General Considerations for Workplan Creation:**
+
+*   **Specificity of "Python DSPy API Compatibility"**: Work plans aiming for compatibility should reference the "API and Behavior Mapping Document" (to be created, see `DSTyS_FollowUps.md`). Compatibility should be defined in terms of conceptual and behavioral equivalence, with specific TypeScript API signatures documented in the mapping document, rather than assuming direct 1:1 signature matches.
+*   **Resolution Path for "Blocking Questions"**: Each workplan should list its blocking questions. The Project Overview will define a general process for escalating and resolving these (e.g., research spikes, ADRs). Work plan status should track the resolution of its blocking questions.
+*   **Consistent Application of Cross-Cutting Concerns**: Work plans for CORE/PRED/OPT components should reference and adhere to patterns established in dedicated ADRs or early `INFRA-*` work plans for logging, configuration management, global settings (`dspy.settings`), and advanced Effect TS patterns (DI via Layers, error hierarchies).
+*   **Integration of Test Conversion Guidelines**: Each `TEST-*` workplan should include a sub-task to adapt the `TEST-ConversionTemplate.md` for its specific component, documenting any unique challenges and solutions encountered during test conversion.
+*   **Feedback Loop Between Early and Later Work Plans**: The project will incorporate a periodic review mechanism (e.g., at the end of each phase, as mentioned in the Project Overview) to update subsequent work plans based on lessons learned from completed implementations. This ensures that estimates and approaches for later work plans remain realistic and informed by practical experience.
+
 Each workplan will include:
 - Task ID
 - Problem Statement
@@ -336,4 +344,3 @@ Each workplan will include:
 - Notes
 
 We will start with the Phase 1 workplans and proceed sequentially through the phases as each set of workplans is completed.
-

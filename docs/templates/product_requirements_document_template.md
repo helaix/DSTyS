@@ -185,7 +185,18 @@
 ### 5.3 Release Strategy
 [Describe the strategy for releasing this product/feature. Will it be a phased rollout? A beta test? A full release?]
 
-## 6. Appendices
+## 6. Detailed Feature Parity Requirements (Example Section)
+
+### 6.1 API and Behavior Mapping
+[Reference to a separate "API and Behavior Mapping Document". Explain that this document will detail for each Python DSPy component: target TypeScript API, expected behavior, planned deviations, and verification methods. List major Python DSPy components/modules targeted for parity, noting they will be prioritized/phased.]
+
+### 6.2 Strategy for Upstream DSPy Evolution
+[Outline the process for tracking changes in the Python DSPy library, criteria for porting new features, and how DSTyS versioning will relate to DSPy versioning.]
+
+### 6.3 Explicit Non-Goals (for current version/phase)
+[Clearly state what the product/feature *will not* do for the current version or phase. This helps manage scope and expectations. E.g., "DSTyS v1.0 will not aim for performance parity in CPU-bound operations..."]
+
+## 7. Appendices
 
 ### 6.1 Glossary
 [Define any terms or acronyms used in this document that might not be familiar to all readers.]
@@ -251,4 +262,3 @@ Remember that a good PRD should be:
 - Measurable
 - Testable
 - Traceable (requirements can be tracked through implementation)
-

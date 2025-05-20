@@ -26,6 +26,17 @@ The Python ecosystem has DSPy, but TypeScript developers lack an equivalent fram
 ### 1.3 Vision
 DSTyS will become the standard framework for programming (not prompting) foundation models in the TypeScript ecosystem. It will enable developers to build complex AI systems using declarative, composable modules that can be automatically optimized, tested, and evaluated. By leveraging Effect's functional programming paradigms, DSTyS will provide robust error handling, testability, and maintainability that surpasses what's possible with traditional prompt engineering approaches. The implementation will maintain complete feature parity with the Python DSPy framework, ensuring that all techniques and patterns available in DSPy are accessible to TypeScript developers.
 
+#### 1.3.1 Benefits of Effect TS Integration
+The integration of Effect TS is a cornerstone of DSTyS, aiming to provide significant advantages over traditional approaches:
+- **Robust Error Handling**: Effect's typed errors allow for explicit and comprehensive error management, making pipelines more resilient and easier to debug. Errors are values, not exceptions, leading to more predictable control flow.
+- **Improved Composability**: Functional patterns and Effect's powerful combinators enable elegant composition of asynchronous operations, complex control flows, and resource management. This leads to more modular and maintainable code.
+- **Enhanced Developer Experience (DX)**: TypeScript's static typing combined with Effect's inference capabilities provides strong compile-time guarantees and excellent autocompletion, reducing runtime errors and improving developer productivity.
+- **Predictable State Management**: Effect encourages immutable data structures and explicit state management, making it easier to reason about the state of complex AI pipelines.
+- **Resource Safety**: Effect's `Scope` and `Layer` primitives ensure that resources (like LM client connections or file handles) are acquired and released safely, preventing leaks and improving system stability.
+- **Concurrency and Parallelism**: Effect provides high-level abstractions for managing concurrent and parallel operations, simplifying the implementation of features like batch processing and parallel tool use.
+
+These benefits are expected to result in a developer experience that is not only type-safe but also more expressive and powerful for building sophisticated AI systems compared to traditional JavaScript/TypeScript approaches or even Python DSPy in certain aspects of error handling and async composition.
+
 ### 1.4 Strategic Alignment
 This project aligns with the broader trend of moving from prompt engineering to programmatic approaches for working with foundation models. It brings the benefits of DSPy to the TypeScript ecosystem, leveraging TypeScript's strong typing and the functional programming capabilities of Effect to create a framework that is both powerful and developer-friendly.
 
@@ -308,6 +319,14 @@ The project will follow a phased release strategy:
 
 ### 6.1 Core Primitives and Modules
 
+Achieving "100% feature parity with Python DSPy 2.6.x" requires a precise definition for each component. This will be detailed in a separate **API and Behavior Mapping Document**. This document will, for each DSPy 2.6.x component:
+- Define the target TypeScript API signature.
+- Describe the expected behavior, including edge cases.
+- Document any planned deviations from the Python API due to TypeScript/Effect idioms, with clear justifications.
+- Specify how parity will be verified (e.g., specific tests, behavioral equivalence criteria).
+
+The following list outlines the Python DSPy components targeted for parity. These will be annotated in the API and Behavior Mapping Document with their target phase or priority (e.g., Must-Have for v0.1, Should-Have for v0.2, etc.), aligning with the Project Overview's v0.1 subset.
+
 Based on comprehensive analysis of the DSPy codebase, the following components must be implemented with 100% feature parity:
 
 #### 6.1.1 Primitives
@@ -426,10 +445,32 @@ To maintain 100% feature parity with the Python DSPy framework over time, we wil
 - Clear migration guides for users when breaking changes must be incorporated
 - When possible, provide compatibility layers for smooth transitions
 
-#### 6.4.5 Long-term Sustainability
+#### 6.4.5 Strategy for Upstream DSPy Evolution
+DSTyS aims for feature parity with Python DSPy 2.6.x for its initial major versions. However, Python DSPy is an actively developed project. To manage this, DSTyS will adopt the following strategy for upstream changes:
+- **Quarterly Reviews**: The DSTyS team will conduct quarterly reviews of new Python DSPy releases and significant changes in its main branch.
+- **Impact Assessment**: Each new DSPy feature or significant change will be assessed for its relevance to the DSTyS community, technical feasibility of porting, and alignment with DSTyS's architectural principles (especially concerning Effect TS integration).
+- **Porting Criteria**: Decisions to port new DSPy features will be based on:
+    - User demand within the DSTyS community.
+    - Strategic importance for maintaining core parity or enhancing DSTyS's unique strengths.
+    - Compatibility with TypeScript and Effect TS idioms. Features relying heavily on Python-specific dynamicism might be re-imagined rather than directly ported.
+- **Versioning Alignment**:
+    - DSTyS major/minor versions will generally aim to align with the DSPy version they are based on (e.g., DSTyS v0.2.x might target DSPy 2.7.x features).
+    - Patch versions in DSTyS will be independent and used for bug fixes and minor improvements specific to the TypeScript implementation.
+- **Community Proposals**: The DSTyS community can propose porting specific new DSPy features through the project's issue tracker or discussion forums.
+
+#### 6.4.6 Long-term Sustainability
 - Establish relationships with DSPy maintainers to stay informed about roadmap
 - Consider contributing TypeScript-friendly changes back to DSPy
 - Build a community of contributors who can help maintain feature parity
+
+### 6.5 Explicit Non-Goals (for v1.0)
+To manage scope and ensure timely delivery of a stable and useful library, the following are explicitly **not** goals for DSTyS v1.0:
+
+- **Performance Parity in CPU-bound Operations**: DSTyS v1.0 will not aim for performance parity with Python DSPy in CPU-bound operations. The focus will be on minimizing overhead in I/O-bound operations (e.g., LM calls) and leveraging TypeScript/JavaScript engine optimizations.
+- **Direct Execution of Python-based Tools**: DSTyS v1.0 will not support the direct execution or integration of custom tools written in Python. Tools must be implemented in TypeScript or accessible via a defined interface (e.g., HTTP API).
+- **Support for All Python DSPy Optimizers**: While aiming for broad feature parity, some highly Python-specific or experimental optimizers might be deferred to post-v1.0 releases if their translation to idiomatic TypeScript/Effect proves overly complex or offers marginal benefits in the initial phase. The focus will be on core, proven optimizers.
+- **Automatic Code Conversion from Python DSPy**: DSTyS will not provide tools to automatically convert Python DSPy programs to DSTyS. The paradigm shift to Effect TS and TypeScript's static typing necessitates a manual, thoughtful translation.
+- **Identical Internal Implementation Details**: While API and behavioral parity are goals, the internal implementation details of DSTyS components may differ significantly from Python DSPy to best leverage TypeScript and Effect TS.
 
 ## 7. Community Engagement and Contribution Strategy
 

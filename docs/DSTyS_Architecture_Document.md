@@ -177,6 +177,8 @@ graph TD
     Effect_Integration --> Evaluation
 ```
 
+**(Note: More detailed component interaction and data flow diagrams for key operations, such as a `Predict` call or a `BootstrapFewShot` compilation step, will be added here or in a linked document. These diagrams will illustrate how `Signature`, `Module`, `Predictor`, `LM`, and `Effect` interact in specific scenarios.)**
+
 ### 3.5 Deployment Architecture
 As a library, DSTyS itself doesn't have a deployment architecture, but here's a typical deployment architecture for applications using DSTyS:
 
@@ -485,6 +487,43 @@ const runnable = getUserDetails("user123").pipe(
 Effect.runPromise(runnable);
 ```
 
+#### 4.3.5 Specific Effect TS Patterns per Architectural Layer
+While Effect TS provides a rich set of tools, their application will be tailored to the needs of different architectural layers within DSTyS:
+
+-   **Core Primitives (Signatures, Modules, Predictors)**:
+    -   `Effect.succeed` and `Effect.fail` for basic success/failure paths.
+    -   `Effect.map`, `Effect.flatMap` (`Effect.gen`) for composing operations.
+    -   Tagged unions for representing specific error states (e.g., `SignatureValidationError`, `ModuleExecutionError`).
+    -   `Effect.Schema` for robust parsing and validation of inputs and outputs, especially when dealing with dynamic structures or external data.
+
+-   **Language Model Clients (LM Clients)**:
+    -   `Effect.tryPromise` for wrapping API calls to external LM services.
+    -   `Effect.retry` with `Schedule` for implementing robust retry logic (e.g., exponential backoff for API rate limits).
+    -   `Effect.Layer` for managing dependencies like HTTP clients or API key providers.
+    -   `Effect.Scope` for managing resources like network connections.
+    -   `Effect.Cache` for caching LM responses.
+    -   `Effect.Stream` for handling streaming responses from LMs.
+
+-   **Prediction Modules (ChainOfThought, ReAct, etc.)**:
+    -   `Effect.gen` (generator-based do-notation) for sequencing complex reasoning steps.
+    -   `Effect.all` (for parallelism) or `Effect.forEach(..., { concurrency: "inherit" | number })` for concurrent tool calls or parallel sub-module executions.
+    -   Custom tagged error types to represent failures specific to a prediction strategy (e.g., `ToolExecutionError` in ReAct).
+    -   State management using immutable updates passed through `Effect` computations, or via `Ref` for localized mutable state if absolutely necessary and carefully managed.
+
+-   **Optimization (Teleprompt)**:
+    -   `Effect.Layer` for injecting dependencies like metrics, datasets, or teacher models.
+    -   `Effect.forEach(..., { concurrency: "inherit" | number })` for parallel evaluation of candidate programs.
+    -   `Effect.Scope` for managing resources during long-running optimization processes.
+    -   `Effect.tap` for logging and tracing intermediate states during optimization.
+    -   Error handling to gracefully manage failures in individual optimization trials without halting the entire process.
+
+-   **Retrieval**:
+    -   `Effect.tryPromise` for interacting with vector databases or search APIs.
+    -   `Effect.Layer` for managing database connections or search client instances.
+    -   `Effect.Cache` for caching retrieval results.
+
+This layer-specific application of Effect TS patterns aims to maximize the benefits of the library while keeping the complexity appropriate for each component's responsibilities. An Architectural Decision Record (ADR) will further detail these patterns and their rationale.
+
 ### 4.4 API Documentation
 The API will be documented using TypeDoc with the following components:
 - Comprehensive type definitions
@@ -492,11 +531,52 @@ The API will be documented using TypeDoc with the following components:
 - API reference
 - Tutorials and guides
 
-### 4.5 API Versioning Strategy
+### 4.5 Architectural Strategy for Python's Dynamic Features
+Python DSPy leverages dynamic features (e.g., metaclasses for `Signature`, dynamic attribute assignment for `Predictor.demos`, runtime modification of signatures by modules like `ChainOfThought`) that do not have direct equivalents in TypeScript or are not idiomatic with Effect TS. DSTyS will address these through the following strategies, to be detailed in an **Architectural Decision Record (ADR) on "Translating Pythonic Dynamism"**:
+
+-   **Signatures**:
+    -   Instead of metaclasses, DSTyS Signatures will likely use a combination of:
+        -   **Builder Patterns**: Fluent APIs for constructing and modifying signatures in a type-safe manner.
+        -   **Advanced Generics and Conditional Types**: To infer and enforce relationships between input/output fields at compile time.
+        -   **Immutable Transformations**: Functions that take a signature and return a new, modified signature, preserving immutability.
+    -   Runtime validation of signature structures will be handled by Zod, integrated via `Effect.Schema`.
+
+-   **Predictor State (e.g., `demos`)**:
+    -   Dynamic attribute assignment will be replaced with explicit state management mechanisms:
+        -   **Immutable Updates**: Methods that return new `Predictor` instances with updated state (e.g., new demos).
+        -   **Context Passing**: For state that varies per call, relevant context can be passed explicitly.
+        -   **Effect `Ref` or `FiberRef`**: For localized, managed mutable state if strictly necessary, ensuring functional purity at the boundaries. `Effect.Layer` can provide stateful services.
+
+-   **Module-driven Signature Modification (e.g., `ChainOfThought` adding `rationale`)**:
+    -   Runtime modification of signatures will be handled through:
+        -   **Explicit Composition**: Modules like `ChainOfThought` will clearly define their output signature, including added fields like `rationale`. The composition of such modules will result in a new, well-defined signature.
+        -   **Type-level Transformations**: TypeScript's mapped types or conditional types might be explored to represent how a module transforms an input signature into an output signature at the type level, enhancing static guarantees.
+
+The ADR will provide concrete code patterns and justifications for these approaches, prioritizing type safety, functional purity, and developer experience within the TypeScript/Effect TS paradigm.
+
+### 4.6 API Versioning Strategy
 DSTyS will follow semantic versioning:
 - **Major versions**: Breaking changes
 - **Minor versions**: New features, non-breaking changes
 - **Patch versions**: Bug fixes, non-breaking changes
+
+### 4.7 Serialization/Deserialization Strategy
+The ability to save and load `Module` states (including `Predictor` configurations like demos, LM settings, and compiled optimizer states) is crucial for reproducibility and sharing trained programs. DSTyS will implement this with the following considerations:
+
+-   **Data Format**: JSON will be the primary serialization format for its ubiquity and human-readability.
+-   **Schema Definition and Validation**:
+    -   Zod schemas will be defined for all serializable components (`Module`, `Predictor`, `Signature`, `Example`, `LM` configurations, etc.).
+    -   These schemas will be used for validation during deserialization to ensure data integrity and catch versioning issues. `Effect.Schema` can be used to integrate Zod schemas into Effect-based workflows.
+-   **Custom Serializers/Deserializers**:
+    -   For complex objects or Effect-specific constructs (if any are directly serialized, though this should be minimized), custom serialization logic might be needed.
+    -   Pydantic-like models in TypeScript (potentially using classes with Zod schemas or dedicated libraries) will define `toJSON()` and `fromJSON()` (or equivalent static factory) methods.
+-   **Handling Effect-wrapped State**:
+    -   Generally, Effect computations themselves are not serialized. Instead, the *configuration* or *data* that defines these computations will be serialized.
+    -   For example, if an optimizer's state involves Effect `Ref`s or `Fiber`s, the underlying data in those `Ref`s would be extracted and serialized, not the Effect constructs themselves. Upon deserialization, new Effect constructs would be initialized with the loaded data.
+-   **Versioning**: Serialized formats will include a version number to handle schema evolution and provide migration paths or clear error messages for incompatible versions.
+-   **Extensibility**: The serialization mechanism should be extensible to allow users to define how custom `Module` subclasses are serialized and deserialized.
+
+A dedicated `save(path: string)` and static `load(path: string): Effect<Module, Error>` method will be provided on the `Module` base class.
 
 ## 5. Data Model
 

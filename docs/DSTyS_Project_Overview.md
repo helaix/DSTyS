@@ -430,6 +430,8 @@ The implementation is divided into logical chunks, each focusing on a specific a
 | C14 | CI/CD and DevOps | All | 15 | Incremental |
 | C15 | Compliance and Security | 4 | 10 | All |
 
+**(Note: The effort estimates provided above are initial approximations. They will be re-evaluated by the team, especially for core components like C2, C3, C5, after drafting the "API and Behavior Mapping Document" and the "ADR for Translating Pythonic Dynamism". This re-evaluation will explicitly factor in time for research/design spikes, potential learning curves for advanced Effect TS patterns, and the overhead of writing idiomatic, well-tested Effect code. A "Complexity/Uncertainty Multiplier" may be applied to initial estimates for foundational pieces.)**
+
 ### 5.2 Chunk 1: Project Setup
 This chunk focuses on setting up the project infrastructure and development environment.
 
@@ -809,6 +811,18 @@ The DSTyS project faces several categories of risks, including technical risks r
 | CR6 | Cross-border data transfer | Document data flow, implement regional endpoints where possible |
 | CR7 | Prompt injection vulnerabilities | Implement input validation, sanitization, and monitoring |
 
+### 6.7 Explicit Critical Path
+Identifying the critical path is essential for managing project timelines and risks. Based on the dependencies outlined in the `DEPENDENCY-Graph.md` and the chunk breakdown, the initial critical path likely involves:
+
+**C1 (Project Setup) → C4 (Test Framework) → C2 (Core Primitives - Field, Signature) → C5 (Basic Prediction Modules - Predict) → "Hello World" ReAct Example (Milestone M4)**
+
+Subsequent critical paths will emerge as these foundational elements are completed. This path will be visualized in the project's Gantt chart and reviewed regularly. Key dependencies that define this path include:
+- The Test Framework (C4) is needed before most CORE implementations can be verified.
+- Core Primitives like Field and Signature (part of C2) are prerequisites for almost all other functional components.
+- The basic `Predict` module (part of C5) is fundamental for constructing more complex modules and achieving the "Hello World" ReAct example.
+
+This path will be closely monitored, and any delays in these chunks will receive immediate attention and resource reallocation if necessary.
+
 ## 7. Implementation Roadmap
 
 ### 7.1 High-Level Timeline
@@ -855,8 +869,15 @@ gantt
 | M9 | Refinement Complete | 2026-01-10 | Advanced Features |
 | M10 | v1.0.0 Release | 2026-01-15 | Refinement |
 
+### 7.2.1 Strategy for Upstream DSPy Changes (During Development)
+The DSTyS project targets feature parity with Python DSPy 2.6.x for its v1.0 release. If Python DSPy releases a new version (e.g., 2.7.x or a major 3.0) during DSTyS's development cycle:
+- **Policy**: DSTyS will **strictly adhere to targeting DSPy 2.6.x for the v1.0 release**.
+- **Assessment**: New features or breaking changes in upstream DSPy will be noted and assessed for potential inclusion in post-v1.0 DSTyS releases.
+- **No Scope Creep**: Development will not be paused or diverted to incorporate these upstream changes into the current v1.0 development cycle to avoid scope creep and ensure timely delivery of the defined v1.0 feature set.
+- **Post-v1.0 Planning**: A "catch-up" release or phase will be planned after v1.0 to evaluate and selectively port newer DSPy features, following the process outlined in the PRD's "Strategy for Upstream DSPy Evolution" section.
+
 ### 7.3 Resource Allocation
-| Role | Phase 1 | Phase 2 | Phase 3 | Phase 4 | Total Allocation |
+[Describe how resources will be allocated across the implementation phases and chunks.]
 |------|---------|---------|---------|---------|------------------|
 | Tech Lead | 100% | 75% | 75% | 75% | 81% |
 | TypeScript Developer 1 | 100% | 100% | 100% | 75% | 94% |
@@ -884,6 +905,43 @@ To ensure a realistic timeline and deliverable scope, the following features are
 
 This subset provides a functional foundation that developers can start using while more advanced features are being developed.
 
+### 7.5 Definition of Done (DoD) for Phases
+To ensure clarity and trackable progress, each phase will have a formal Definition of Done (DoD). These DoDs align with the PRD's success metrics and the v0.1 feature subset.
+
+-   **Phase 1 DoD (Core Foundation)**:
+    -   All Core Primitives (Field, Signature, Example, Module, Prediction, Tool) implemented and pass unit tests.
+    -   Basic LM Clients (BaseLM, LM, OpenAI, Anthropic) implemented and pass unit/integration tests.
+    -   Test Framework (Vitest, Effect Test Utils, Mocks) is operational.
+    -   CI/CD pipeline is green for all Phase 1 components.
+    -   ADR for Effect integration patterns is approved and published.
+    -   "Hello World" ReAct example (using mock tools if necessary) is functional and documented in the README.
+    -   All relevant Python tests for Phase 1 components converted to TypeScript and passing.
+
+-   **Phase 2 DoD (Basic Functionality)**:
+    -   All Basic Prediction Modules (Predict, ChainOfThought, CoTWithHint) implemented and pass tests.
+    -   Caching and Retry mechanisms for LM Clients are functional and tested.
+    -   Basic Retrieval components (BaseRetriever, simple vector store integration) implemented and tested.
+    -   Initial user documentation (getting started, core concepts, basic examples) is published.
+    -   Contract tests for interactions between Phase 1 and Phase 2 components are passing.
+    -   Community engagement channels (Discord/Matrix) are established.
+
+-   **Phase 3 DoD (Advanced Features)**:
+    -   All Advanced Prediction Modules (ReAct, ProgramOfThought) implemented and pass tests.
+    -   Core Optimization Components (Teleprompt base, BootstrapFewShot) implemented and demonstrate improvement on a benchmark task.
+    -   Advanced Retrieval components (multiple vector DB support, hybrid search concepts) prototyped or implemented.
+    -   Enhanced documentation with tutorials for advanced features is available.
+    -   Mutation testing and/or differential fuzzing infrastructure is set up for key components.
+    -   Public feature parity checklist against DSPy 2.6.x is maintained with CI status.
+
+-   **Phase 4 DoD (Refinement & Release)**:
+    -   Performance benchmarks meet targets (≤5% overhead for core operations).
+    -   Overall test coverage is >85%.
+    -   All public APIs are documented with TypeDoc, and user guides are complete.
+    -   v1.0.0 release candidate is built, tested, and passes all release criteria.
+    -   Token usage monitoring and alert system (if applicable for a library, or guidelines for users) is documented/implemented.
+    -   Data handling and PII guidelines for users are published.
+    -   Release notes are finalized.
+
 ## 8. Appendices
 
 ### 8.1 Glossary
@@ -899,6 +957,17 @@ This subset provides a functional foundation that developers can start using whi
 | Differential Fuzzing | Testing technique that compares outputs of different implementations with random inputs |
 | PII | Personally Identifiable Information, data that could identify an individual |
 | GDPR | General Data Protection Regulation, EU data protection and privacy regulation |
+
+### 8.1.1 Developer Onboarding and Knowledge Transfer
+Given the specialized knowledge required (TypeScript, Effect TS, DSPy internals), the following activities are planned to support team members and future contributors:
+-   **Onboarding Documentation**: A dedicated section in the `CONTRIBUTING.md` or a separate `ONBOARDING.md` will guide new developers through project setup, core concepts, and common development patterns.
+-   **Internal Workshops**: Periodic internal workshops will be conducted on:
+    -   Advanced Effect TS patterns relevant to DSTyS (e.g., Layers, Scopes, error handling strategies).
+    -   Deep dives into specific Python DSPy components and their planned TypeScript translation.
+-   **Pair Programming**: For particularly complex modules or challenging Python-to-TypeScript translations, pair programming sessions will be encouraged.
+-   **Code Review Standards**: Code reviews will emphasize not just correctness but also adherence to idiomatic TypeScript and Effect TS patterns, serving as a learning opportunity.
+-   **ADRs and Design Docs**: Architectural Decision Records and design documents (like this Project Overview and the Architecture Document) will be kept up-to-date and serve as key knowledge-sharing artifacts.
+-   **Regular Syncs**: Team syncs will include time for discussing technical challenges and sharing solutions or best practices discovered during implementation.
 
 ### 8.2 References
 - [DSPy GitHub Repository](https://github.com/stanfordnlp/dspy) - MIT License, v2.6.24

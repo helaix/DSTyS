@@ -266,6 +266,9 @@ graph TD
 | R4 | [Risk 4] | [L/M/H] | [L/M/H] | [Low/Medium/High] | [Strategy] | [Owner] |
 | R5 | [Risk 5] | [L/M/H] | [L/M/H] | [Low/Medium/High] | [Strategy] | [Owner] |
 
+### 6.2.1 Realism of Effort Estimates and Timelines
+[Acknowledge that initial estimates are approximate. Note if/when a re-evaluation will occur, factoring in complexities like Python-to-TypeScript translation, Effect TS learning curve, and TDD overhead. Consider mentioning a "Complexity/Uncertainty Multiplier" for foundational pieces.]
+
 ### 6.3 Technical Risks
 [Describe specific technical risks and their mitigation strategies.]
 
@@ -337,6 +340,18 @@ gantt
 | [Role 2] | [Allocation] | [Allocation] | [Allocation] | [Total] |
 | [Role 3] | [Allocation] | [Allocation] | [Allocation] | [Total] |
 
+### 7.4 Explicit Critical Path
+[Identify and visualize the critical path through the project (sequence of tasks that directly impacts the final delivery date). This helps in prioritizing and managing risks.]
+
+### 7.5 Strategy for Upstream Changes (During Development)
+[Briefly outline the policy for handling major releases or breaking changes from upstream dependencies (e.g., the Python library being ported) that occur *during* this project's development cycle. Will development pause to incorporate them, or stick to the original target version for this release?]
+
+### 7.6 Definition of Done (DoD) for Phases
+[Provide a brief, formal Definition of Done for each major project phase, aligned with PRD success metrics and key deliverables for that phase. E.g., "Phase 1 Done when: Core Primitives pass all tests, CI/CD is green, ADR for X is approved, Y example is functional."]
+
+### 7.7 Developer Onboarding and Knowledge Transfer
+[Briefly mention any planned activities for developer onboarding, knowledge sharing (e.g., internal workshops on key technologies/patterns), or pair programming for complex modules, especially if the project involves specialized or new technologies for the team.]
+
 ## 8. Appendices
 
 ### 8.1 Glossary
@@ -391,4 +406,3 @@ Remember that a good Project Overview should:
 - Identify dependencies and prerequisites
 - Assess and mitigate risks
 - Establish a realistic timeline and resource allocation
-

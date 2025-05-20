@@ -1,0 +1,59 @@
+# Sparkflow Project Context Rules (_project-context.rules.mdc)
+
+**Purpose:** To ensure AI assistants have a foundational understanding of Sparkflow's overall goals, target users, and strategic direction.
+
+---
+**Rule ID:** `PROJ-CTX-001`
+**Rule Title:** Adhere to Sparkflow Vision & Mission
+**Applies To:** All Agents
+**Purpose:** Maintain project coherence and ensure all efforts contribute to the overarching goals.
+**Scope:** All tasks and decision-making.
+**Guideline:** All generated outputs, plans, and suggestions MUST align with the core purpose and vision of Sparkflow as defined in PRD v1.5, Section 1.1 (AI-native cognitive substrate, autonomous creative/marketing engine, protect the spark, Business Memory, universal translation layer).
+**Reference:** `/Users/ryanhunter/helaix/sparkflow/docs/plan/PRD-V1.5-2025-05-20.md` (Section 1.1)
+
+---
+**Rule ID:** `PROJ-CTX-002`
+**Rule Title:** Prioritize Target Audience Needs
+**Applies To:** All Agents
+**Purpose:** Ensure product-market fit and user-centric development.
+**Scope:** Design, implementation, and feature prioritization.
+**Guideline:** Design and implementation choices MUST prioritize the needs and address the pain points of the target personas (Austin, Chloe, Sam, Dr. Sharma, Sarah) as detailed in PRD v1.5, Section 1.3 and UX/UI Plan v1.3, Section 4.1. The Austin MVP is the immediate focus.
+**Reference:**
+    *   `/Users/ryanhunter/helaix/sparkflow/docs/plan/PRD-V1.5-2025-05-20.md` (Section 1.3)
+    *   `/Users/ryanhunter/helaix/sparkflow/docs/plan/UI-UX-Plan-V1.4-2025-05-20.md` (Section 4.1)
+
+---
+**Rule ID:** `PROJ-CTX-003`
+**Rule Title:** Focus on Core Problems Being Solved
+**Applies To:** All Agents
+**Purpose:** Ensure the product delivers tangible value.
+**Scope:** Solution design and feature development.
+**Guideline:** Solutions SHOULD directly address the core problems Sparkflow aims to solve, as listed in PRD v1.5, Section 1.4 (Creative Inefficiency, Contextual Void, Fragmented Knowledge, etc.).
+**Reference:** `/Users/ryanhunter/helaix/sparkflow/docs/plan/PRD-V1.5-2025-05-20.md` (Section 1.4)
+
+---
+**Rule ID:** `PROJ-CTX-004`
+**Rule Title:** Understand and Utilize Key Technology Stack
+**Applies To:** All Agents (especially CodeGen, Codex)
+**Purpose:** Ensure solutions are technically feasible and leverage platform strengths.
+**Scope:** Technical design and implementation.
+**Guideline:** Be fully aware of and leverage the chosen technology stack: Cloudflare (Workers, DOs, D1, R2, Vectorize, Queues, AI Gateway, Containers, Workflows), RedwoodSDK, EffectTS E2E, Local-First Sync Engine (LFS) with D1 backend, Clerk, Gemini 2.5 Pro, Remotion, IaC.
+**Reference:** `/Users/ryanhunter/helaix/sparkflow/docs/plan/ArchitectureDoc-v1.5-2025-05-20.md` (Section 2)
+
+---
+**Rule ID:** `PROJ-CTX-005`
+**Rule Title:** Align with High-Level Project Phases & Current Focus
+**Applies To:** All Agents
+**Purpose:** Ensure development progresses logically and meets milestone objectives.
+**Scope:** Task prioritization and solution scoping.
+**Guideline:** Understand the overall project phases (Project Overview v1.2, Section 3). The Master Prompt (in `sparkflow.main.rules.mdc`) will specify the current development focus (e.g., Austin MVP). Prioritize tasks and solutions relevant to the current phase.
+**Reference:** `/Users/ryanhunter/helaix/sparkflow/docs/plan/project-overview-v1.2-2025-05-20.md` (Section 3)
+
+---
+**Rule ID:** `PROJ-CTX-006`
+**Rule Title:** Strive for Key Success Metrics
+**Applies To:** All Agents
+**Purpose:** Ensure development efforts are aligned with measurable project success.
+**Scope:** Feature design and impact assessment.
+**Guideline:** Be aware of the Key Performance Indicators (KPIs) defined in PRD v1.5, Section 3. Proposed solutions should ideally contribute positively to these metrics.
+**Reference:** `/Users/ryanhunter/helaix/sparkflow/docs/plan/PRD-V1.5-2025-05-20.md` (Section 3)

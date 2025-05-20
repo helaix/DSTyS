@@ -1,0 +1,105 @@
+---
+description: # Effect Pattern Matching Guidelines
+globs: 
+alwaysApply: false
+---
+# Effect Pattern Matching Guidelines
+
+## Tagged Unions vs String-Based Switches
+
+- **✅ DO:** Use tagged unions with `matchTag` for type-safe exhaustive pattern matching
+- **❌ DON'T:** Use string-based switch statements that lack compile-time checks
+
+## Converting String-Based Switches to matchTag
+
+### Before (string-based switch):
+```typescript
+// Using string IDs for workflow step types
+switch (stepConfig.id) {
+  case 'video-upload':
+    effect = mockDataProvider.getInitialBrandContext(fileName).pipe(
+      // implementation
+    );
+    break;
+  case 'brand-context-extraction':
+    effect = Effect.succeed(/* implementation */);
+    break;
+  // other cases
+}
+```
+
+### After (with matchTag):
+```typescript
+// Step 1: Define your steps as a tagged union
+type WorkflowStep = 
+  | { readonly _tag: 'VideoUpload'; readonly fileName: string }
+  | { readonly _tag: 'BrandContextExtraction'; readonly data: BrandContext }
+  | { readonly _tag: 'WebSocialSearch' }
+  // other step types
+
+// Step 2: Use matchTag for exhaustive matching
+const effect = Effect.matchTag(stepConfig, {
+  VideoUpload: ({ fileName }) => 
+    mockDataProvider.getInitialBrandContext(fileName),
+  
+  BrandContextExtraction: ({ data }) => 
+    Effect.succeed({ brandDetails: data }),
+  
+  WebSocialSearch: () =>
+    mockDataProvider.getSocialPages.pipe(
+      Effect.map(pages => ({ socialPresence: { pages } }))
+    ),
+  
+  // other handlers - must handle every possible tag
+})
+```
+
+## Benefits of matchTag
+
+- **Type Safety:** Compiler ensures all cases are handled
+- **No Default Case:** Forces explicit handling of all variants
+- **Destructuring:** Get typed properties from each variant
+- **Refactoring Safety:** Renaming or adding tags will cause compiler errors where updates are needed
+
+## When to Use matchTag
+
+- **✅ DO use** for discriminated unions with a `_tag` property
+- **✅ DO use** for workflow steps, state machines, and command processing
+- **✅ DO use** when you need exhaustive pattern matching
+- **❌ DON'T use** with simple enums or string constants without associated data
+
+## Converting Existing Code
+
+1. Define a proper discriminated union with `_tag` properties
+2. Update consumer code to use the tagged union
+3. Replace switch statements with `Effect.matchTag`
+4. Add type annotations to ensure proper inference
+
+## Example Implementation for Workflow Steps
+
+```typescript
+// Define the tagged union
+export type WorkflowStepConfig =
+  | { readonly _tag: 'VideoUpload'; readonly fileName: string }
+  | { readonly _tag: 'BrandExtraction'; readonly source: string }
+  | { readonly _tag: 'WebsiteAnalysis'; readonly url: string }
+  // other steps
+
+// Processing function with matchTag
+export const executeStep = (
+  step: WorkflowStepConfig,
+  context: Context
+): Effect.Effect<Result, Error> =>
+  Effect.matchTag(step, {
+    VideoUpload: ({ fileName }) => 
+      processVideoUpload(fileName, context),
+    
+    BrandExtraction: ({ source }) =>
+      extractBrandDetails(source, context),
+    
+    WebsiteAnalysis: ({ url }) =>
+      analyzeWebsite(url, context),
+    
+    // All other cases must be handled
+  })
+```

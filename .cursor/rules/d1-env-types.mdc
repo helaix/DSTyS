@@ -1,0 +1,35 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# D1 Database Configuration and Environment Types
+
+## Wrangler Configuration
+
+D1 database bindings are defined in `apps/web/wrangler.jsonc`. This project uses a D1 database bound to the name `DB`.
+
+Example binding in `[wrangler.jsonc](mdc:apps/web/wrangler.jsonc)`:
+```json
+  "d1_databases": [
+    {
+      "binding": "DB", 
+      "database_name": "sparkflow-db",
+      "database_id": "e0308fa6-0a3e-43cf-a8c7-affc28024a50"
+    }
+  ]
+```
+
+## Environment Type Generation
+
+The TypeScript definitions for Cloudflare bindings (including D1, KV, R2, DO, Vars, Secrets) are generated into `apps/web/worker-configuration.d.ts`.
+
+**Important:** To generate or update these types correctly after modifying `wrangler.jsonc`, you MUST run the command from the `apps/web` directory:
+
+```bash
+cd apps/web
+npx wrangler types
+cd ../..
+```
+
+Running `wrangler types` from the workspace root may fail or generate incorrect types/paths.

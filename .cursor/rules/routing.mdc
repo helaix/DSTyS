@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Application Routing
+
+Routing is handled by **TanStack Router** ([@tanstack/react-router](mdc:https:/tanstack.com/router/latest)).
+
+The project uses **file-based routing**. Route components are defined in the `src/routes/` directory. Each file typically uses `createFileRoute` to define its path and associated component.
+
+- Example route: [/compose](mdc:src/routes/compose.tsx)
+
+The main router setup, including context providers (like tRPC client and React Query client from [src/utils/trpc.ts](mdc:src/utils/trpc.ts)), is configured in [src/main.tsx](mdc:src/main.tsx) using `<RouterProvider>`.
+
+A generated route tree (`src/routeTree.gen.ts` - *do not edit manually*) is likely used under the hood by the TanStack Router Vite plugin ([@tanstack/router-plugin](mdc:https:/tanstack.com/router/latest/docs/framework/vite)).

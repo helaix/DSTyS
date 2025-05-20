@@ -1,0 +1,62 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Linear API Client Script (`linearClient.ts`) Guide
+
+This document outlines the functionality and usage of the [`linearClient.ts`](mdc:linearClient.ts) script, which interacts with the Linear API.
+
+## Core Functionality
+
+The script provides several command-line operations:
+
+-   **`--setup`**: Initializes a Linear project based on local configuration files.
+    -   Reads project structure from [`detailed_tickets.json`](mdc:detailed_tickets.json).
+    -   Reads PRD content from [`comp_prd.md`](mdc:comp_prd.md).
+    -   Creates the Project (if `LINEAR_PROJECT_ID` is not set in `.env`).
+    -   Creates Milestones defined in the JSON.
+    -   Ensures standard labels ("Slice A", "Slice B", "Slice C") exist.
+    -   Creates Issues defined in the JSON, linking them to milestones and labels.
+    -   Creates Dependencies between issues based on the JSON.
+    -   Creates a Project Document containing the PRD markdown.
+    -   **Idempotency:** Attempts to avoid creating duplicate projects, milestones, labels, and issues by fetching existing ones first.
+    -   **Requires `.env` update:** If run without `LINEAR_PROJECT_ID`, it will create the project and exit, prompting the user to add the new ID to `.env`.
+-   **`--next`**: Fetches and displays actionable issues for the configured project (`LINEAR_PROJECT_ID`).
+    -   Actionable issues are defined as those in an `unstarted` or `backlog` state type, with no blocking dependencies.
+    -   Issues are ordered by priority (Urgent first).
+-   **`--add-ticket`**: Creates a single, specific issue in Linear.
+    -   Currently hardcoded to create a ticket titled "Fix TypeScript errors in editor v6.0.0" with a predefined description containing a TS error log.
+    -   Sets the issue's initial state based on the fetched team statuses (preferring 'Todo' or the first 'unstarted' state).
+-   **(Default - no flags)**: Prints a help message outlining the available flags.
+
+## Configuration (`.env`)
+
+The script relies on environment variables defined in the [`.env`](mdc:.env) file:
+
+-   `LINEAR_API_KEY` (Required): Your Linear API key.
+-   `LINEAR_TEAM_ID` (Required): The ID of the target Linear team.
+-   `LINEAR_PROJECT_ID` (Optional for first `--setup` run): The ID of the target Linear project. The script will use this if set, or create a project and provide the ID if not set during `--setup`.
+
+## Key Functions & Logic
+
+-   **`loadConfig()`**: Reads and validates required environment variables from [`.env`](mdc:.env).
+-   **`readJsonFile()`, `readMarkdownFile()`**: Utility functions for reading input files.
+-   **`fetchTeamStatuses()`**: Fetches all workflow states (statuses) for the configured team, mapping names to IDs and types. Called early in `main()`.
+-   **`createProject()`**: Creates a new project in Linear.
+-   **`fetchProjectMilestones()`**: Retrieves existing milestones for a project by name.
+-   **`createMilestones()`**: Creates milestones defined in [`detailed_tickets.json`](mdc:detailed_tickets.json), avoiding duplicates. Returns a map of JSON IDs to Linear IDs.
+-   **`ensureLabels()`**: Fetches existing team labels and creates any missing standard labels ("Slice A", etc.). Returns a map of label names to Linear IDs.
+-   **`fetchProjectIssues()`**: Retrieves existing issues for a project by title.
+-   **`createIssues()`**: Creates issues defined in [`detailed_tickets.json`](mdc:detailed_tickets.json) or the hardcoded issue for `--add-ticket`. Avoids duplicates by title. Links issues to milestones and labels using the previously generated ID maps. Sets initial `stateId` if provided. Returns a map of JSON IDs/temp IDs to Linear IDs.
+-   **`createDependencies()`**: Sets up "blocks" relationships between issues based on the `dependencies` field in [`detailed_tickets.json`](mdc:detailed_tickets.json) and the generated issue ID map.
+-   **`createPrdDocument()`**: Creates a project document using content from [`comp_prd.md`](mdc:comp_prd.md).
+-   **`fetchNextIssues()`**: Queries Linear for actionable issues based on project ID, state type (`unstarted`, `backlog`), and lack of blocking dependencies. Orders by priority.
+-   **`main()`**: Orchestrates the overall script execution based on command-line arguments. Fetches statuses, loads config, and calls the appropriate functions for the specified flag.
+
+## Linear API Interaction
+
+-   Uses the `@linear/sdk` package.
+-   Directly constructs and executes GraphQL queries and mutations for all interactions.
+-   Includes basic error handling and console logging for API operations.
+-   Uses short delays (`setTimeout`) between some batched API calls (e.g., creating milestones, issues, dependencies) as a basic rate-limiting measure.

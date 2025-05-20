@@ -1,0 +1,119 @@
+# Sparkflow Monorepo Setup Rules (_monorepo-setup.rules.mdc)
+
+**Purpose:** To define standards for the pnpm monorepo structure, package organization, TypeScript configuration, dependency management, and development workflows, ensuring a consistent and maintainable codebase.
+
+---
+**Rule ID:** `MONO-001`
+**Rule Title:** Package Manager and Build Orchestration
+**Applies To:** All Developers, CI/CD Setup
+**Purpose:** Standardize core tooling for dependency management and build processes.
+**Scope:** Entire monorepo.
+**Guideline:**
+    *   **Package Manager:** `pnpm` workspaces **MUST** be used. Execute `pnpm install` in the root for all setup.
+    *   **Build Orchestration:** Turborepo **MUST** be used for managing builds, tests, and linting across the monorepo. Configure `turbo.json` with appropriate pipelines.
+**Rationale:** `pnpm` provides efficient disk usage and strict dependency resolution. Turborepo optimizes build times and task execution.
+
+---
+**Rule ID:** `MONO-002`
+**Rule Title:** Root Directory Structure
+**Applies To:** All Developers, AI Code Generation
+**Purpose:** Establish a clear and consistent organization for applications, shared packages, and project files.
+**Scope:** Root level of the monorepo.
+**Guideline:** Adhere to the following primary top-level directory structure:
+    *   `apps/`: Contains deployable applications.
+        *   `sparkflow-rw/`: The main RedwoodSDK application (Cloudflare Worker + Frontend).
+    *   `packages/`: Contains shared libraries, utilities, and configurations.
+        *   `schemas/`: Central location for all `@effect/schema` definitions.
+        *   `core-effect/`: Common EffectTS services, layers, utilities, error types.
+        *   `lfs-client/`: Shared React hooks or EffectTS services for LFS client interaction.
+        *   `lfs-server-infra/`: Logic for the LFS backend (e.g., `LFS_Backend_DO`).
+        *   `agent-services/`: EffectTS service interfaces and implementations for various domains.
+        *   `ui-components/`: Shared React components built on `shadcn/ui`.
+        *   `video-processing-utils/`: Utilities specific to video handling.
+        *   `internal-tools/`: CLI tools for development, data migration, testing.
+        *   `iac/`: Infrastructure as Code scripts (Pulumi/TypeScript, Terraform, or Alchemy).
+        *   `workflow-definitions/`: TypeScript class definitions for Cloudflare Workflows.
+    *   `.github/`: CI/CD workflows (GitHub Actions).
+    *   `.cursor/`: AI Agent rules.
+    *   `docs/`: Project documentation.
+**Rationale:** Promotes modularity, discoverability, and separation of concerns.
+
+---
+**Rule ID:** `MONO-003`
+**Rule Title:** Package Naming Conventions
+**Applies To:** All Developers, AI Code Generation
+**Purpose:** Ensure consistent and identifiable naming for shared packages.
+**Scope:** `packages/` directory.
+**Guideline:**
+    *   All packages under `packages/` **MUST** be scoped with `@sparkflow/`.
+    *   Example: `@sparkflow/schemas`, `@sparkflow/core-effect`.
+    *   Directory names for packages SHOULD be kebab-case (e.g., `video-processing-utils`).
+**Rationale:** Avoids naming conflicts and clearly identifies internal packages.
+
+---
+**Rule ID:** `MONO-004`
+**Rule Title:** TypeScript Configuration
+**Applies To:** All Developers, AI Code Generation, CI/CD Setup
+**Purpose:** Enforce strict type checking and consistent TypeScript settings across the monorepo.
+**Scope:** All TypeScript packages.
+**Guideline:**
+    *   **Root `tsconfig.base.json`**: Defines common strict compiler options (e.g., `strict: true`, `noUncheckedIndexedAccess: true`, `module: "NodeNext"`, `moduleResolution: "NodeNext"`, `esModuleInterop: true`, `skipLibCheck: true`).
+    *   **Package-Specific `tsconfig.json`**:
+        *   Each package (`apps/*`, `packages/*`) **MUST** have its own `tsconfig.json` that extends the root `tsconfig.base.json`.
+        *   **MUST** use `"composite": true` and `references` to correctly link to other workspace packages. Paths in references and `compilerOptions.paths` SHOULD use the `@sparkflow/` scope.
+        *   Specify `rootDir` (e.g., `./src`) and `outDir` (e.g., `./dist`).
+        *   Include `plugins: [{ "name": "@effect/language-service" }]` for EffectTS LSP support.
+        *   Frontend packages: `jsx: "react-jsx"`.
+**Rationale:** Ensures type safety, enables incremental builds, and provides good developer experience.
+
+---
+**Rule ID:** `MONO-005`
+**Rule Title:** ESLint & Prettier/Biome Configuration
+**Applies To:** All Developers, AI Code Generation, CI/CD Setup
+**Purpose:** Maintain consistent code style and quality.
+**Scope:** Entire monorepo.
+**Guideline:**
+    *   **Root Configurations**: Single root `.eslintrc.cjs` (or `eslint.config.js`), `prettier.config.cjs` (or `biome.json`) will define standards for the entire monorepo.
+    *   **CI Enforcement**: Linting and formatting **MUST** be part of the CI pipeline and pass for PRs to be merged.
+**Rationale:** Improves code readability and reduces cognitive load from inconsistent styles.
+
+---
+**Rule ID:** `MONO-006`
+**Rule Title:** Dependency Management with `pnpm`
+**Applies To:** All Developers, AI Code Generation, CI/CD Setup
+**Purpose:** Ensure efficient and consistent dependency management.
+**Scope:** Entire monorepo.
+**Guideline:**
+    *   **Shared Dependencies**: Define common `devDependencies` (TypeScript, ESLint, Prettier, Vitest, Turborepo) in the root `package.json`.
+    *   **Workspace Dependencies**: Use `pnpm add @sparkflow/[package-name] -w` (or `pnpm add @sparkflow/[package-name]` in a specific package) to add internal packages as dependencies. They will be linked using `workspace:*` protocol.
+    *   **Version Consistency (`syncpack`)**: Use `syncpack` (configured in `syncpack.config.mjs` or similar) to ensure consistent versions of external dependencies across all packages. Run `pnpm syncpack fix-mismatches` as part of CI or pre-commit hooks.
+    *   **Overrides/Resolutions**: Use `pnpm.overrides` in the root `package.json` to enforce specific versions of transitive dependencies if conflicts arise.
+**Rationale:** `pnpm`'s linking and `syncpack` help avoid dependency hell and ensure all parts of the monorepo use compatible versions.
+
+---
+**Rule ID:** `MONO-007`
+**Rule Title:** Build and Development Scripts (Root `package.json` with Turborepo)
+**Applies To:** All Developers, CI/CD Setup
+**Purpose:** Provide standardized commands for common development tasks.
+**Scope:** Root of the monorepo.
+**Guideline:** Use Turborepo (`turbo run ...` or `turbo ...`) for orchestrating common tasks across the monorepo. Define scripts in the root `package.json` like:
+    *   `"dev": "turbo dev --parallel"`
+    *   `"build": "turbo build"`
+    *   `"lint": "turbo lint"`
+    *   `"format": "biome format . --write && prettier --write '**/*.{json,md,yaml}'"` (or just one formatter)
+    *   `"test": "turbo test"`
+    *   `"typecheck": "turbo typecheck"`
+    *   `"clean": "turbo clean && rm -rf node_modules"`
+    *   `"iac:preview": "turbo run preview --filter=@sparkflow/iac"` (example for Pulumi/Terraform in `packages/iac`)
+    *   `"iac:up": "turbo run up --filter=@sparkflow/iac"`
+**Guideline:** Each package defines its own `build`, `dev`, `lint`, `test`, `typecheck`, `clean` scripts consumed by Turborepo.
+**Rationale:** Simplifies development workflows and leverages Turborepo's caching and parallel execution.
+
+---
+**Rule ID:** `MONO-008`
+**Rule Title:** IaC Project Location
+**Applies To:** All Developers, CI/CD Setup
+**Purpose:** Standardize the location of infrastructure code.
+**Scope:** Monorepo structure.
+**Guideline:** The Infrastructure as Code project (e.g., Pulumi, Terraform, or Alchemy) **MUST** reside in a dedicated directory within the monorepo, such as `packages/iac/`.
+**Rationale:** Keeps infrastructure code organized and co-located with application code it supports.

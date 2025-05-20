@@ -1,0 +1,46 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Narrative-Driven Development SOP for Sparkflow
+
+This document outlines the Standard Operating Procedure (SOP) used for developing Sparkflow, emphasizing a narrative-driven approach combined with iterative refinement based on conversational context.
+
+## Core Philosophy
+
+Development is guided by a clear, compelling story of the ideal user's journey and transformation. This narrative serves as the primary driver for feature prioritization, UX design, and architectural decisions. We prioritize building the *experience* first (through mockups and storytelling) before diving deep into backend implementation.
+
+## Workflow Steps
+
+1.  **High-Level Visioning (Conversation):** Begin with open-ended conversation ([Initial Brainstorming Context](mdc:docs/revelation-chat.md)) to explore the problem space, potential solutions, core philosophies, and target user needs.
+2.  **User Journey Mapping:** Translate the vision into a detailed narrative ([The Sparkflow User Journey](mdc:docs/user-journey-story.md)). This story outlines:
+    *   User persona and pain points.
+    *   Stages of interaction (Discovery, Onboarding, First Value, Regular Use, Transformation).
+    *   The user's perspective and *feeling* at each stage.
+    *   The underlying system mechanics required (including AI agents, data flows, key integrations).
+    *   Measurable outcomes and impact (KPIs, TIMER framework).
+3.  **Identify Core Flows & Mockup Plan:** Extract the most critical UX flows needed to realize the initial stages of the user journey. Plan the implementation of UI mockups for these flows ([UX Flows Implementation Plan](mdc:docs/ux-flows-implementation-plan.md)), prioritizing the path to first value.
+4.  **Iterative Mockup Implementation (Stacked Branches):** Implement UI mockups for each core flow sequentially, using stacked branches (e.g., via Graphite - [Graphite Workflow Example](mdc:.cursor/rules/graphite-stacking-workflow.md)).
+    *   Build the visual components ([MinimalChatInterface.tsx](mdc:apps/web/src/components/onboarding/MinimalChatInterface.tsx), [GuidedStepPrompt.tsx](mdc:apps/web/src/components/onboarding/GuidedStepPrompt.tsx)).
+    *   Simulate flow logic and state transitions within a container component ([OnboardingFlow.tsx](mdc:apps/web/src/components/onboarding/OnboardingFlow.tsx)).
+    *   Focus on interaction patterns and user feedback loops.
+5.  **Refine Narrative & Plan (Feedback Loop):** Based on conversational feedback, new insights (e.g., context tickets like [HLX-852](https://linear.app/helaix/issue/HLX-852/deep-research-agent-for-brand-analysis-architecture-overview)), or review of the mockups, iteratively refine the user journey story ([docs/user-journey-story.md](mdc:docs/user-journey-story.md)) and update the implementation plan ([docs/ux-flows-implementation-plan.md](mdc:docs/ux-flows-implementation-plan.md)) to ensure alignment.
+6.  **Define Product Requirements:** Formalize the technical and functional requirements based on the refined narrative and mockups ([Product Requirements Document](mdc:docs/revelation-chat-prd.md)).
+7.  **Phase 2: Backend & Integration:** Proceed with implementing the backend functionality (DOs, agents, databases, APIs, AI integration) as detailed in Phase 2 of the implementation plan, connecting it to the validated frontend mockups.
+
+## Key Artifacts
+
+*   **User Journey Story:** ([docs/user-journey-story.md](mdc:docs/user-journey-story.md)) - The central narrative.
+*   **Implementation Plan:** ([docs/ux-flows-implementation-plan.md](mdc:docs/ux-flows-implementation-plan.md)) - Detailed tasks derived from the journey.
+*   **Product Requirements:** ([docs/revelation-chat-prd.md](mdc:docs/revelation-chat-prd.md)) - Formal requirements.
+*   **Conversation History:** The primary source of iterative refinement and context.
+*   **Component Mockups:** Residing in feature branches (e.g., `ux/guided-onboarding`).
+
+## Benefits
+
+*   Ensures development stays aligned with user value and experience.
+*   Prioritizes features based on narrative impact.
+*   Facilitates clear communication and shared understanding.
+*   Allows for rapid iteration on UX before complex backend work.
+*   Keeps the focus on the "why" behind the features.

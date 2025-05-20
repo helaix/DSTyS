@@ -1,0 +1,24 @@
+---
+description: Bun docs and capabilities
+globs: 
+alwaysApply: false
+---
+# Bun Capabilities Summary
+
+Based on recent documentation ([bun run](mdc:https:/bun.sh/docs/cli/run), [Bun Shell](mdc:https:/bun.sh/guides/runtime/shell), [bunx](mdc:https:/bun.sh/docs/cli/bunx), [Bun.spawn](mdc:https:/bun.sh/docs/api/spawn)):
+
+*   **Running Files:**
+    *   `bun run <file>` or `bun <file>`: Executes JS/TS/JSX files directly with Bun's fast runtime (JavaScriptCore).
+    *   Supports `--watch` for auto-reloading.
+    *   `bun run -`: Executes code piped via stdin.
+*   **Running `package.json` Scripts:**
+    *   `bun run <script>`: Executes named scripts, significantly faster than `npm run`.
+    *   Respects lifecycle scripts (`pre<script>`, `post<script>`).
+    *   `--bun` flag: Forces execution with Bun runtime, overriding shebangs like `#!/usr/bin/env node`.
+    *   `--filter`: Allows running scripts across multiple workspace packages in a monorepo.
+*   **Running Package Executables:**
+    *   `bunx <package>`: Auto-installs (if needed) and runs package executables (like `npx`). Much faster than `npx` for locally installed packages.
+    *   Also supports the `--bun` flag to force execution with Bun.
+*   **Running Shell Commands Programmatically:**
+    *   **Bun Shell (`$`):** `import { $ } from "bun";` provides a simple, cross-platform, bash-like tagged template literal (`$`\`ls -l\``) for running shell commands within JS/TS. Returns a promise resolving with the output (`.text()`, `.lines()`, etc.).
+    *   **`Bun.spawn()` / `Bun.spawnSync()`:** Lower-level API (similar to Node's `child_process`) for spawning child processes. Offers fine-grained control over `stdio`, environment variables, inter-process communication (IPC), exit handling, timeouts, etc. `spawnSync` provides a blocking alternative.

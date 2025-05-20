@@ -1,0 +1,125 @@
+---
+description: Tagged Unions with Effect and Schema
+globs: 
+alwaysApply: false
+---
+# Tagged Unions with Effect and Schema
+
+## Creating Tagged Union Types
+
+- **✅ DO:** Define tagged unions with consistent `_tag` properties
+- **✅ DO:** Use Schema for complex data structures that need validation
+- **❌ DON'T:** Try to use Data.TaggedEnum directly with Schema types
+
+## Schema-Based Tagged Unions
+
+```typescript
+// 1. Define a base schema with common properties
+export const BaseSchema = S.Struct({
+  // Common properties
+  id: S.String,
+  timestamp: S.Number
+})
+
+// 2. Define specific variants with _tag
+export const VariantASchema = S.extend(
+  BaseSchema,
+  S.Struct({
+    _tag: S.Literal('VariantA'),
+    aSpecificProp: S.String
+  })
+)
+
+export const VariantBSchema = S.extend(
+  BaseSchema,
+  S.Struct({
+    _tag: S.Literal('VariantB'),
+    bSpecificProp: S.Number
+  })
+)
+
+// 3. Union all variants
+export const UnionSchema = S.Union(
+  VariantASchema,
+  VariantBSchema
+)
+
+// 4. Extract the type
+export type Union = S.Schema.Type<typeof UnionSchema>
+```
+
+## Using Effect.matchTag for Pattern Matching
+
+```typescript
+// Process a tagged union value with exhaustive checking
+const result = Effect.matchTag(value, {
+  VariantA: ({ aSpecificProp }) => {
+    // Handle VariantA - properties are properly typed
+    return Effect.succeed(`Got A: ${aSpecificProp}`)
+  },
+  VariantB: ({ bSpecificProp }) => {
+    // Handle VariantB - properties are properly typed
+    return Effect.succeed(`Got B: ${bSpecificProp}`)
+  }
+  // TypeScript error if any _tag variant is missing
+})
+```
+
+## Benefits
+
+- **Type Safety:** Compiler ensures all variants are handled
+- **Property Access:** Access variant-specific props with proper types
+- **Validation:** Schema provides runtime validation
+- **Exhaustiveness:** Compiler error if you miss a case
+
+## Example: Workflow Steps
+
+```typescript
+// Define workflow step variants
+export const VideoUploadStepSchema = S.extend(
+  BaseWorkflowStepSchema,
+  S.Struct({
+    _tag: S.Literal('VideoUpload'),
+    fileName: S.optional(S.String)
+  })
+)
+
+export const WebAnalysisStepSchema = S.extend(
+  BaseWorkflowStepSchema,
+  S.Struct({
+    _tag: S.Literal('WebAnalysis'),
+    url: S.optional(S.String)
+  })
+)
+
+// Create union of all step types
+export const WorkflowStepSchema = S.Union(
+  VideoUploadStepSchema,
+  WebAnalysisStepSchema,
+  // ... other step schemas
+)
+
+// Process steps with matchTag
+const processStep = (
+  step: WorkflowStep, 
+  context: Context
+): Effect.Effect<Result, Error> => 
+  Effect.matchTag(step, {
+    VideoUpload: ({ fileName }) => 
+      processUpload(fileName, context),
+      
+    WebAnalysis: ({ url }) =>
+      analyzeWebsite(url, context),
+      
+    // Must handle all variants
+  })
+```
+
+## Converting from String IDs to Tagged Unions
+
+If you have an existing codebase using string IDs:
+
+1. Define a tagged union schema for each variant
+2. Add a `_tag` property to each variant
+3. Replace switch statements with `Effect.matchTag`
+4. Update code that created these objects to include `_tag`

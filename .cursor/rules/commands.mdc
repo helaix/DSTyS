@@ -1,0 +1,14 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Common Commands
+
+Key commands are defined in the root [package.json](mdc:package.json) and run using `pnpm`:
+
+- `pnpm dev`: Starts the Vite development server for the frontend and potentially the worker.
+- `pnpm build`: Builds the `shared-types` package and the Vite frontend application.
+- `pnpm lint`: Runs ESLint checks across the project using the configuration in [eslint.config.js](mdc:eslint.config.js).
+- `pnpm typecheck`: Runs TypeScript checks using the different `tsconfig.*.json` files.
+- `pnpm deploy`: Builds the application and deploys using Wrangler ([wrangler.jsonc](mdc:wrangler.jsonc)).

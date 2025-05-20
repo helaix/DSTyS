@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Application Entry Point
+
+The main entry point for the React web application is [src/main.tsx](mdc:src/main.tsx).
+
+This file sets up:
+- React StrictMode
+- React DOM rendering into the `#root` element in [index.html](mdc:index.html).
+- Context Providers:
+    - `<QueryClientProvider>` from `@tanstack/react-query` (client configured in [src/utils/trpc.ts](mdc:src/utils/trpc.ts)).
+    - `<TRPCProvider>` (configured in [src/utils/trpc.ts](mdc:src/utils/trpc.ts)).
+    - `<RouterProvider>` from `@tanstack/react-router` (router instance configured using file-based routing, see `routing.mdc`).

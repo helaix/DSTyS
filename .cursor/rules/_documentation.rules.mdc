@@ -1,0 +1,127 @@
+# Sparkflow Documentation Rules (_documentation.rules.mdc)
+
+**Purpose:** To establish standards for all forms of documentation within the Sparkflow project, ensuring clarity, consistency, up-to-dateness, and accessibility for developers, AI agents, and future users.
+**Primary Reference:** `_workplan-execution.rules.mdc`, `_git_workflow.rules.mdc`.
+
+---
+**Rule ID:** `DOC-001`
+**Rule Title:** Code Comments - JSDoc/TSDoc for TypeScript
+**Applies To:** All TypeScript code (Human and AI generated)
+**Purpose:** Improve code understandability, maintainability, and enable automated documentation generation.
+**Scope:** Source code files.
+**Guideline:**
+    *   All exported functions, classes, types, interfaces, EffectTS Services (`Context.Tag` definitions), and Layers **MUST** have JSDoc/TSDoc comments.
+    *   **Content MUST Include:**
+        *   Brief summary of the item's purpose.
+        *   `@param` for all parameters (name, type, description).
+        *   `@returns` for functions/methods (description of return value and its type).
+        *   `@throws` for EffectTS typed errors that can be raised by an Effect, or specific exceptions if applicable (though Effect errors are preferred).
+        *   `@example` usage snippets where helpful for complex items.
+        *   `@see` links to related items or documentation.
+        *   `@layer` for EffectTS Layers, describing provided services and required services.
+        *   `@deprecated` if applicable, with reasoning and alternatives.
+    *   Use inline comments sparingly, only for explaining complex or non-obvious logic that cannot be made clearer through code structure or naming. Comments should explain *why*, not *what*.
+    *   For `@effect/schema` definitions, use `S.annotations({ description: "...", examples: [...] })` to provide metadata.
+**Rationale:** Essential for long-term maintainability and team collaboration.
+
+---
+**Rule ID:** `DOC-002`
+**Rule Title:** Workplan Document Updates
+**Applies To:** Developers and AI Agents executing Workplans
+**Purpose:** Ensure Workplans serve as an accurate and living record of work performed and decisions made.
+**Scope:** `/workplans/` directory.
+**Guideline:** The developer or AI agent responsible for a Workplan chunk **MUST** diligently update the Workplan document as per `_workplan-execution.rules.mdc`. This includes:
+    *   Keeping the 'Status' field current.
+    *   Marking 'Implementation Checklist' items as complete.
+    *   Documenting key decisions, challenges, resolutions, and deviations in the 'Notes & Decisions Log'.
+    *   Linking to relevant commits, PRs, and Linear tickets.
+**Rationale:** Critical for project tracking, knowledge sharing, and future reference.
+**Reference:** `_workplan-execution.rules.mdc`
+
+---
+**Rule ID:** `DOC-003`
+**Rule Title:** Consistency with Core Planning Documents
+**Applies To:** All documentation and development work
+**Purpose:** Maintain overall project coherence and avoid conflicting information.
+**Scope:** All project artifacts.
+**Guideline:**
+    *   All development work, code comments, and subsidiary documentation (e.g., READMEs in packages) MUST remain consistent with the latest versions of the primary planning documents: PRD v1.5, Architecture Document v0.5, UX/UI Plan v1.3, and Project Overview v1.2.
+    *   If discrepancies are found or changes in primary documents necessitate updates elsewhere, this MUST be flagged and addressed promptly. AI assistants SHOULD help identify such inconsistencies.
+**Rationale:** Ensures a single source of truth for project direction and specifications.
+
+---
+**Rule ID:** `DOC-004`
+**Rule Title:** Commit Message and Pull Request (PR) Description Content
+**Applies To:** All Git commits and PRs
+**Purpose:** Provide clear, traceable history of changes and facilitate effective code reviews.
+**Scope:** Git and GitHub usage.
+**Guideline:**
+    *   Commit messages MUST follow the Conventional Commits specification and reference relevant Workplan/Linear IDs as per `_git_workflow.rules.mdc`.
+    *   PR descriptions MUST use the project's PR template and clearly summarize changes, explain the 'why,' link to Workplan/Linear IDs, and detail verification steps as per `_git_workflow.rules.mdc`.
+**Rationale:** Essential for maintainable Git history and efficient reviews.
+**Reference:** `_git_workflow.rules.mdc`
+
+---
+**Rule ID:** `DOC-005`
+**Rule Title:** AI Agent Responsibilities in Documentation
+**Applies To:** AI Agents (CodeGen, Codex, etc.)
+**Purpose:** Leverage AI to assist in documentation efforts and ensure AI contributions are well-documented.
+**Scope:** AI agent task execution.
+**Guideline:**
+    *   AI agents generating code (e.g., Codex, CodeGen) MUST also generate appropriate JSDoc/TSDoc comments for the code they produce, adhering to Rule `DOC-001`.
+    *   AI agents MAY be tasked with drafting initial sections of user documentation or technical READMEs based on implemented features, which will then be reviewed and refined by humans.
+    *   When referencing work, AI agents MUST use correct Workplan IDs and link Linear tickets.
+    *   If an AI's action necessitates an update to core documentation (PRD, Arch Doc), it SHOULD flag this in its output or PR description.
+**Rationale:** Integrates documentation into the AI-assisted development workflow.
+
+---
+**Rule ID:** `DOC-006`
+**Rule Title:** README Files for Packages and Key Modules
+**Applies To:** Shared packages and complex modules
+**Purpose:** Improve discoverability, usability, and understanding of shared code and complex components.
+**Scope:** `packages/` directory and significant modules within applications.
+**Guideline:**
+    *   Each shared package in the `packages/` directory (e.g., `@sparkflow/schemas`, `@sparkflow/core-effect`) SHOULD have a `README.md` file.
+    *   READMEs SHOULD explain the package's purpose, key features/APIs, how to install/use it, and provide simple usage examples.
+    *   Complex modules or directories within applications MAY also benefit from a `README.md`.
+**Rationale:** Facilitates easier adoption and maintenance of shared components.
+
+---
+**Rule ID:** `DOC-007`
+**Rule Title:** Architecture Decision Records (ADRs)
+**Applies To:** Significant architectural decisions made post-initial planning
+**Purpose:** Provide a historical record of key architectural evolution, rationale, and consequences.
+**Scope:** Architectural changes and significant technical choices.
+**Guideline:** For significant architectural decisions made *after* the finalization of Architecture Document v0.5, create lightweight Architecture Decision Records (ADRs). ADRs should document:
+    *   Context and Problem Statement.
+    *   Decision Made.
+    *   Rationale and Alternatives Considered.
+    *   Consequences (positive and negative).
+    *   Status (Proposed, Accepted, Deprecated).
+    *   Store ADRs in a designated `/docs/adr/` directory.
+**Rationale:** Maintains transparency and understanding of architectural choices over time.
+
+---
+**Rule ID:** `DOC-008`
+**Rule Title:** User-Facing Documentation (Post-MVP)
+**Applies To:** Features released to users
+**Purpose:** Support user adoption, self-service, and effective use of Sparkflow.
+**Scope:** Help guides, tutorials, FAQs, API documentation (for public API).
+**Guideline:**
+    *   As features mature and are released (starting post-MVP), user-facing documentation (Help Guides, Tutorials, FAQs) MUST be developed.
+    *   This documentation should be clear, concise, task-oriented, and easily accessible.
+    *   A centralized documentation platform (e.g., Git-based like Docusaurus built from Markdown in `/docs/user/`, or a dedicated helpdesk platform) will be used.
+    *   The Public Developer API (Future - Iteration 3+) MUST have comprehensive reference documentation generated from its OpenAPI specification, along with usage guides and tutorials.
+**Rationale:** Essential for user success and reducing support load.
+
+---
+**Rule ID:** `DOC-009`
+**Rule Title:** Documentation Review and Maintenance
+**Applies To:** All documentation artifacts
+**Purpose:** Ensure documentation remains accurate, relevant, and high quality.
+**Scope:** Ongoing documentation lifecycle.
+**Guideline:**
+    *   Documentation relevant to code changes (e.g., JSDoc, READMEs) SHOULD be reviewed as part of the code review process for the corresponding PR.
+    *   Periodically (e.g., at the end of major project iterations or quarterly), dedicate time to review and update all core documentation (planning docs, agent rules, user guides) for accuracy, completeness, and clarity.
+    *   Outdated documentation SHOULD be marked as deprecated or removed.
+**Rationale:** Prevents documentation from becoming misleading or useless.

@@ -1,0 +1,19 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Available Tools
+
+This document lists the tools available for use in the current session.
+
+*   `codebase_search`: Semantic search for code snippets.
+*   `read_file`: Read contents of a file (or parts of it).
+*   `run_terminal_cmd`: Propose a terminal command to run.
+*   `list_dir`: List directory contents.
+*   `grep_search`: Fast regex-based text search (ripgrep).
+*   `edit_file`: Propose edits to files or create new files.
+*   `file_search`: Fuzzy search for files based on path.
+*   `delete_file`: Delete a file.
+*   `reapply`: Reapply the last edit if the previous attempt failed.
+*   `web_search`: Search the web for information.

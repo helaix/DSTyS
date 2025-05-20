@@ -1,0 +1,136 @@
+# Sparkflow Video AI & Multimodal Rules (_video-ai.rules.mdc)
+
+**Purpose:** To establish guidelines for leveraging Gemini 2.5 Pro (and subsequent models) for advanced video understanding, analysis, and related AI tasks within Sparkflow, ensuring these processes are robust, efficient, and well-integrated.
+**Primary AI Model for Video/Multimodal:** Google Gemini 2.5 Pro (or latest production-ready advanced version).
+**Primary Orchestration:** Cloudflare Workflows (TypeScript defined) for all video analysis pipelines.
+**Access Mechanism:** Cloudflare AI Gateway, wrapped by EffectTS Services.
+**References:** PRD v1.5 (Context Engine, Creative Gen Epics), Arch Doc v0.5 (Gemini integration, Workflows, DOs).
+
+---
+**Rule ID:** `VIDAI-001`
+**Rule Title:** Gemini 2.5 Pro as Primary for Video Understanding
+**Applies To:** All video analysis tasks
+**Purpose:** Leverage SOTA capabilities for deep video context extraction.
+**Scope:** Video processing and analysis features.
+**Guideline:** Gemini 2.5 Pro (or the latest recommended Google multimodal model) via Cloudflare AI Gateway is the primary AI service for all core video understanding tasks. This includes, but is not limited to:
+    *   Full video transcription (with speaker diarization if supported).
+    *   Scene detection and segmentation with descriptive summaries.
+    *   Object, brand, logo, and text-in-video recognition and timestamping (with bounding boxes if available).
+    *   Action recognition and event detection.
+    *   Ad structure deconstruction (identifying hooks, value props, CTAs, pacing, emotional arc).
+    *   Visual style analysis (color palettes, shot types, editing style, overall aesthetic).
+    *   Sentiment and emotional tone analysis of scenes/dialogue.
+    *   Generating textual summaries and rich, structured metadata from video content.
+**Rationale:** Standardizes on a powerful multimodal model for comprehensive video analysis.
+
+---
+**Rule ID:** `VIDAI-002`
+**Rule Title:** Prompt Engineering for Video Analysis
+**Applies To:** AI interactions involving video
+**Purpose:** Maximize the accuracy and relevance of Gemini's video analysis for Sparkflow's use cases.
+**Scope:** Design of prompts for Gemini Video API.
+**Guideline:**
+    *   Develop specific, version-controlled, and highly contextualized prompts for the Gemini Video API.
+    *   Utilize its multimodal capabilities by providing relevant text prompts (e.g., "Identify all instances of the 'Adegen' product in this video ad, focusing on scenes where it's actively used or demonstrated.") alongside the video input.
+    *   Employ few-shot prompting techniques where applicable by providing examples of desired analysis output for specific video types or brands.
+    *   Prompts should guide the model to extract information relevant to Sparkflow's use cases (brand context, creative inspiration, ad performance drivers, template derivation).
+    *   Prompts should request structured output (e.g., JSON) where possible to simplify parsing.
+**Rationale:** Effective prompting is key to unlocking the full potential of advanced AI models.
+
+---
+**Rule ID:** `VIDAI-003`
+**Rule Title:** Structured Metadata Output and Schema Adherence from Video Analysis
+**Applies To:** Processing of Gemini Video API responses
+**Purpose:** Ensure data integrity, queryability, and usability of video-derived context.
+**Scope:** Data transformation and storage post-analysis.
+**Guideline:**
+    *   Raw JSON output from the Gemini Video API MUST be parsed, validated, and transformed into strongly-typed `@effect/schema` structures (e.g., `VideoAnalysisMetadata`, `VideoSceneData`, `RecognizedEntityAnnotation`, `AdStructureElement`).
+    *   This structured metadata MUST be persisted in `D1_APP_DATA` (e.g., in tables like `VideoAnalysisMetadata`, `VideoScenes`, `VideoTranscripts`, `RecognizedEntities`) and linked to the source video asset ID.
+    *   Key insights or summaries derived from this metadata SHOULD be published to the Local-First Sync Engine (LFS) for UI display and consumption by other agents.
+**Rationale:** Converts raw AI output into usable, type-safe application data.
+**Reference:** `_effect-ts.rules.mdc` (Rule `EFFECT-TS-002`)
+
+---
+**Rule ID:** `VIDAI-004`
+**Rule Title:** Asynchronous Video Analysis via Cloudflare Workflows
+**Applies To:** All significant video processing tasks
+**Purpose:** Ensure robust, scalable, and observable processing of video assets.
+**Scope:** Orchestration of video analysis pipelines.
+**Guideline:**
+    *   All significant video analysis pipelines (e.g., processing a newly uploaded user video) MUST be orchestrated by Cloudflare Workflows (e.g., `VideoAnalysisWorkflow_Advanced`).
+    *   The Workflow will manage steps such as:
+        1.  Receiving video asset ID and R2 path.
+        2.  Validating video (format, size, basic integrity - see `VIDAI-001` from existing rules).
+        3.  Calling the Gemini Video API (via an EffectTS activity using AI Gateway) for various analysis types (transcription, scene detection, object recognition, etc., potentially as parallel or sequential activities).
+        4.  Parsing and structuring the Gemini responses.
+        5.  Persisting structured metadata to `D1_APP_DATA`.
+        6.  Triggering RAG ingestion for derived text (transcripts, descriptions).
+        7.  Publishing analysis completion status and key findings to LFS.
+    *   Workflows must handle retries, errors, and timeouts gracefully for long-running video analysis.
+**Rationale:** Leverages Cloudflare Workflows for durable and complex asynchronous operations.
+**Reference:** `_backend-api.rules.mdc` (Rule `API-005`)
+
+---
+**Rule ID:** `VIDAI-005`
+**Rule Title:** Cost and Performance Optimization for Video APIs
+**Applies To:** Design of video analysis workflows and API calls
+**Purpose:** Manage operational expenses and ensure timely analysis.
+**Scope:** Interaction with Gemini Video API.
+**Guideline:**
+    *   Be acutely mindful of Gemini Video API costs (often based on video duration and features used). Design workflows and prompts to request only necessary analysis features for a given task.
+    *   Offer users different "depths" or profiles of video analysis (e.g., "quick summary" vs. "deep dive scene-by-scene object recognition") with clear indication of potential processing time/cost implications.
+    *   Log detailed usage and costs via Cloudflare AI Gateway. Monitor processing times for different analysis types.
+    *   Explore options for optimizing video input if possible (e.g., resolution, frame rate for certain analyses) without losing essential information, if supported by Gemini and beneficial for cost/speed.
+    *   For very large or long videos, consider strategies such as chunked processing (if supported by Gemini API for sequential analysis) or offering analysis of specific time ranges to manage costs and processing times. Clearly communicate these options and their implications to the user.
+**Rationale:** Ensures efficient and cost-effective use of powerful AI services.
+
+---
+**Rule ID:** `VIDAI-006`
+**Rule Title:** Error Handling and Fallbacks for Video Analysis
+**Applies To:** Video analysis pipelines
+**Purpose:** Improve resilience of the video processing pipeline.
+**Scope:** Error management in Workflows and EffectTS activities.
+**Guideline:**
+    *   Implement robust error handling and retry mechanisms (within Cloudflare Workflows and EffectTS activities) for Gemini Video API calls and video processing steps. Map Gemini API errors to specific typed errors within EffectTS.
+    *   If a specific analysis feature fails (e.g., object recognition), the workflow should attempt to continue with other successful analyses (e.g., transcription) and log the partial failure, clearly indicating which parts of the analysis are missing.
+    *   When partial results are generated due to errors in specific analysis features, these partial results (e.g., transcript without object detection) MUST be stored and made accessible to the user via LFS, with clear indication of what information is missing or incomplete.
+    *   Provide clear feedback to the user via LFS if video analysis encounters non-recoverable errors or produces partial results.
+**Rationale:** Makes the system more robust to transient issues or limitations in AI analysis.
+
+---
+**Rule ID:** `VIDAI-007`
+**Rule Title:** Contextual Grounding for Creative Generation from Video
+**Applies To:** Creative generation tasks using video-derived context
+**Purpose:** Ensure AI-generated creatives are deeply informed by existing successful video assets.
+**Scope:** Prompts and logic for `CREATIVE_GEN` epic.
+**Guideline:**
+    *   The rich, structured metadata derived from video analysis (transcripts, scene descriptions, visual elements, ad structures) is a primary source of context for the `KNOWLEDGE_RAG` system and a critical input for the `CREATIVE_GEN` epic.
+    *   Creative prompts (for text, image, or video generation) SHOULD leverage this detailed video understanding to generate highly relevant and nuanced outputs (e.g., "Create a hook based on the visual style of scene 3 and the key message from the L59 video transcript," "Generate image concepts for an ad targeting the audience inferred from this product demo video.").
+**Rationale:** Connects video understanding directly to creative output, fulfilling a core Sparkflow value proposition.
+**Reference:** `_creative-gen.rules.mdc`
+
+---
+**Rule ID:** `VIDAI-008`
+**Rule Title:** Video-to-Animation Code Generation
+**Applies To:** Creative generation tasks involving animation
+**Purpose:** Enable novel creative possibilities and automate aspects of animation.
+**Scope:** `CREATIVE_GEN` epic, specifically animation features.
+**Guideline:**
+    *   Leverage Gemini 2.5 Pro's capabilities (or other suitable models via AI Gateway) to analyze video scenes or textual descriptions and generate animation code (e.g., p5.js for `RemotionSkiaCanvas`, Lottie JSON).
+    *   This process SHOULD be orchestrated by a Cloudflare Workflow (e.g., `AnimationCodeGenerationWorkflow`).
+    *   The generated code MUST be validated, sanitized, and stored as an asset (see `_creative-gen.rules.mdc`).
+**Rationale:** Automates a complex creative task by combining video understanding with code generation.
+**Reference:** `_creative-gen.rules.mdc` (Rule `CREGEN-004`)
+
+---
+**Rule ID:** `VIDAI-009`
+**Rule Title:** Security & Privacy for Video Data
+**Applies To:** Handling of user-uploaded videos and derived data
+**Purpose:** Protect user data and ensure compliance.
+**Scope:** Data storage, access, and processing.
+**Guideline:**
+    *   User-uploaded videos stored in R2 and their derived analysis data stored in `D1_APP_DATA` MUST be protected by strict authorization rules, scoped by `organizationId` and/or `userId`.
+    *   Ensure compliance with Gemini API (and other AI services) terms of service regarding data handling, retention, and privacy.
+    *   Provide users with transparency on how their video data is used and analyzed.
+**Rationale:** Maintains user trust and adheres to data protection principles.
+**Reference:** `_security.rules.mdc`

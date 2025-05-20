@@ -1,0 +1,26 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Sequential Thinking Tool (`mcp_server-sequential-thinking_sequentialthinking`)
+
+This tool aids in breaking down complex problems, planning multi-step tasks, and performing analysis that might require adjustments. It allows for a flexible thinking process where steps can be refined or revised.
+
+## How it Works
+
+You use this tool iteratively:
+1.  Start with an initial problem statement or goal (`thoughtNumber: 1`). Estimate the `totalThoughts` needed, but know this can be adjusted.
+2.  Provide subsequent `thought` messages to break down the problem, plan steps, or analyze aspects. Increment the `thoughtNumber` for each step.
+3.  If you realize a previous thought needs correction or refinement, you can indicate this using `isRevision: true` and `revisesThought: <number>`.
+4.  Continue adding thoughts until the plan or analysis is complete.
+5.  Set `nextThoughtNeeded: false` on the final thought.
+
+## Key Parameters
+
+-   `thought`: The content of the current thinking step.
+-   `thoughtNumber`: The sequence number of the current thought.
+-   `totalThoughts`: The estimated total number of thoughts (can be revised).
+-   `nextThoughtNeeded`: Boolean indicating if more thoughts are required. `false` signals the end of the process.
+-   `isRevision`: (Optional) Boolean, set to `true` if this thought revises a previous one.
+-   `revisesThought`: (Optional) If `isRevision` is true, the number of the thought being revised.

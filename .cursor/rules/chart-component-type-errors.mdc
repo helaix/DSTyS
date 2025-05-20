@@ -1,0 +1,15 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Known Type Errors: Chart Components
+
+There are currently unresolved TypeScript errors (`TS2322: Type 'Element | null' is not assignable...`) in the following chart components:
+
+- `[apps/web/src/components/chart-area-interactive.tsx](mdc:apps/web/src/components/chart-area-interactive.tsx)`
+- `[apps/web/src/components/data-table.tsx](mdc:apps/web/src/components/data-table.tsx)`
+
+These errors relate to conditional rendering of chart elements (like `<AreaChart>`). Standard fixes like changing `condition && <Component />` to `condition ? <Component /> : null` may not work if the parent container (e.g., `<ChartContainer>`, `<ScrollArea>`) requires a direct `ReactElement` child and does not accept `null`.
+
+These errors require manual investigation and fixing, likely by adjusting the conditional rendering logic to ensure a valid `ReactElement` or an empty fragment (`<></>`) is always rendered where expected, or by conditionally rendering the parent container itself.

@@ -1,0 +1,22 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Git Workflow Notes
+
+## Integrating Main/Remote Branches
+
+Integrating changes from `main` or the remote version of a feature branch (e.g., `origin/feat/some-feature`) often involves resolving conflicts.
+
+- **Common Conflict Files:** Be aware that conflicts frequently occur in:
+    - `[apps/web/src/routes/index.tsx](mdc:apps/web/src/routes/index.tsx)`
+    - `[apps/web/worker/hono/api.ts](mdc:apps/web/worker/hono/api.ts)`
+    - Generated files like `[apps/web/src/routeTree.gen.ts](mdc:apps/web/src/routeTree.gen.ts)` (often requires adding after conflict resolution).
+- **Rebase:** Rebasing (`git rebase` or `git pull --rebase`) is often preferred for feature branches to maintain a linear history.
+    - Conflicts may need to be resolved multiple times if they occur across several commits being rebased.
+    - Git state can sometimes become confusing during a rebase (e.g., reporting merge state, failing with confusing errors). Use `git status` frequently.
+- **Pushing After Rebase:** After successfully rebasing a branch that has already been pushed, you MUST use force push. Prefer `--force-with-lease` to avoid overwriting changes pushed by others since your last fetch:
+    ```bash
+    git push --force-with-lease origin <your-branch-name>
+    ```

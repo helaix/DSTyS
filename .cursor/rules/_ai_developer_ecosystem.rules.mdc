@@ -1,0 +1,146 @@
+# Sparkflow AI Developer Ecosystem & Agent Interaction Rules (_ai_developer_ecosystem.rules.mdc)
+
+**Purpose:** To define the roles, capabilities, interaction protocols, and best practices for utilizing the suite of AI development assistants (Cursor, CodeGen, Codex, RepoPrompt, Mentat, CodeModet, Graphite Agent) within the Sparkflow development workflow. This document operationalizes the `Sparkflow AI Development Ecosystem & Workflow Strategy v1.0`.
+**Primary Reference:** `/Users/ryanhunter/helaix/sparkflow/docs/plan/ai-dev-ecosystem-V1.0-2025-05-20.md.md` (Sparkflow AI Development Ecosystem & Workflow Strategy v1.0)
+
+---
+**Rule ID:** `AIDEV-001`
+**Rule Title:** Adherence to Ecosystem Strategy
+**Applies To:** All AI Agents and Human Developers interacting with them
+**Purpose:** Ensure optimal use of each specialized AI tool and a cohesive development process.
+**Scope:** All AI-assisted development tasks.
+**Guideline:** All interactions with and tasking of AI development assistants MUST align with the roles, strengths, limitations, and workflows defined in the `Sparkflow AI Development Ecosystem & Workflow Strategy v1.0` document.
+**Rationale:** Maximizes the effectiveness of the AI toolkit.
+
+---
+**Rule ID:** `AIDEV-002`
+**Rule Title:** Context Provisioning with RepoPrompt
+**Applies To:** Tasks requiring codebase context for AI Agents
+**Purpose:** Enable AI agents to generate code that is consistent with and correctly integrates into the existing codebase.
+**Scope:** Preparing inputs for CodeGen, Codex, and other context-aware agents.
+**Guideline:**
+    *   When assigning tasks to AI agents that require codebase context (especially Codex or CodeGen for implementation), use RepoPrompt (or similar context extraction techniques) to provide all necessary existing code, type definitions (`@effect/schema`), service interfaces (`Context.Tag`), and relevant architectural documentation snippets.
+    *   The scope of context provided should be as focused as possible to the task at hand to optimize token usage and relevance, but comprehensive enough to avoid ambiguity.
+    *   Reference specific file paths and line numbers where possible.
+**Rationale:** Provides necessary information for AI agents to perform contextually aware code generation.
+
+---
+**Rule ID:** `AIDEV-003`
+**Rule Title:** Workplan Tailoring for Target Agent
+**Applies To:** Workplan creation and refinement
+**Purpose:** Optimize the input for each agent's capabilities and ensure clarity of instructions.
+**Scope:** All Workplans intended for AI agent execution.
+**Guideline:** Workplans (see `_workplan-execution.rules.mdc`) MUST be tailored to the 'Target Primary Agent(s)' field:
+    *   **For Codex:** Workplans require maximal detail: explicit function signatures, step-by-step algorithms, `@effect/schema` for all data structures, precise error handling paths, and machine-executable verification steps (tests to be written and passed). All necessary codebase context must be provided or clearly referenced (e.g., via RepoPrompt output).
+    *   **For CodeGen:** Workplans can be slightly higher-level if CodeGen is expected to perform some research or initial breakdown (e.g., drafting new Workplan stubs, scaffolding modules). However, inputs, outputs, and acceptance criteria must still be clearly defined.
+    *   **For Human + Cursor:** Workplans can be more exploratory or focus on complex problem-solving where human intuition is key, but should still document objectives and key deliverables.
+**Rationale:** Ensures AI agents receive instructions appropriate to their strengths and limitations.
+**Reference:** `_workplan-execution.rules.mdc`
+
+---
+**Rule ID:** `AIDEV-004`
+**Rule Title:** CodeGen: Role & Responsibilities
+**Applies To:** CodeGen Agent
+**Purpose:** Define CodeGen's primary functions within the development workflow.
+**Scope:** Tasks suitable for CodeGen.
+**Guideline:** Utilize CodeGen (Advanced Model - Claude 3.7 Opus/Sonnet or equivalent) for:
+    *   **Lead AI Project Manager & Senior Research/Scaffolding Agent.**
+    *   Initial breakdown of features from PRD/Project Overview into high-level Linear Epics/Issues.
+    *   Performing web research to inform technical decisions or gather data.
+    *   Drafting initial Workplan stubs with objectives and outlines.
+    *   Generating complex boilerplate or scaffolding for new EffectTS services/layers, DO classes, or Redwood components based on architectural rules.
+    *   Handling tasks involving complex external API integrations it has researched.
+    *   Creating initial PRs for scaffolded code or documentation drafts.
+    *   Potentially reviewing PRs from other agents (Codex) or humans, focusing on alignment with Workplan objectives and high-level design.
+    *   Updating Linear ticket statuses based on GitHub activity (PR creation, review, merge).
+**Input:** High-level feature goals, links to PRD/Arch Doc, specific research queries, Workplan IDs for updating. Context via RepoPrompt as needed.
+**Output:** Linear tickets, Markdown Workplan drafts, code files/PRs, research summaries, PR review comments.
+**Limitations:** May require detailed prompting for highly specific EffectTS patterns if not explicitly trained/instructed via rules. For pure, focused code implementation, Codex might be more efficient if given a perfect Workplan.
+**Reference:** `docs/plan/ai-dev-ecosystem-V1.0-2025-05-20.md.md` (Section 2.B)
+
+---
+**Rule ID:** `AIDEV-005`
+**Rule Title:** Codex: Role & Responsibilities
+**Applies To:** Codex Agent
+**Purpose:** Define Codex's primary functions for focused code implementation and testing.
+**Scope:** Tasks suitable for Codex.
+**Guideline:** Utilize containerized Codex instances for:
+    *   **Focused, high-capability "worker bee" for implementing well-defined coding and testing tasks.** Operates concurrently on multiple assigned Workplans.
+    *   Implementing functions, classes, EffectTS services/layers, React components, and Cloudflare Workflow activities as per **hyper-specific** Workplan specifications.
+    *   Writing unit and integration tests (Vitest, `@effect/vitest`) as mandated by the "Verification Steps" in its Workplan.
+    *   Running these tests and ensuring they pass.
+    *   Adhering strictly to all relevant coding rules (`_effect-ts.rules.mdc`, `_frontend-ui.rules.mdc`, `_backend-api.rules.mdc`, etc.).
+    *   Creating focused PRs (ideally stacked via Graphite, if CLI interaction becomes possible for it) for its completed, tested code.
+**Input:** Workplan ID (MUST be extremely detailed), required codebase context (RepoPrompt output), relevant `@effect/schema` definitions.
+**Output:** Code files, test files (all passing), PR. Status updates to Workplan (via system or human).
+**Limitations:** No internet access. Relies 100% on provided Workplan and context. Usually creates PRs to its assigned feature branch; may need assistance with complex Graphite stacking initially. Cannot review PRs.
+**Reference:** `docs/plan/ai-dev-ecosystem-V1.0-2025-05-20.md.md` (Section 2.C)
+
+---
+**Rule ID:** `AIDEV-006`
+**Rule Title:** Mentat and CodeModet: Role & Responsibilities
+**Applies To:** Mentat, CodeModet Agents
+**Purpose:** Define their roles in PR review and advanced Git operations.
+**Scope:** PR review and Git assistance tasks.
+**Guideline:** Utilize Mentat and/or CodeModet for:
+    *   **Specialized agents for PR review, advanced Git operations, and merge conflict resolution.**
+    *   Reviewing PRs (from Codex, CodeGen, humans) for code quality, adherence to standards, and potential issues.
+    *   Mentat: Assisting with or automatically resolving merge conflicts. Performing complex Git operations if needed (e.g., interactive rebase assistance, cherry-picking).
+    *   CodeModet: Primarily focused on PR review, potentially with different strengths than Mentat.
+**Input:** PR link, branch names for conflict resolution.
+**Output:** PR review comments, merged/rebased branches.
+**Reference:** `docs/plan/ai-dev-ecosystem-V1.0-2025-05-20.md.md` (Section 2.D)
+
+---
+**Rule ID:** `AIDEV-007`
+**Rule Title:** Graphite (CLI & Agent): Role & Responsibilities
+**Applies To:** Graphite Tooling
+**Purpose:** Define its role in managing stacked PRs.
+**Scope:** PR management.
+**Guideline:** Utilize Graphite for:
+    *   **Facilitating the use of stacked PRs for managing complex, dependent changes.**
+    *   **CLI Usage (Human & (Future) AI):** Developers (and ideally AI agents like Codex/CodeGen) SHOULD use Graphite CLI (`gt ...`) for creating, managing, submitting, and synchronizing PR stacks.
+    *   **Graphite Agent:** Can perform reviews on commits within a stack and on the overall stack PR. Helps visualize stack dependencies.
+**Challenge/Goal:** Improve AI agent (Codex, CodeGen) proficiency with Graphite CLI operations to automate stacked PR submission.
+**Reference:** `docs/plan/ai-dev-ecosystem-V1.0-2025-05-20.md.md` (Section 2.E), `_git_workflow.rules.mdc`
+
+---
+**Rule ID:** `AIDEV-008`
+**Rule Title:** Iterative Feedback and Refinement with AI Agents
+**Applies To:** Human Developers interacting with AI Agents
+**Purpose:** Improve AI performance over time and refine the guidance system.
+**Scope:** All AI-assisted tasks.
+**Guideline:**
+    *   When an AI agent's output is not satisfactory, provide clear, specific feedback referencing the original Workplan requirements and relevant rules. Request iterative refinement rather than starting over, where possible.
+    *   For persistent issues, update the Workplan or relevant rules to provide better guidance for future tasks.
+**Rationale:** Fosters a learning loop for AI agents and improves the overall system.
+
+---
+**Rule ID:** `AIDEV-009`
+**Rule Title:** Human Oversight and Final Approval
+**Applies To:** All AI-generated contributions
+**Purpose:** Ensure quality, strategic alignment, and accountability.
+**Scope:** Critical decision points and PR merging.
+**Guideline:**
+    *   All significant AI-generated contributions (especially PRs to be merged into `develop` or `main`) MUST undergo final review and approval by a human developer (Ryan Hunter or designated lead).
+    *   Humans are responsible for strategic architectural decisions, complex problem-solving requiring deep intuition, and resolving ambiguities not suitable for AI agents.
+**Rationale:** Maintains human control over critical aspects of the project.
+
+---
+**Rule ID:** `AIDEV-010`
+**Rule Title:** Cursor / General Editor-Integrated Agents: Role & Responsibilities
+**Applies To:** Cursor Agent (or similar IDE-integrated AI)
+**Purpose:** Define the role of interactive, human-in-the-loop AI assistance.
+**Scope:** Tasks performed within the IDE by Ryan Hunter.
+**Guideline:** Utilize Cursor (or similar general editor-integrated agents) for:
+    *   **Interactive, human-in-the-loop co-pilot for Ryan Hunter.**
+    *   Code completion and suggestion.
+    *   Assistance with refactoring existing code.
+    *   Inline documentation generation (JSDoc/TSDoc).
+    *   Quick lookups for API usage or syntax.
+    *   Debugging assistance.
+    *   Drafting small code snippets or rule updates based on direct interaction.
+**Input:** Current editor context, direct natural language prompts from Ryan.
+**Output:** Code insertions/modifications in editor, chat responses.
+**Interaction:** Highly interactive, driven by the human developer's immediate needs and context within the IDE.
+**Reference:** `docs/plan/ai-dev-ecosystem-V1.0-2025-05-20.md.md` (Section 2.A)

@@ -1,0 +1,109 @@
+---
+description: Development workflow guidelines for the Sparkflow monorepo.
+globs: ["**/*"] # Apply broadly within the project
+alwaysApply: true
+---
+# Sparkflow Monorepo Development Workflow
+
+This rule outlines the standard development practices for the Sparkflow monorepo. Refer to `CONTRIBUTING.md` for more detailed instructions, especially for AI agents.
+
+## Core Technologies & Concepts
+
+- **Monorepo:** Managed with `pnpm` workspaces and `Turborepo`.
+- **Language:** TypeScript.
+- **Structure:** Code organized into `packages/*` and potentially `apps/*`.
+- **Dependencies:** Use `pnpm add <package> [--filter @scope/package-name]` to add dependencies to specific packages. Workspace dependencies are linked automatically via `pnpm install`.
+- **Build/Tasks:** Orchestrated by `Turborepo` (`turbo.json`). Common root scripts: `pnpm build`, `pnpm lint`, `pnpm test`, `pnpm typecheck`, `pnpm format`.
+- **TypeScript:** Uses Project References (`tsconfig.json` -> `references`) and Path Aliases (`tsconfig.base.json` -> `paths`, e.g., `@helaix/sparkflow/utils`). Always use path aliases for inter-package imports.
+- **Build System:** Uses `tsup` for bundling packages. Each package has:
+  - TypeScript for type checking (via `tsBuildInfoFile` for incremental builds)
+  - No type definition generation in build (rely on TypeScript for that)
+  - Proper externals configuration to avoid duplicating dependencies
+- **Code Quality:**
+    - **Formatting:** Biome (`biome.json`, run via `pnpm format`).
+    - **Linting:** ESLint (`eslint.config.js`, run via `pnpm lint`).
+    - **Type Checking:** TypeScript project references (`pnpm typecheck`).
+    - **Hooks:** Husky (`.husky/`), lint-staged (`package.json`), and commitlint (`commitlint.config.js`) enforce formatting, linting, and Conventional Commits before/during commits.
+
+## Code Quality Tools
+
+- **Linting & Formatting:** 
+  - ESLint (`eslint.config.js`): JavaScript/TypeScript linting (`pnpm lint`, `pnpm lint:fix`)
+  - Prettier (`.prettierrc.json`): Code formatting across all languages (`pnpm format`, `pnpm format:check`)
+  - Pre-commit hooks with Husky and lint-staged automatically run these tools on staged files.
+
+## Git Workflow
+
+- **Commit Messages:** Follow Conventional Commits format (enforced by commitlint).
+  - Example: `feat: add user authentication`, `fix(ui): correct button alignment`.
+- **Git Hooks:** 
+  - Pre-commit: Runs `lint-staged` to format and lint changed files.
+  - Commit-msg: Validates commit message format with `commitlint`.
+
+## Building & Testing
+
+- **Building:** `pnpm build` compiles all packages; packages use `tsup` for fast, optimized builds.
+- **Testing:** `pnpm test` runs unit tests via Vitest.
+- **Type Checking:** `pnpm typecheck` performs TypeScript type verification.
+
+## Package Organization
+
+- **Shared Libraries:** Located in `packages/` directory.
+  - `utils`: Shared utility functions
+  - `api`: API-related utilities 
+  - `ui`: Reusable UI components
+  - `domain`: Domain models and business logic
+
+- **Applications:** Located in `apps/` directory.
+  - `sparkflow-web`: The main web application
+
+## Creating New Components/Modules
+
+1. Determine the appropriate location based on its usage scope.
+2. For shared code, place it in one of the packages with appropriate export.
+3. Follow existing code style patterns.
+4. Ensure TypeScript types are properly defined.
+5. Add tests for new functionality.
+
+## Recommended Commands for Common Tasks
+
+- **Start Development Server:** `pnpm dev`
+- **Check Code Quality:** `pnpm lint && pnpm typecheck`
+- **Format Code:** `pnpm format`
+- **Run Tests:** `pnpm test`
+- **Create a Clean Build:** `pnpm clean && pnpm build`
+
+## Standard Workflow
+
+1.  **Branch:** Create a new branch for your feature or fix (`feature/...` or `fix/...`).
+2.  **Code:** Make changes within the relevant `packages/*` or `apps/*` directories.
+    - Use path aliases for imports between packages.
+    - If adding/changing cross-package dependencies, update relevant `tsconfig.json` `references` and run `pnpm add @helaix/sparkflow/<dep> --filter @helaix/sparkflow/<pkg>` if needed.
+3.  **Check Locally:** Before committing, run checks from the root:
+    - `pnpm format`
+    - `pnpm lint`
+    - `pnpm typecheck`
+    - `pnpm build`
+    - `pnpm test` (if applicable)
+4.  **Commit:** Stage changes (`git add .`) and commit using Conventional Commits format (e.g., `feat: ...`, `fix: ...`). Hooks will run automatically.
+5.  **Push & PR:** Push the branch and create a Pull Request against `main`. Ensure CI checks pass.
+
+## Adding a New Package
+
+- Follow the detailed steps in `CONTRIBUTING.md`, ensuring you:
+    - Create the directory under `packages/`.
+    - Initialize `package.json` with the `@helaix/sparkflow/` scope.
+    - Create `tsconfig.json` extending the base and adding references if needed.
+    - Add a unique `tsBuildInfoFile` path to prevent conflicts.
+    - Configure build scripts in package.json to use tsup without --dts flag.
+    - Update root `tsconfig.base.json` paths.
+    - Update `tsconfig.json` references in any packages that will depend on the new one.
+    - Run `pnpm install` from the root.
+
+## Troubleshooting Build Issues
+
+- If type checking fails between packages, ensure:
+  - The dependency is correctly listed in the package's `dependencies`.
+  - The dependent package's `tsconfig.json` includes a reference to the dependency.
+  - The package's build script properly externalizes any dependencies with `--external`.
+  - Both packages have unique `tsBuildInfoFile` paths in their `tsconfig.json`.

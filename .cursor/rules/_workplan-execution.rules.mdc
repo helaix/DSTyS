@@ -1,0 +1,112 @@
+# Sparkflow Workplan Execution Rules (_workplan-execution.rules.mdc)
+
+**Purpose:** To define the standards for creating, following, and updating Workplan documents, ensuring tasks are well-defined, progress is tracked, and outcomes are verified, especially when tailoring tasks for different AI development agents.
+**Primary Reference:** Project Overview (for Chunks -> Workplan mapping), AI Development Ecosystem Strategy (`/Users/ryanhunter/helaix/sparkflow/docs/plan/ai-dev-ecosystem-V1.0-2025-05-20.md.md`).
+
+---
+**Rule ID:** `WP-EXEC-001`
+**Rule Title:** Mandatory Workplan for Implementation
+**Applies To:** All development tasks (Human and AI)
+**Purpose:** Ensure all implementation work is properly planned and tracked.
+**Scope:** Initiation of any coding task.
+**Guideline:** NO code implementation (beyond trivial fixes or very small exploratory spikes approved by the lead) **SHOULD** begin without an associated Workplan document. Workplans are typically derived from "Implementable Chunks" in the Project Overview.
+**Rationale:** Prevents unplanned work and ensures alignment with project goals.
+
+---
+**Rule ID:** `WP-EXEC-002`
+**Rule Title:** Adherence to Workplan Template
+**Applies To:** All Workplan documents
+**Purpose:** Ensure consistency and completeness of task definition.
+**Scope:** Workplan creation and maintenance.
+**Guideline:** All Workplans **MUST** follow the standard "Workplan Template" (to be defined in `CONTRIBUTING.md` or a central project documentation space). Key fields include:
+    *   `Workplan Identifier (ID)`: e.g., `P0-CORE-001-WP1`.
+    *   `Title`: Clear, concise.
+    *   `Epic(s) from PRD`: Link relevant PRD Epics.
+    *   `PRD Phase Alignment`.
+    *   `Objective`: What this Workplan aims to achieve.
+    *   `Status`: (Not Started, In Progress, Blocked, In Review, Completed) - **MUST be kept current.**
+    *   `Assignee(s)`: Ryan Hunter, specific AI Agent (e.g., "Codex-Instance-Alpha"), or "Team".
+    *   `Reporter`: Who created/scoped the workplan.
+    *   `Decision Authority`: (Ryan Hunter, or specific AI for sub-decisions within constraints).
+    *   `Target Primary Agent(s)`: **CRITICAL** (e.g., "Codex", "CodeGen", "Human+Cursor").
+    *   `Prerequisites (Workplan IDs, Document States)`.
+    *   `Detailed Tasks / Implementation Checklist`: Granular steps. Checked off as done.
+    *   `Technical Specifications / Proposed Implementation`: Detailed technical approach.
+    *   `External References / Context`: Links to PRD, Arch Doc, etc.
+    *   `Key Assumptions / Uncertainties / Questions to Resolve`.
+    *   `Testing Strategy / Verification Steps`: **CRITICAL**.
+    *   `Code Review Checklist (Specific to this WP)`.
+    *   `Estimated Effort / Actual Effort` (Optional).
+    *   `Notes & Decisions Log`.
+**Rationale:** Standardizes task definition and tracking.
+
+---
+**Rule ID:** `WP-EXEC-003`
+**Rule Title:** Detail Level Based on "Target Primary Agent(s)"
+**Applies To:** Workplan creation, especially for AI agents
+**Purpose:** Optimize Workplan effectiveness for different AI agent capabilities.
+**Scope:** Content of `Technical Specifications` and `Verification Steps`.
+**Guideline:** The level of detail in `Technical Specifications / Proposed Implementation` and `Verification Steps` MUST be adjusted for the 'Target Primary Agent(s)':
+    *   **For Execution-Focused AI Agents (e.g., Codex):**
+        *   Workplans **MUST** be extremely detailed and unambiguous.
+        *   Provide explicit function/method signatures, input/output schemas (`@effect/schema`), step-by-step algorithmic logic.
+        *   Identify all existing files to be modified and new files to be created, with precise paths.
+        *   Include all necessary codebase context (or reference how RepoPrompt should be used to get it).
+        *   `Verification Steps` **MUST** be machine-executable tests that Codex is instructed to write and pass.
+    *   **For Orchestration/Research AI Agents (e.g., CodeGen):**
+        *   Provide clear objectives, research scope, desired output format (e.g., "outline PRD sections," "draft new Workplan stubs for Linear tickets X, Y, Z"). Context is still important, but the agent has more autonomy.
+    *   **For Human Developers (Ryan Hunter + AI Pair like Gemini/Cursor):**
+        *   Workplans can be slightly less prescriptive on minute details, allowing for exploratory development, but key objectives, acceptance criteria, and architectural alignment are still crucial. Emphasis on documenting decisions in the "Notes & Decisions Log".
+**Rationale:** Ensures AI agents receive instructions appropriate to their capabilities.
+**Reference:** `_ai_developer_ecosystem.rules.mdc` (Rule `AIDEV-003`)
+
+---
+**Rule ID:** `WP-EXEC-004`
+**Rule Title:** Workplan Status Updates and Tracking
+**Applies To:** Assignees of Workplans (Human or AI)
+**Purpose:** Provide clear visibility into task progress.
+**Scope:** Workplan lifecycle.
+**Guideline:**
+    *   The `Status` field in the Workplan **MUST** be updated promptly by the assignee when work starts, is blocked, goes into review, or is completed.
+    *   For AI Agents: The orchestrating system or human supervisor is responsible for ensuring the AI agent updates the Workplan status or that this is done on their behalf. (Future: Direct Linear integration for AI status updates).
+    *   The "Implementation Checklist" **MUST** be used to track task-level progress by checking off items.
+**Rationale:** Essential for project management and coordination.
+
+---
+**Rule ID:** `WP-EXEC-005`
+**Rule Title:** Handling Uncertainties, Blockers, and Changes in Workplans
+**Applies To:** Assignees of Workplans
+**Purpose:** Ensure issues are surfaced, documented, and addressed promptly.
+**Scope:** Execution of Workplan tasks.
+**Guideline:**
+    *   **Uncertainties/Questions:** Document in the "Key Assumptions / Uncertainties / Questions to Resolve" section. If blocking, change status to "Blocked" and immediately notify Ryan Hunter / Decision Authority.
+    *   **Deviations:** If the proposed implementation needs to deviate significantly due to new findings, the Workplan **MUST** be updated with the new approach and rationale in the "Notes & Decisions Log" *before* or *concurrently* with the change. Flag for review if architecturally significant.
+    *   **Scope Changes:** If scope changes significantly, a new Workplan may be needed, or the existing one explicitly re-scoped with approval from the Decision Authority.
+**Rationale:** Promotes adaptive planning and clear communication.
+
+---
+**Rule ID:** `WP-EXEC-006`
+**Rule Title:** Verification and Completion of Workplans
+**Applies To:** Assignees of Workplans
+**Purpose:** Ensure work meets quality standards and functional requirements before closure.
+**Scope:** Final stages of Workplan execution.
+**Guideline:**
+    *   All items in the "Implementation Checklist" **MUST** be completed.
+    *   All "Verification Steps" (including automated tests specified for AI agents) **MUST** be successfully executed and pass. Evidence (e.g., test run links, screenshots for manual steps) should be noted.
+    *   Code **MUST** pass all CI checks (lint, format, typecheck, tests).
+    *   A Pull Request (PR) linking the Workplan **MUST** be created, reviewed, and merged as per `_git_workflow.rules.mdc`.
+    *   Only then can the Workplan status be set to "Completed".
+**Rationale:** Defines "done" for a task and ensures quality.
+**Reference:** `_testing.rules.mdc` (Rule `TEST-002`)
+
+---
+**Rule ID:** `WP-EXEC-007`
+**Rule Title:** Workplan Storage, Naming, and Linking
+**Applies To:** All Workplan documents
+**Purpose:** Ensure Workplans are organized, identifiable, and traceable.
+**Scope:** Workplan management.
+**Guideline:**
+    *   Workplans **MUST** be stored in the `/workplans/` directory within the Git repository, ideally organized by Phase or Epic (e.g., `/workplans/P0_Foundation/P0-CORE-001-WP1.md`).
+    *   The filename **MUST** match the Workplan Identifier (e.g., `P0-CORE-001-WP1.md`).
+    *   Workplans SHOULD link to relevant Linear tickets, and PRs/commits SHOULD link back to Workplan IDs.
+**Rationale:** Facilitates organization and cross-referencing of project artifacts.

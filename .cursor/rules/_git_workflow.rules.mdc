@@ -1,0 +1,139 @@
+# Sparkflow Git Workflow & Stacked PR Rules (_git_workflow.rules.mdc)
+
+**Purpose:** To maintain a clean, understandable, and manageable Git history, facilitate efficient code reviews, ensure safe integration of changes, and provide clear traceability from code back to Workplans and Linear tickets. This workflow emphasizes the use of **Stacked Pull Requests via Graphite** for larger features.
+**Tools:** Git, GitHub, Graphite CLI, AI Agents capable of Git operations (CodeGen, Mentat, Codex where prompted).
+**Primary Reference:** `_ai_developer_ecosystem.rules.mdc` (for AI agent interactions with Git/Graphite).
+
+---
+**Rule ID:** `GIT-001`
+**Rule Title:** Branching Strategy
+**Applies To:** All code contributions (Human and AI)
+**Purpose:** Provide clarity, isolation for features, and a stable `main` branch.
+**Scope:** Git repository branch management.
+**Guideline:**
+    *   **Main Branches:**
+        *   `main`: Represents the latest production-ready code. Protected. Merges to `main` trigger production deployments (after staging verification and approval).
+        *   `develop`: (Optional, but recommended for managing features before full production release). Represents the latest stable development state, integrating completed features. Protected. Merges to `develop` trigger staging deployments.
+    *   **Feature Branches:**
+        *   **Naming Convention:** `[type]/[workplan-id]/[short-descriptive-name]`
+            *   `type`: `feat` (new feature), `fix` (bug fix), `chore` (maintenance, tooling), `docs`, `refactor`, `test`, `style`, `perf`, `ci`, `build`.
+            *   `workplan-id`: The full ID from the `/workplans/` document (e.g., `P0-CORE-001-WP1`). For very small tasks not warranting a full workplan but having a Linear ticket, the Linear ID can be used (e.g., `feat/SPARK-456/login-button-fix`).
+            *   `short-descriptive-name`: Kebab-case, max 3-5 words (e.g., `feat/P1-AI-002/llm-hook-generation`).
+        *   **Source Branch:** Feature branches **SHOULD** be created from `develop` (if `develop` branch is used) or `main` if `develop` is not used.
+        *   **Scope:** A feature branch should ideally correspond to a single Workplan or a closely related set of tasks that form one logical unit of work.
+    *   **Temporary/Agent-Specific Branches (for Graphite Stacks):**
+        *   If an AI agent like Codex is working on a small part of a larger feature that will be part of a Graphite stack, it might use a branch like `agent/[agent-name]/[workplan-id]/[sub-task-description]` or directly create commits on a stack managed by Graphite. Example: `agent/codex/P1-AI-002-WP1/generate-hook-function`. These branches are then submitted as part of a stack.
+**Rationale:** Standardizes branch naming and purpose, facilitating organization and automation.
+
+---
+**Rule ID:** `GIT-002`
+**Rule Title:** Commit Message Standards (Conventional Commits)
+**Applies To:** All commits (Human and AI)
+**Purpose:** Improve history readability, enable automated changelog generation, and link work to tasks.
+**Scope:** All Git commits.
+**Guideline:**
+    *   All commit messages **MUST** adhere to the Conventional Commits specification v1.0.0 ([https://www.conventionalcommits.org/](https://www.conventionalcommits.org/)).
+    *   **Format:** `type(scope): subject`
+        *   `type`: `feat`, `fix`, `build`, `chore`, `ci`, `docs`, `perf`, `refactor`, `revert`, `style`, `test`. Use `!` after `type` or `scope` for BREAKING CHANGES (e.g., `feat(API)!: remove deprecated endpoint`).
+        *   `scope` (Optional but Recommended): The package, module, or specific component affected (e.g., `feat(CreativeGenDO): ...`, `fix(ui-MinimalChat): ...`, `docs(P0-CORE-001-WP2): ...`).
+        *   `subject`: Concise description of the change in imperative mood (e.g., "Add video analysis endpoint", not "Added video analysis endpoint"). Max 50-72 characters. Start with a capital letter. No period at the end.
+    *   **Body (Optional):** More detailed explanation of the change, rationale, and context. Lines wrapped at 72 characters.
+    *   **Footer (Optional):**
+        *   Reference Linear tickets: `Linear-Ticket: SPARK-123`, `Closes: SPARK-456`.
+        *   BREAKING CHANGE details: `BREAKING CHANGE: The \`renderVideo\` function now requires a \`quality\` parameter.`
+    *   **Atomicity:** Commits should be atomic, representing a single logical change or the completion of a checklist item from a Workplan. Avoid large, unrelated changes in a single commit.
+    *   **Workplan Reference:** Where practical, the commit subject or body **SHOULD** reference the specific Workplan checklist item(s) it addresses. E.g., `feat(LFSClient): P0-CORE-004-WP1 - Implement document subscription (Tasks 3.1, 3.2)`.
+**Rationale:** Ensures a clean, informative, and machine-parsable Git history.
+
+---
+**Rule ID:** `GIT-003`
+**Rule Title:** Pull Request (PR) Standards
+**Applies To:** All PRs (Human and AI)
+**Purpose:** Facilitate efficient and effective code reviews and integration.
+**Scope:** GitHub Pull Request creation and management.
+**Guideline:**
+    *   **Scope:** PRs should generally be small, focused, and ideally correspond to a single Workplan or a clearly defined sub-task.
+    *   **PR Title:** MUST follow Conventional Commits format: `type(scope): WorkplanID - Brief description`. Example: `feat(CreativeGenDO): P3-CRE-001-WP2 - Implement Remotion render trigger`.
+    *   **PR Description Template:** A standardized PR template (`.github/pull_request_template.md`) MUST be used. Content MUST Include:
+        *   Link to Workplan(s) and Linear Ticket(s).
+        *   Summary of Changes (What and Why).
+        *   Verification Steps Taken (referencing Workplan).
+        *   Screenshots/GIFs (for UI changes).
+        *   Notes for Reviewers.
+    *   **Draft PRs:** Use GitHub's "Draft" PR feature for work in progress needing early feedback or CI runs.
+    *   **Rebase Before Merge:** Feature branches SHOULD be rebased onto the target branch (`develop` or `main`) to resolve conflicts and maintain a linear history before merging. Graphite's `gt sync` often handles this.
+**Rationale:** Streamlines the review process and ensures PRs are well-documented.
+
+---
+**Rule ID:** `GIT-004`
+**Rule Title:** Stacked PRs with Graphite (Preferred Method)
+**Applies To:** Larger features or sequences of dependent changes
+**Purpose:** Improve review velocity, reduce large monolithic PRs, and allow earlier integration of smaller pieces.
+**Scope:** Feature development and PR submission.
+**Guideline:**
+    *   **Stacked PRs using Graphite are HIGHLY RECOMMENDED and the PREFERRED METHOD** for developing features involving multiple dependent, logical steps.
+    *   **Tooling:** Use the Graphite CLI (`gt create`, `gt submit`, `gt track`, `gt next`, `gt merge`, `gt sync`) for creating, managing, submitting, and synchronizing stacks of PRs.
+    *   **Stack Structure:** Each PR in a stack should represent a single, logical, incremental change that builds upon the previous PR(s). Each PR should be small and easily reviewable (e.g., < 200-300 lines of code change).
+    *   **Individual Reviewability & CI:** Each PR within a stack MUST be independently reviewable, buildable, and pass all CI checks.
+    *   **PR Descriptions in Stacks:** Clearly indicate its position within the stack (e.g., "Part 1 of 3 for P1-AI-002"), link to other PRs in the stack (Graphite often handles this visually), and summarize its specific contribution.
+    *   **AI Agent PRs (Codex, CodeGen):** Instruct AI agents to create small, atomic commits. These commits can then be organized into stacked PRs using Graphite (either by the AI using `gt` commands if proficient, or by a human/supervising agent). The goal is to increase AI agent proficiency with Graphite CLI.
+**Rationale:** Makes complex changes more manageable and reviewable.
+**Reference:** `_ai_developer_ecosystem.rules.mdc` (Rule `AIDEV-007`)
+
+---
+**Rule ID:** `GIT-005`
+**Rule Title:** Code Review Process
+**Applies To:** All PRs
+**Purpose:** Ensure code quality, consistency, and knowledge sharing.
+**Scope:** PR review phase.
+**Guideline:**
+    *   All PRs (including those from AI agents) MUST undergo at least:
+        *   One **AI-Assisted Review** (e.g., CodeGen, Mentat, CodeModet, Graphite Agent focusing on adherence to rules, style, potential issues).
+        *   One **Human Review** (Ryan Hunter or designated lead) for architectural soundness, logical correctness, and overall quality.
+    *   **Review Focus:** Alignment with Workplan, correctness, adherence to all Sparkflow rules (EffectTS, Frontend, Backend, Security, etc.), test coverage, clarity, maintainability, performance, security, documentation.
+    *   Feedback SHOULD be constructive and actionable. All review comments MUST be addressed before merging.
+**Rationale:** Critical for maintaining high standards of code quality.
+
+---
+**Rule ID:** `GIT-006`
+**Rule Title:** Merge Strategy
+**Applies To:** Merging PRs
+**Purpose:** Maintain a clean and understandable history on main branches.
+**Scope:** PR merging.
+**Guideline:**
+    *   **CI Checks & Approvals:** PRs MUST pass all CI checks and have required approvals before merging.
+    *   **Method for Graphite Stacks:** Use `gt merge` to merge stacks, which typically merges each PR in the stack sequentially (often via squash/rebase).
+    *   **Method for Individual PRs:** Prefer "Squash and merge" or "Rebase and merge" into `develop` (or `main`) to keep the history clean and linear. Avoid direct merge commits unless there's a strong reason.
+    *   **Delete Branch After Merge:** Feature branches SHOULD be deleted after their PR is merged.
+**Rationale:** Balances a clean history with traceability.
+
+---
+**Rule ID:** `GIT-007`
+**Rule Title:** Branch Protection Rules (GitHub)
+**Applies To:** `main` and `develop` branches
+**Purpose:** Safeguard critical branches from direct pushes or unreviewed changes.
+**Scope:** GitHub repository settings.
+**Guideline:** `main` and `develop` branches MUST have protection rules configured in GitHub:
+    *   Require Pull Requests before merging.
+    *   Require status checks (CI) to pass before merging.
+    *   Require review approvals (at least one human, potentially one AI).
+    *   (Optional but Recommended) Require linear history (disallow merge commits).
+    *   Restrict who can push directly to these branches (typically only administrators or release managers).
+**Rationale:** Enforces the defined workflow and protects key branches.
+
+---
+**Rule ID:** `GIT-008`
+**Rule Title:** AI Agent Git Operations
+**Applies To:** AI Agents performing Git actions
+**Purpose:** Ensure AI agents interact with the Git repository correctly and safely.
+**Scope:** AI agent task execution involving Git.
+**Guideline:**
+    *   AI agents (Codex, CodeGen, Mentat) interacting with Git MUST be configured with appropriately scoped permissions (e.g., via fine-grained GitHub Personal Access Tokens or GitHub Apps).
+    *   Agents MUST be instructed to:
+        *   Fetch latest changes before starting work on a branch (`git pull --rebase origin <branch>` or `gt sync --pull`).
+        *   Commit frequently with conventional commit messages.
+        *   Push changes to their feature branch regularly.
+        *   Clearly indicate in PRs or Workplan updates when their work is ready for review.
+        *   Adhere to rules for PR creation and description.
+    *   Human oversight is initially required to ensure AI Git operations are clean, especially with stacked PRs and Graphite usage.
+**Rationale:** Guides AI agents to be good Git citizens.

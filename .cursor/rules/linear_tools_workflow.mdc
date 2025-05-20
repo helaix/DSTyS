@@ -1,0 +1,190 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# `linear-tool`: CLI for Linear Interaction
+
+This guide details the usage of the `linear-tool` CLI, found within the [`packages/linear-tools`](mdc:packages/linear-tools) directory. This tool interacts directly with the Linear API, meaning all project and issue state is managed within your Linear workspace.
+
+## Overview
+
+The `linear-tool` provides commands to:
+- Manage configuration (default team/project).
+- List teams, projects, and issue statuses.
+- Create and manage Linear issues (tasks).
+- Find the next actionable task based on status and dependencies.
+- Manage dependencies between issues.
+- Leverage AI (Gemini via Vercel AI SDK) to expand complex issues into subtasks and update issue details.
+
+## Development Workflow Alignment
+
+This tool supports many concepts outlined in the general [`dev_workflow.mdc`](mdc:.cursor/rules/dev_workflow.mdc). Here's a mapping:
+
+-   **Start Project:** Use `create-project`.
+-   **List Tasks:** Use `list-issues`.
+-   **Get Next Task:** Use `next`.
+-   **Show Task Details:** Use `show-task <id>` (or `show <id>`).
+-   **Break Down Task:** Use `expand-issue -i <id>`.
+-   **Clear Subtasks:** Use `clear-subtasks <parent-id>`.
+-   **Set Task Status:** Use `set-status -i <id> -s <status-id>`.
+-   **Update Task (AI):** Use `update-issue -i <id> -p "..."`.
+-   **Update Task (Parent):** Use `update-issue -i <child-id> --parentId <parent-id>`.
+-   **Add Task:** Use `create-issue`.
+-   **Add Subtask:** Use `create-issue --parentId <parent-uuid>`.
+-   **Add Dependency:** Use `add-dependency -i <blocked-id> -d <blocking-id>`.
+-   **Remove Dependency:** Use `remove-dependency -i <id> -d <related-id>`.
+
+**Gaps Compared to `dev_workflow.mdc`:**
+
+-   No built-in complexity analysis (`analyze_complexity`/`complexity_report`) commands - use `analyze-complexity` and `complexity-report` instead.
+-   No dedicated dependency validation/fixing commands (Linear API may prevent some invalid states).
+
+## Setup
+
+-   **Environment Variables:** Create a `.env` file in [`packages/linear-tools/.env`](mdc:packages/linear-tools/.env).
+    ```dotenv
+    # Required for Linear API access
+    LINEAR_API_TOKEN=your_linear_api_token
+
+    # Required for AI features (expand-issue, update-issue)
+    GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key
+
+    # Optional: Specify Gemini model (defaults to gemini-1.5-flash-latest)
+    # GEMINI_MODEL=gemini-pro
+    ```
+-   **Dependencies:** Run `pnpm install` at the monorepo root.
+
+## Running Commands (Development)
+
+Use `bun run` to execute the CLI directly from source during development. Remember to specify the `.env` file location for commands needing API keys.
+
+```bash
+# General format
+bun run --env-file=packages/linear-tools/.env packages/linear-tools/src/cli.ts <command> [options]
+
+# Example: List teams
+bun run --env-file=packages/linear-tools/.env packages/linear-tools/src/cli.ts list-teams | cat
+
+# Example: Get help for create-issue
+bun run packages/linear-tools/src/cli.ts create-issue --help
+```
+
+## Command Reference
+
+*(Note: Examples use the `bun run ...` format. `--env-file` is needed for commands interacting with the Linear/Gemini APIs)*
+
+**Configuration (`config`)**
+
+-   `config set <key> [value]`
+    -   Sets `defaultTeamId` or `defaultProjectId`. Omit `value` to clear.
+    -   Action: [`config.ts`](mdc:packages/linear-tools/src/config.ts)
+    -   Example: `bun run packages/linear-tools/src/cli.ts config set defaultTeamId b98d6ca1-...`
+-   `config get <key>`
+    -   Gets a specific config value.
+    -   Action: [`config.ts`](mdc:packages/linear-tools/src/config.ts)
+    -   Example: `bun run packages/linear-tools/src/cli.ts config get defaultTeamId`
+-   `config list`
+    -   Shows the current configuration.
+    -   Action: [`config.ts`](mdc:packages/linear-tools/src/config.ts)
+    -   Example: `bun run packages/linear-tools/src/cli.ts config list`
+-   `config path`
+    -   Shows the path to the config file (`~/.config/linear-tool/config.json`).
+    -   Action: [`config.ts`](mdc:packages/linear-tools/src/config.ts)
+    -   Example: `bun run packages/linear-tools/src/cli.ts config path`
+
+**Teams**
+
+-   `list-teams`
+    -   Lists available Linear teams and their IDs.
+    -   Action: [`listTeams.ts`](mdc:packages/linear-tools/src/actions/listTeams.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts list-teams | cat`
+
+**Projects**
+
+-   `list-projects [--teamId <id>]`
+    -   Lists projects for a team (uses default if `--teamId` omitted).
+    -   Action: [`fetchTeamProjects.ts`](mdc:packages/linear-tools/src/actions/fetchTeamProjects.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts list-projects | cat`
+-   `create-project --name <name> [--teamId <id>] [--description <desc>]`
+    -   Creates a new project.
+    -   Action: [`createProject.ts`](mdc:packages/linear-tools/src/actions/createProject.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts create-project --name "My New Project"`
+
+**Statuses & Labels**
+
+-   `list-statuses [--teamId <id>]`
+    -   Lists workflow states (statuses) for a team.
+    -   Action: [`fetchTeamStatuses.ts`](mdc:packages/linear-tools/src/actions/fetchTeamStatuses.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts list-statuses | cat`
+
+**Issues (Tasks)**
+
+-   `create-issue --title <title> [options]`
+    -   Creates a new issue.
+    -   Options: `--teamId`, `--projectId`, `--description`, `--labelName`, `--stateId`, `--priority`, `--parentId <uuid>`.
+    -   Action: [`createIssue.ts`](mdc:packages/linear-tools/src/actions/createIssue.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts create-issue --title "Setup database" --priority high --projectId ...`
+-   `list-issues [options]`
+    -   Lists issues with various filters.
+    -   Options: `--teamId`, `--projectId`, `--stateId`, `--stateName`, `--statusType`, `--priority`, `--labelName`, `--limit`.
+    -   Action: [`listIssues.ts`](mdc:packages/linear-tools/src/actions/listIssues.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts list-issues --statusType started --projectId ... | cat`
+-   `show-task <id>` (Alias: `show`)
+    -   Shows detailed information for a specific issue (identifier or UUID).
+    -   Action: [`getIssueDetails.ts`](mdc:packages/linear-tools/src/actions/getIssueDetails.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts show-task HLX-123 | cat`
+-   `set-status --id <id> --status-id <stateId>`
+    -   Sets the workflow state of an issue.
+    -   Action: [`setIssueStatus.ts`](mdc:packages/linear-tools/src/actions/setIssueStatus.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts set-status -i HLX-123 -s <done-state-uuid>`
+-   `next [--teamId <id>] [--projectId <id>]`
+    -   Shows the next actionable (unstarted/backlog, unblocked) issue.
+    -   Action: [`getNextTask.ts`](mdc:packages/linear-tools/src/actions/getNextTask.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts next --projectId ... | cat`
+-   `add-dependency --id <blockedId> --depends-on <blockingId>`
+    -   Makes `<blockedId>` blocked by `<blockingId>`.
+    -   Action: [`addDependency.ts`](mdc:packages/linear-tools/src/actions/addDependency.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts add-dependency -i HLX-124 -d HLX-123`
+-   `remove-dependency --id <id> --depends-on <relatedId>`
+    -   Removes the dependency link between two issues (order doesn't matter).
+    -   Action: [`removeDependency.ts`](mdc:packages/linear-tools/src/actions/removeDependency.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts remove-dependency -i HLX-124 -d HLX-123`
+-   `remove-issue --id <id> [--yes]`
+    -   Deletes an issue.
+    -   Action: [`removeIssue.ts`](mdc:packages/linear-tools/src/actions/removeIssue.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts remove-issue -i HLX-125 --yes`
+-   `clear-subtasks <parentId> [--yes]`
+    -   Deletes all direct sub-issues of a parent.
+    -   Action: [`clearSubtasks.ts`](mdc:packages/linear-tools/src/actions/clearSubtasks.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts clear-subtasks HLX-123 --yes`
+-   `update-issue -i <id> [--prompt <prompt>] [--parentId <parentId>]`
+    -   Updates issue using AI prompt **OR** sets the parent directly.
+    -   Action (AI): [`updateIssueDetails.ts`](mdc:packages/linear-tools/src/actions/updateIssueDetails.ts)
+    -   Action (Parent): Direct SDK call in [`cli.ts`](mdc:packages/linear-tools/src/cli.ts)
+    -   Example (AI): `bun run --env-file=... packages/linear-tools/src/cli.ts update-issue -i HLX-123 -p "Add details about X"`
+    -   Example (Parent): `bun run --env-file=... packages/linear-tools/src/cli.ts update-issue -i HLX-124 --parentId HLX-123`
+
+**AI & Analysis Commands**
+
+-   `expand-issue -i <id> [--prompt <prompt>] [--num <number>]`
+    -   Uses Gemini AI to break down an issue into subtasks.
+    -   Action: [`expandIssue.ts`](mdc:packages/linear-tools/src/actions/expandIssue.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts expand-issue -i HLX-123 --num 5`
+-   `analyze-complexity <id>` (Alias: `analyze`)
+    -   Uses Gemini AI to estimate complexity (1-10) and applies a `Complexity: N` label.
+    -   Action: [`analyzeComplexity.ts`](mdc:packages/linear-tools/src/actions/analyzeComplexity.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts analyze-complexity HLX-123`
+-   `complexity-report [options]`
+    -   Lists issues sorted by complexity score (from labels).
+    -   Options: `--teamId`, `--projectId`, `--limit`.
+    -   Action: [`getComplexityReport.ts`](mdc:packages/linear-tools/src/actions/getComplexityReport.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts complexity-report --projectId ... | cat`
+-   `analyze-relationships [options]`
+    -   Uses Gemini AI to suggest potential `blocks` or `parent/child` relationships.
+    -   Options: `--projectId`, `--limit`.
+    -   Action: [`analyzeIssueRelationships.ts`](mdc:packages/linear-tools/src/actions/analyzeIssueRelationships.ts)
+    -   Example: `bun run --env-file=... packages/linear-tools/src/cli.ts analyze-relationships --projectId ...`
+
+---
+*Refer to individual action files for implementation details.*

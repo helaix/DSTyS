@@ -1,0 +1,202 @@
+# Sparkflow EffectTS Development Rules (_effect-ts.rules.mdc)
+
+**Purpose:** To establish best practices and consistent patterns for using EffectTS throughout the Sparkflow codebase, ensuring robustness, type safety, maintainability, and testability.
+**Primary Reference:** Official EffectTS Documentation ([https://effect.website/](https://effect.website/)), Sparkflow `_architecture.rules.mdc`.
+
+---
+**Rule ID:** `EFFECT-TS-001`
+**Rule Title:** Core Principles Adherence
+**Applies To:** All EffectTS code
+**Purpose:** Ensure code aligns with EffectTS's foundational functional programming principles.
+**Scope:** All EffectTS development.
+**Guideline:** All EffectTS code MUST adhere to core functional programming principles:
+    1.  **Purity (within `Effect` computations):** Strive to keep core logic within `Effect` computations pure.
+    2.  **Immutability:** Treat data structures as immutable. Use EffectTS `Data` module or immutable update patterns.
+    3.  **Explicit Error Handling:** All potential failures MUST be represented in the `Effect`'s error channel (`E` in `Effect<A, E>`).
+    4.  **Dependency Management:** Use `Context.Tag` and `Layer` for all service dependencies.
+    5.  **Resource Safety:** Manage all resources needing explicit lifecycle via `Scope` or `Effect.acquireRelease`.
+**Rationale:** Ensures predictability, testability, robustness, and proper resource management.
+
+---
+**Rule ID:** `EFFECT-TS-002`
+**Rule Title:** Schema Definition and Validation with `@effect/schema`
+**Applies To:** All data structures crossing boundaries
+**Purpose:** Guarantee type safety and data integrity at runtime for all external and internal data exchanges.
+**Scope:** API inputs/outputs, LFS documents, D1 entities, Workflow step data, Queue messages, function arguments/returns for public services.
+**Guideline:**
+    *   All data structures that cross any boundary (API, LFS document, D1 entity, Workflow step data, Queue message, function argument/return for public services) MUST be defined with `@effect/schema`.
+    *   Use `Schema.decodeUnknown` (or `Schema.parse` for `ParseError` in error channel) for validating all external inputs.
+    *   Use `Schema.encode` when preparing data for external systems if a different representation is needed.
+    *   Use `S.brand` for nominal typing where appropriate (e.g., `UserId extends S.UUID`, `ProjectId extends S.String`).
+**Rationale:** Critical for runtime type safety, data validation, and clear data contracts.
+**Example (Good):**
+```typescript
+import * as S from "@effect/schema/Schema";
+import { Effect } from "effect";
+
+const User = S.struct({ id: S.UUID, name: S.string });
+type User = S.Schema.To<typeof User>;
+
+const processUserData = (externalData: unknown): Effect.Effect<User, S.ParseError> =>
+  S.parse(User)(externalData);
+```
+
+---
+**Rule ID:** `EFFECT-TS-003`
+**Rule Title:** Typed Error Handling with `Data.TaggedError`
+**Applies To:** All Effect computations that can fail
+**Purpose:** Enable precise error recovery and clear understanding of failure modes.
+**Scope:** Error channels of `Effect` types.
+**Guideline:**
+    *   Define specific, domain-relevant error types using `Data.TaggedError<ClassName>()(props)` for each service or logical component. Avoid using generic `Error` or string-based errors in `Effect` failure channels.
+    *   Services SHOULD return `Effect<A, E>` where `E` is a union of the specific `Data.TaggedError` types that service can fail with.
+    *   Use `Effect.catchTag`, `Effect.catchTags`, or `Effect.catchAll` to handle known error types explicitly. Unhandled errors should propagate within the `Cause`.
+    *   The `Cause` of an Effect failure contains rich diagnostic information; log the full `Cause` for unhandled errors.
+**Rationale:** Provides robust and type-safe error management.
+**Example (Good):**
+```typescript
+import { Data, Effect } from "effect";
+
+class UserNotFoundError extends Data.TaggedError("UserNotFoundError")<{ userId: string }> {}
+class DatabaseError extends Data.TaggedError("DatabaseError")<{ cause: unknown }> {}
+
+type GetUserError = UserNotFoundError | DatabaseError;
+
+// Assuming User is a defined type/schema
+// const getUser = (id: string): Effect.Effect<User, GetUserError> => /* ... */;
+```
+
+---
+**Rule ID:** `EFFECT-TS-004`
+**Rule Title:** Service Definition and Dependency Management with `Context.Tag` and `Layer`
+**Applies To:** All business logic and infrastructure interactions
+**Purpose:** Enforce infrastructure abstraction, promote modularity, testability, and clear dependency injection.
+**Scope:** Service design and implementation.
+**Guideline:**
+    *   All significant business logic and interactions with external systems (D1, R2, LFS, AI APIs, Clerk, Cloudflare Workflows API, Cloudflare Containers API via DOs) MUST be encapsulated within EffectTS services.
+    *   Service interfaces MUST be defined using the `class MyService extends Context.Tag('Identifier')<MyService, ServiceInterface>() {}` pattern. The identifier SHOULD be globally unique (e.g., `@sparkflow/UserService`).
+    *   Concrete "Live" implementations of services MUST be provided via `Layer` (e.g., `MyServiceLive = Layer.effect(MyService, makeMyServiceEffect)` or `Layer.scoped`, `Layer.succeed`).
+    *   Dependencies between services MUST be managed by providing the necessary `Layer`s. Use `Effect.provideLayer` for composing services.
+**Rationale:** This is a cornerstone of EffectTS architecture for building maintainable and testable applications.
+**Reference:** `_architecture.rules.mdc` (Rule `ARCH-001`, Decision 2; Rule `ARCH-008`)
+
+---
+**Rule ID:** `EFFECT-TS-005`
+**Rule Title:** Concurrency and Asynchronicity Management
+**Applies To:** Concurrent or asynchronous operations
+**Purpose:** Prevent race conditions and resource leaks, enable efficient concurrent processing.
+**Scope:** Implementation of concurrent tasks.
+**Guideline:**
+    *   Utilize EffectTS concurrency primitives (`Fiber`, `Effect.fork`, `Effect.join`, `Effect.all` for parallelism, `Effect.race`) for managing concurrent operations safely and explicitly.
+    *   Understand fiber supervision and interruption. Ensure critical cleanup operations are handled via `Effect.ensuring` or `Scope`.
+    *   For rate limiting or controlling access to shared resources, use `Semaphore`. For producer-consumer patterns, use `Queue` or `PubSub`. For specific fiber synchronization, use `Deferred` or `Latch`.
+    *   Be mindful of the performance implications of high concurrency, especially in resource-constrained environments like Cloudflare Workers. Profile and optimize concurrent operations as needed.
+**Rationale:** Provides powerful and safe tools for managing complex concurrent flows.
+
+---
+**Rule ID:** `EFFECT-TS-006`
+**Rule Title:** Resource Management with `Scope` and `Effect.acquireRelease`
+**Applies To:** Operations involving resources with lifecycles
+**Purpose:** Prevent resource leaks and ensure proper cleanup, even in the presence of errors or interruptions.
+**Scope:** Management of database connections, file handles, network connections, etc.
+**Guideline:** Any resource that needs explicit acquisition and release (e.g., database connections if not managed by Drizzle's pool, file handles, LFS client sessions if stateful, external API client instances) MUST be managed using `Effect.acquireRelease` or within a `Scope` using `Effect.scoped`.
+**Rationale:** Essential for building reliable applications that do not leak resources.
+
+---
+**Rule ID:** `EFFECT-TS-007`
+**Rule Title:** Structured Logging
+**Applies To:** All services and significant operations
+**Purpose:** Facilitate effective debugging and observability in a distributed system.
+**Scope:** Logging within EffectTS programs.
+**Guideline:**
+    *   Use a structured EffectTS-idiomatic logger (e.g., from `@effect/platform/Logger` or a custom `Logger.Log` Layer).
+    *   Include relevant context in log messages (trace IDs, `userId`, `organizationId`, `projectId`, `workflowInstanceId`, `spanId`).
+    *   Log key events, service entry/exit points (with parameters for debug level), errors (including full `Cause`), and important state changes.
+    *   Ensure logs from EffectTS integrate with Cloudflare Worker/DO logging mechanisms.
+    *   (Future Consideration) Plan for integrating more advanced observability tools like OpenTelemetry (e.g., via `@effect/opentelemetry`) or Sentry for distributed tracing and comprehensive error tracking as the system complexity grows.
+**Rationale:** Provides detailed and queryable logs for troubleshooting.
+
+---
+**Rule ID:** `EFFECT-TS-008`
+**Rule Title:** Testing EffectTS Programs
+**Applies To:** All EffectTS code
+**Purpose:** Ensure correctness and robustness of EffectTS logic.
+**Scope:** Unit and integration testing.
+**Guideline:**
+    *   Write unit and integration tests for Effect programs using `@effect/vitest` or the built-in `Effect.test` module.
+    *   Provide mock or test implementations of service dependencies via `Layer`s (e.g., `Layer.succeed(MyService, mockImplementation)`) to isolate the logic under test.
+    *   Test success paths, all defined typed error paths, and fiber interruption scenarios where relevant.
+**Rationale:** Critical for maintaining code quality and preventing regressions.
+**Reference:** `_testing.rules.mdc`
+
+---
+**Rule ID:** `EFFECT-TS-009`
+**Rule Title:** Effect Programs as Cloudflare Workflow Activities
+**Applies To:** Logic executed within Cloudflare Workflow steps
+**Purpose:** Ensure compatibility with Cloudflare Workflows' execution model and data passing mechanisms.
+**Scope:** Implementation of Workflow activities.
+**Guideline:**
+    *   When an EffectTS program is to be executed as an activity within a Cloudflare Workflow step (`step.do(name, callback)`):
+        *   The Effect program MUST be self-contained or receive all its dependencies via a `Layer` constructed within the `async callback`.
+        *   Input to the activity (passed to the callback) MUST be parsed and validated using `@effect/schema`.
+        *   The callback MUST return a JSON-serializable success value or a serializable representation of an `Exit<E, A>`. This is typically achieved by `Effect.runPromiseExit(effectWithLayer).then(exit => JSON.parse(JSON.stringify(exit)))` to ensure plain object serialization, or by defining a custom serializable success/failure discriminated union.
+**Rationale:** Enables robust and type-safe execution of EffectTS logic within durable workflows.
+**Reference:** `_backend-api.rules.mdc` (Rule `API-005`)
+
+---
+**Rule ID:** `EFFECT-TS-010`
+**Rule Title:** Readability with `Effect.gen`
+**Applies To:** Complex asynchronous sequences
+**Purpose:** Enhance code clarity and maintainability.
+**Scope:** Implementation of multi-step Effect programs.
+**Guideline:** For complex asynchronous sequences involving multiple `Effect`s, use `Effect.gen` (generator functions with `yield*`) to improve readability and maintain a more imperative-like coding style within the functional context. Avoid deeply nested `Effect.flatMap` chains.
+**Rationale:** Makes complex Effect-based logic easier to follow.
+
+---
+**Rule ID:** `EFFECT-TS-011`
+**Rule Title:** Internal State Management (within Effects/DOs)
+**Applies To:** Local mutable state within Effect computations or DOs
+**Purpose:** Provide safe and concurrent ways to manage local state within the Effect system before publishing to LFS.
+**Scope:** State management internal to services or DO methods.
+**Guideline:** For managing complex, mutable state that is local to a specific Effect's execution or within a Durable Object's method before being published to LFS, consider using Effect-native state primitives like `Ref`, `SynchronizedRef`, or `SubscriptionRef`.
+**Rationale:** Offers controlled state management within the Effect ecosystem.
+
+---
+**Rule ID:** `EFFECT-TS-012`
+**Rule Title:** Application Configuration with `Config`
+**Applies To:** Accessing application configuration
+**Purpose:** Provide a type-safe, structured, and testable way to handle application configuration.
+**Scope:** Configuration management.
+**Guideline:**
+    *   Use `Config` and `ConfigProvider` from EffectTS for managing application configuration (API keys from Cloudflare secrets, feature flags, AI model identifiers, service URLs).
+    *   Define `Config` schemas using `@effect/schema`.
+    *   Sensitive values MUST use `ConfigSecret`.
+    *   Provide configurations via `ConfigProvider` Layers. Cloudflare environment variables and secrets should be sources for `Config`.
+**Rationale:** Decouples configuration from application logic and enhances security.
+
+---
+**Rule ID:** `EFFECT-TS-013`
+**Rule Title:** Batching and Caching with `RequestResolver` and `Cache`
+**Applies To:** Interactions with external APIs and expensive computations
+**Purpose:** Improve performance and reduce load on external services or computationally intensive tasks.
+**Scope:** Service implementations.
+**Guideline:**
+    *   For interactions with external APIs that support batching (e.g., some embedding services), utilize `RequestResolver` to automatically batch outgoing requests.
+    *   For caching the results of expensive computations or frequent, idempotent external API calls, use `Effect.cached` or the `Cache` primitive. This complements caching provided by Cloudflare AI Gateway.
+**Rationale:** Optimizes resource utilization and response times.
+
+---
+**Rule ID:** `EFFECT-TS-014`
+**Rule Title:** Interaction with Local-First Sync Engine (LFS)
+**Applies To:** Services interacting with LFS
+**Purpose:** Define a standard way for EffectTS services to interact with the LFS.
+**Scope:** LFS client and server-side logic wrappers.
+**Guideline:**
+    *   Define an EffectTS service interface for the LFS client SDK (e.g., `LfsClientService`).
+    *   Implementations will wrap LFS SDK calls in Effects, managing asynchronicity and errors.
+    *   Example methods:
+        *   `LfsClientService.getDocument(path): Effect<Document, LfsError>`
+        *   `LfsClientService.updateDocument(path, fn): Effect<void, LfsError | OptimisticUpdateError>`
+        *   `LfsClientService.subscribeToDocument(path): Stream<Document, LfsError>`
+**Rationale:** Provides a type-safe and Effect-idiomatic abstraction over the LFS.
+**Reference:** `_lfs-engine.rules.mdc`

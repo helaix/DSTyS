@@ -1,0 +1,133 @@
+# Sparkflow External Documentation References (_external-docs-references.rules.mdc)
+
+**Purpose:** To provide a curated list of official documentation links for key technologies used in Sparkflow, aiding developers and AI agents in finding reliable information.
+
+---
+
+This file provides a curated list of official documentation links for key technologies used in Sparkflow. Always prefer official documentation for API details, best practices, and troubleshooting.
+
+**NOTE TO AI AGENT**: Before using a link, please verify its relevance to the specific task. If a more specific deep link is known or can be found, prefer that. These are general starting points.
+
+## 1. Cloudflare Platform
+
+*   **Cloudflare Workers**:
+    *   Main: [https://developers.cloudflare.com/workers/](https://developers.cloudflare.com/workers/)
+    *   Runtime APIs: [https://developers.cloudflare.com/workers/runtime-apis/](https://developers.cloudflare.com/workers/runtime-apis/)
+    *   Wrangler CLI: [https://developers.cloudflare.com/workers/wrangler/](https://developers.cloudflare.com/workers/wrangler/)
+*   **Cloudflare Durable Objects (DOs)**:
+    *   Introduction: [https://developers.cloudflare.com/workers/learning/using-durable-objects/](https://developers.cloudflare.com/workers/learning/using-durable-objects/)
+    *   API Reference: [https://developers.cloudflare.com/workers/runtime-apis/durable-objects/](https://developers.cloudflare.com/workers/runtime-apis/durable-objects/)
+*   **Cloudflare D1 (Database)**:
+    *   Main: [https://developers.cloudflare.com/d1/](https://developers.cloudflare.com/d1/)
+    *   Client API (Workers): [https://developers.cloudflare.com/d1/build-databases/query-databases/](https://developers.cloudflare.com/d1/build-databases/query-databases/) (Navigate to "Query D1 from Workers")
+    *   Wrangler Commands: [https://developers.cloudflare.com/d1/reference/wrangler-commands/](https://developers.cloudflare.com/d1/reference/wrangler-commands/)
+*   **Cloudflare R2 (Object Storage)**:
+    *   Main: [https://developers.cloudflare.com/r2/](https://developers.cloudflare.com/r2/)
+    *   Workers API: [https://developers.cloudflare.com/r2/api/workers/workers-api-usage/](https://developers.cloudflare.com/r2/api/workers/workers-api-usage/)
+*   **Cloudflare Vectorize**:
+    *   Main: [https://developers.cloudflare.com/vectorize/](https://developers.cloudflare.com/vectorize/)
+    *   API (Workers): [https://developers.cloudflare.com/vectorize/reference/client-api/](https://developers.cloudflare.com/vectorize/reference/client-api/)
+*   **Cloudflare Queues**:
+    *   Main: [https://developers.cloudflare.com/queues/](https://developers.cloudflare.com/queues/)
+    *   Sending Messages: [https://developers.cloudflare.com/queues/learning/sending-messages/](https://developers.cloudflare.com/queues/learning/sending-messages/)
+    *   Consuming Messages: [https://developers.cloudflare.com/queues/learning/consuming-messages/](https://developers.cloudflare.com/queues/learning/consuming-messages/)
+*   **Cloudflare AI Gateway**:
+    *   Main: [https://developers.cloudflare.com/ai-gateway/](https://developers.cloudflare.com/ai-gateway/)
+*   **Cloudflare Containers**:
+    *   Main: [https://developers.cloudflare.com/containers/](https://developers.cloudflare.com/containers/)
+    *   Deploying: [https://developers.cloudflare.com/containers/get-started/deploy-an-application/](https://developers.cloudflare.com/containers/get-started/deploy-an-application/)
+    *   Invoking from Workers (using Service Bindings): The mechanism usually involves a Service Binding from a Worker to a Container (which exposes an HTTP service). Search "Cloudflare Worker service binding to Container".
+*   **Cloudflare Workflows**:
+    *   Main: [https://developers.cloudflare.com/workflows/](https://developers.cloudflare.com/workflows/)
+    *   Concepts: [https://developers.cloudflare.com/workflows/concepts/](https://developers.cloudflare.com/workflows/concepts/)
+    *   Quickstart: [https://developers.cloudflare.com/workflows/get-started/quickstart/](https://developers.cloudflare.com/workflows/get-started/quickstart/)
+    *   `WorkflowStep` API: [https://developers.cloudflare.com/workflows/references/api/#workflowstep-api](https://developers.cloudflare.com/workflows/references/api/#workflowstep-api)
+*   **Cloudflare Browser Rendering API** (for Context Engine scraping):
+    *   Main: [https://developers.cloudflare.com/browser-rendering/](https://developers.cloudflare.com/browser-rendering/)
+
+## 2. EffectTS Ecosystem
+
+*   **EffectTS Main Documentation**: [https://effect.website/](https://effect.website/)
+*   **API Reference Overview**: [https://effect.website/docs/api](https://effect.website/docs/api) (Entry point to detailed API docs)
+*   **`Effect` Module**: [https://effect.website/docs/api/effect](https://effect.website/docs/api/effect) (Core data type)
+*   **`Layer` & `Context` (Dependency Injection)**: [https://effect.website/docs/essentials/context-management](https://effect.website/docs/essentials/context-management)
+*   **`@effect/schema`**: [https://effect.website/docs/essentials/schema](https://effect.website/docs/essentials/schema)
+*   **`Stream`**: [https://effect.website/docs/streaming/stream](https://effect.website/docs/streaming/stream)
+*   **`Schedule` (Retries, Repetition)**: [https://effect.website/docs/essentials/scheduling](https://effect.website/docs/essentials/scheduling)
+*   **`Scope` (Resource Management)**: [https://effect.website/docs/essentials/resource-management](https://effect.website/docs/essentials/resource-management)
+*   **`Cause` & Error Handling**: [https://effect.website/docs/essentials/error-management/cause](https://effect.website/docs/essentials/error-management/cause)
+*   **Testing with Effect**: [https://effect.website/docs/testing/test](https://effect.website/docs/testing/test)
+*   **`@effect/platform`**: [https://effect.website/docs/platform/platform](https://effect.website/docs/platform/platform) (Usually linked from the main Effect docs under integrations)
+*   **`@effect/ai`** (For Future Spike): Search the Effect Discord or GitHub for the latest `@effect/ai` resources if not yet prominent on the main site.
+
+## 3. RedwoodSDK
+
+*   **Main Documentation**: [https://redwoodjs.com/docs/introduction](https://redwoodjs.com/docs/introduction)
+*   **Tutorial**: [https://redwoodjs.com/docs/tutorial/foreword](https://redwoodjs.com/docs/tutorial/foreword)
+*   **Server Actions**: Search docs for "Server Actions" or refer to relevant blog posts if primary doc sections aren't mature. Example: [https://redwoodjs.com/blog/rsc-now-in-redwoodjs](https://redwoodjs.com/blog/rsc-now-in-redwoodjs) mentions how they replace traditional services/GraphQL for mutations with RSC.
+*   **Deployment to Cloudflare Workers**: [https://redwoodjs.com/docs/deploy/serverless#cloudflare-workers](https://redwoodjs.com/docs/deploy/serverless#cloudflare-workers) (This often evolves, ensure you check latest practices for static asset serving by worker vs Pages for assets).
+
+## 4. AI Model Providers
+
+*   **Google Gemini API**:
+    *   Main Docs: [https://ai.google.dev/docs/gemini_api_overview](https://ai.google.dev/docs/gemini_api_overview)
+    *   Vertex AI Gemini API: [https://cloud.google.com/vertex-ai/docs/generative-ai/model-reference/gemini](https://cloud.google.com/vertex-ai/docs/generative-ai/model-reference/gemini) (for server-side access, often more robust)
+    *   Video Understanding / Multimodal: Search within Gemini API docs specifically for "multimodal capabilities", "video input", or refer to specific Google AI SDKs. For 2.5 Pro capabilities for video (announced May 2024), direct links to detailed API specs are essential.
+    *   Gemini Embeddings API: [https://ai.google.dev/docs/embeddings_guide](https://ai.google.dev/docs/embeddings_guide)
+*   **OpenAI API** (If used as an alternative LLM):
+    *   Main Docs: [https://platform.openai.com/docs/introduction](https://platform.openai.com/docs/introduction)
+*   **ElevenLabs API** (For Voice Synthesis):
+    *   Main Docs: [https://elevenlabs.io/docs/api-reference/introduction](https://elevenlabs.io/docs/api-reference/introduction)
+
+## 5. Authentication
+
+*   **Clerk**:
+    *   Main Documentation: [https://clerk.com/docs](https://clerk.com/docs)
+    *   React SDK: [https://clerk.com/docs/references/react/overview](https://clerk.com/docs/references/react/overview)
+    *   Backend API / JWT Verification: [https://clerk.com/docs/backend-requests/overview](https://clerk.com/docs/backend-requests/overview)
+    *   Cloudflare Workers Integration: Search Clerk docs for specific examples or guides for CF Workers / Edge functions.
+
+## 6. Data & Storage
+
+*   **Drizzle ORM**:
+    *   Main Documentation: [https://orm.drizzle.team/docs/overview](https://orm.drizzle.team/docs/overview)
+    *   D1 Adapter/Usage: [https://orm.drizzle.team/docs/get-started-sqlite#cloudflare-d1](https://orm.drizzle.team/docs/get-started-sqlite#cloudflare-d1)
+    *   Drizzle Kit (Migrations): [https://orm.drizzle.team/kit-docs/overview](https://orm.drizzle.team/kit-docs/overview)
+*   **Local-First Sync Engine (e.g., `LiveStore.dev`)**:
+    *   *Placeholder*: Official documentation for the chosen LFS engine (e.g., LiveStore.dev) to be added here. Refer to its GitHub repository and examples if open source.
+
+## 7. Video & Creative
+
+*   **Remotion**:
+    *   Main Documentation: [https://www.remotion.dev/docs](https://www.remotion.dev/docs)
+    *   Server-Side Rendering (SSR) / Lambda: [https://www.remotion.dev/docs/ssr](https://www.remotion.dev/docs/ssr) & [https://www.remotion.dev/docs/lambda](https://www.remotion.dev/docs/lambda)
+    *   Using with Node.js (for Container): [https://www.remotion.dev/docs/node](https://www.remotion.dev/docs/node)
+*   **Puppeteer** (If used directly by Remotion in Container, or for Context Engine Scraping):
+    *   Main Docs: [https://pptr.dev/](https://pptr.dev/)
+
+## 8. Infrastructure as Code (IaC)
+
+*   **Pulumi (with TypeScript)**:
+    *   Cloudflare Provider: [https://www.pulumi.com/registry/packages/cloudflare/](https://www.pulumi.com/registry/packages/cloudflare/)
+    *   TypeScript Docs: [https://www.pulumi.com/docs/languages-sdks/typescript/](https://www.pulumi.com/docs/languages-sdks/typescript/)
+*   **Terraform**:
+    *   Cloudflare Provider: [https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs)
+*   **Alchemy (Cloudflare IaC Tool)**:
+    *   Main GitHub: [https://github.com/sam-goodwin/alchemy](https://github.com/sam-goodwin/alchemy)
+
+## 9. Development Tools
+
+*   **pnpm**: [https://pnpm.io/pnpm-cli](https://pnpm.io/pnpm-cli)
+*   **Turborepo**: [https://turbo.build/repo/docs](https://turbo.build/repo/docs)
+*   **Vitest**: [https://vitest.dev/guide/](https://vitest.dev/guide/)
+*   **Biome**: [https://biomejs.dev/docs/](https://biomejs.dev/docs/)
+*   **ESLint**: [https://eslint.org/docs/latest/](https://eslint.org/docs/latest/)
+*   **Prettier**: [https://prettier.io/docs/en/](https://prettier.io/docs/en/)
+*   **Conventional Commits**: [https://www.conventionalcommits.org/en/v1.0.0/](https://www.conventionalcommits.org/en/v1.0.0/)
+*   **Graphite CLI (Stacked PRs)**: [https://graphite.dev/docs](https://graphite.dev/docs)
+---
+
+**AI Agent Usage Note**: When using these links for research:
+1.  State the specific information you are trying to find or the question you are trying to answer.
+2.  If the general link is provided, try to navigate to the most relevant sub-section.
+3.  If you find a more precise deep link during your research that answers a common question for Sparkflow, suggest an update to this `_external-docs-references.rules.mdc` file.

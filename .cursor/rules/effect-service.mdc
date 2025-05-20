@@ -1,0 +1,86 @@
+---
+description: # Effect Service and Schema Usage Guidelines
+globs: 
+alwaysApply: false
+---
+# Effect Service and Schema Usage Guidelines
+
+## Service Definition Patterns
+
+- **Effect.Service Pattern**
+  ```typescript
+  export class MyService extends Effect.Service<MyService>() (
+    "app/path/to/MyService", 
+    {
+      effect: Effect.gen(function* (_) {
+        // Dependencies can be accessed here
+        const dependency = yield* _(Dependency);
+        
+        return {
+          // Service methods/properties
+          methodA: () => Effect.succeed("result"),
+          methodB: (arg: string) => Effect.succeed(arg),
+        }
+      }),
+      dependencies: [Dependency.Default] // Optional dependencies
+    }
+  )
+  ```
+
+- **Service Dependencies**
+  - Inject dependencies via Effect.gen and yield*
+  - List explicit dependencies in the dependencies array
+  - Use Default layers for default implementations
+
+## Data Models
+
+- **Interface vs Schema**
+  - **✅ DO:** Use Schema for data that will be:
+    - Serialized/deserialized (e.g., API responses, storage)
+    - Validated at runtime
+    - Used across API boundaries
+  
+  - **⚠️ CONSIDER:** For internal data models like WorkflowUpdate:
+    ```typescript
+    // Current TypeScript interface approach
+    export interface WorkflowUpdate {
+      readonly workflowSteps: WT.WorkflowStep[];
+      readonly currentProgress: number;
+      readonly currentMessage: string;
+      readonly accumulatedContext: WT.AccumulatedContext;
+    }
+    
+    // Schema-based approach (recommended for consistency)
+    export const WorkflowUpdateSchema = S.Struct({
+      workflowSteps: S.Array(WorkflowStepSchema),
+      currentProgress: S.Number,
+      currentMessage: S.String,
+      accumulatedContext: AccumulatedContextSchema
+    })
+    export type WorkflowUpdate = S.Schema.Type<typeof WorkflowUpdateSchema>
+    ```
+
+## Effect Workflows
+
+- **Workflow Patterns**
+  - Use Effect.gen for complex workflows with dependencies
+  - Handle errors explicitly with Effect.catchAll
+  - Use Effect.sleep for time-based operations
+  - Chain operations with .pipe for better readability
+
+- **Progress Updates**
+  - Pass update callbacks as parameters to long-running effects
+  - Use readonly properties for immutable update objects
+
+## Error Handling
+
+- **Custom Error Classes**
+  - Extend Data.TaggedError for typed errors
+  - Include context information in error properties
+  - Wrap unknown errors with specific domain errors
+  ```typescript
+  if (error instanceof SpecificError) {
+    return Effect.fail(error);
+  }
+  return Effect.fail(new DomainError({ message: "Unexpected error", cause: error }));
+  ```

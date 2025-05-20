@@ -1,169 +1,90 @@
-# Sparkflow Security Rules (_security.rules.mdc)
+# DSTyS Security Rules (_security.rules.mdc)
 
-**Purpose:** To define security best practices and requirements for developing Sparkflow, protecting user data, ensuring system integrity, and mitigating common vulnerabilities.
-**Primary References:** Architecture Document v0.5 (Section 8), PRD v1.5, Cloudflare Security Best Practices, Clerk Security Documentation, OWASP Top 10.
+**Purpose:** To define security best practices and requirements for developing the DSTyS library, focusing on protecting against common vulnerabilities in library code and ensuring safe interaction with external services (LMs).
+**Primary References:** OWASP Top 10 (relevant aspects), Node.js Security Best Practices, TypeScript Security.
 
 ---
-**Rule ID:** `SEC-001`
-**Rule Title:** Authentication with Clerk
-**Applies To:** All user-facing endpoints and sensitive operations
-**Purpose:** Ensure only authenticated users can access protected resources.
-**Scope:** User authentication and session management.
+**Rule ID:** `DSTYS-SEC-001`
+**Rule Title:** Secure API Key and Secret Handling (for LM Clients)
+**Applies To:** Language Model client implementations (`clients/`)
+**Purpose:** Protect user API keys when interacting with LM providers.
+**Scope:** LM client configuration and request execution.
 **Guideline:**
-    *   Clerk **MUST** be used for all user authentication, identity, and primary session management.
-    *   Use Clerk's hosted pages or pre-built components (`@clerk/clerk-react`) for Sign Up, Sign In, User Profile to ensure secure and tested UI flows.
-    *   Clerk JWTs **MUST** be validated on the backend (CF Worker, DOs) for every request requiring authentication. Use Clerk's backend SDK utilities (e.g., `clerkClient.authenticateRequest` or manual JWT validation using JWKS URI) wrapped in an EffectTS middleware or service.
-    *   Propagate authenticated user context (`userId`, `orgId` from Clerk session) securely to all EffectTS services and DOs that require it for authorization. This context should be part of the Effect's requirement layer (`R`).
-    *   Encourage/enforce Multi-Factor Authentication (MFA) for users via Clerk settings.
-    *   Leverage Clerk's configurable password policies and session timeout policies.
-**Rationale:** Standardizes authentication and leverages a dedicated identity provider's security features.
+    *   LM clients (e.g., `OpenAI.ts`, `Anthropic.ts`) **MUST** accept API keys as constructor arguments or read them from standard environment variables (e.g., `OPENAI_API_KEY`).
+    *   **NEVER** hardcode API keys or other secrets within the library's source code.
+    *   API keys **MUST NOT** be logged by default. If logging of requests containing keys is necessary for debugging, it must be explicitly enabled by the user and carry strong warnings.
+    *   Ensure API keys are transmitted securely (HTTPS) to LM providers.
+**Rationale:** Prevents accidental leakage of user credentials.
 
 ---
-**Rule ID:** `SEC-002`
-**Rule Title:** Authorization and Data Scoping
-**Applies To:** All data access and operations
-**Purpose:** Prevent unauthorized data access and ensure multi-tenancy.
-**Scope:** Data access control logic.
+**Rule ID:** `DSTYS-SEC-002`
+**Rule Title:** Input Validation for Public APIs
+**Applies To:** All public functions and methods of DSTyS modules
+**Purpose:** Prevent unexpected behavior or errors due to invalid inputs.
+**Scope:** Library API boundaries.
 **Guideline:**
-    *   All significant data in D1 (`D1_SPARKFLOW_APP_DATA`) and documents in the Local-First Sync Engine (LFS) **MUST** be scoped by `organizationId` and/or `userId`.
-    *   EffectTS services and LFS access control rules (in the LFS backend) **MUST** enforce this scoping rigorously based on the authenticated `UserContext`.
-    *   For team features (future), define clear roles (e.g., Org Admin, Project Owner, Editor, Viewer) and implement Role-Based Access Control (RBAC) at the EffectTS service layer and for LFS data access.
-    *   Access to Durable Object methods, especially if HTTP exposed or called by Workflows, **MUST** be authenticated and authorized based on the propagated `UserContext`.
-**Rationale:** Enforces the principle of least privilege for data access.
+    *   All public-facing functions and methods that accept complex inputs (especially objects or strings that will be parsed) SHOULD perform runtime validation of these inputs, even with TypeScript's static typing.
+    *   Use Zod or Effect Schema for defining expected input shapes and validating them at the entry points of public APIs.
+    *   Return clear, typed errors (using Effect's error channel) when validation fails.
+**Rationale:** Enhances robustness and provides clear feedback to library users on incorrect usage.
 
 ---
-**Rule ID:** `SEC-003`
-**Rule Title:** Input Validation with `@effect/schema`
-**Applies To:** All external inputs
-**Purpose:** Prevent injection attacks, data corruption, and unexpected errors.
-**Scope:** API boundaries, message consumers, Workflow activities.
+**Rule ID:** `DSTYS-SEC-003`
+**Rule Title:** Safe Handling of External Data (LM Responses)
+**Applies To:** Parsing and processing of responses from LMs
+**Purpose:** Prevent issues arising from malformed or unexpected LM outputs.
+**Scope:** `Adapter` implementations, `Predict` module output parsing.
 **Guideline:**
-    *   All inputs from external sources (user client requests to Server Actions, webhook payloads, parameters to public DO methods, messages from Queues, inputs to Workflow activities) **MUST** be rigorously validated using `@effect/schema` (`Schema.decodeUnknown` or `Schema.parse`) at the earliest possible boundary.
-    *   Validation MUST include checking for correct types, formats, presence of required fields, and reasonable value ranges.
-    *   Reject or sanitize any data that does not conform.
-**Rationale:** Critical for protecting against a wide range of input-based vulnerabilities.
+    *   When parsing LM responses (e.g., JSON, structured text), use robust parsers and validate the structure against expected schemas (Zod or Effect Schema).
+    *   Handle parsing errors gracefully, returning typed errors via Effect.
+    *   Be cautious if LM outputs are ever used to construct file paths, database queries, or system commands (though this is unlikely for DSTyS core, it's a general principle). Sanitize and validate such outputs rigorously if this pattern ever emerges in extensions.
+**Rationale:** Protects against errors or potential manipulation if LMs produce unexpected output formats.
 
 ---
-**Rule ID:** `SEC-004`
-**Rule Title:** Secure API Key and Secret Management
-**Applies To:** All secrets and API keys
-**Purpose:** Protect sensitive credentials from exposure.
-**Scope:** Configuration and runtime access to secrets.
-**Guideline:**
-    *   All external API keys (Gemini, ElevenLabs, AWS, etc.) and other secrets (database credentials if not using bindings, LFS backend secrets, Clerk backend key) **MUST** be stored securely using Cloudflare Secrets (Worker secrets).
-    *   Access secrets via environment variables in Workers, DOs, and Cloudflare Containers. These environment variables **MUST** be configured via IaC (see `_iac.rules.mdc`).
-    *   EffectTS code **MUST** access these secrets via `ConfigSecret`.
-    *   **NEVER** hardcode secrets in source code or commit them to version control.
-    *   Implement a strategy for regular rotation of sensitive secrets and API keys where supported by the provider and feasible.
-**Rationale:** Prevents accidental leakage of sensitive credentials and limits impact of compromised keys.
-
----
-**Rule ID:** `SEC-005`
-**Rule Title:** Cloudflare R2 Security for Asset Storage
-**Applies To:** Storage of user-uploaded and generated assets
-**Purpose:** Ensure secure and controlled access to stored assets in R2.
-**Scope:** R2 bucket configuration and access patterns.
-**Guideline:**
-    *   For client-side uploads to R2, use presigned POST URLs generated by a secure backend Server Action. Presigned URLs **MUST** have short expiry times and be scoped to specific object keys/paths.
-    *   Configure R2 bucket policies for least privilege access. Default to private buckets unless public access is explicitly required for specific assets (e.g., CDN-served content) and has been reviewed and approved.
-    *   Implement appropriate CORS policies for R2 buckets if accessed directly from the frontend.
-**Rationale:** Protects assets from unauthorized access or modification.
-
----
-**Rule ID:** `SEC-006`
-**Rule Title:** Cloudflare D1 Database Security
-**Applies To:** Interactions with D1 databases
-**Purpose:** Protect against database attacks like SQL injection.
-**Scope:** Database query construction and access.
-**Guideline:**
-    *   All D1 database interactions **MUST** use Drizzle ORM with parameterized queries to prevent SQL injection.
-    *   Avoid constructing SQL queries dynamically with unvalidated user input.
-    *   Access to D1 from Workers/DOs SHOULD be through bindings configured with least privilege.
-**Rationale:** Ensures secure database query execution.
-
----
-**Rule ID:** `SEC-007`
-**Rule Title:** Cloudflare Container Security (for Remotion)
-**Applies To:** Containerized applications
-**Purpose:** Minimize attack surface for containerized applications.
-**Scope:** Dockerfile creation and container runtime configuration.
-**Guideline:**
-    *   Use minimal, trusted base images for Cloudflare Containers (e.g., for Remotion).
-    *   Regularly scan container images for vulnerabilities using tools like Snyk or Trivy (integrated into CI/CD).
-    *   Pass secrets or sensitive configuration to containers securely (e.g., via environment variables injected by the managing DO or IaC, not baked into the image).
-    *   Containers should run with the least privilege necessary.
-**Rationale:** Hardens the security posture of containerized workloads.
-
----
-**Rule ID:** `SEC-008`
-**Rule Title:** Infrastructure as Code (IaC) Security
-**Applies To:** IaC script development and management
-**Purpose:** Ensure infrastructure is provisioned and maintained securely.
-**Scope:** IaC definitions and deployment processes.
-**Guideline:**
-    *   Regularly review IaC scripts (Pulumi, Terraform, Alchemy) for overly permissive configurations (e.g., wildcard permissions, public R2 buckets, open firewall rules).
-    *   Securely manage IaC state files (e.g., using encrypted backends like Pulumi Service or R2 with encryption).
-    *   Apply the principle of least privilege when defining permissions for IaC tools to interact with Cloudflare/AWS.
-**Rationale:** Prevents security misconfigurations at the infrastructure level.
-**Reference:** `_iac.rules.mdc`
-
----
-**Rule ID:** `SEC-009`
+**Rule ID:** `DSTYS-SEC-004`
 **Rule Title:** Dependency Vulnerability Management
 **Applies To:** All third-party software dependencies
 **Purpose:** Protect against exploits targeting known vulnerabilities in dependencies.
-**Scope:** Package management and CI/CD.
+**Scope:** `package.json` and CI/CD.
 **Guideline:**
-    *   Regularly scan project dependencies (npm packages) for known vulnerabilities using `pnpm audit`, GitHub Dependabot, and/or Snyk.
+    *   Regularly scan project dependencies (npm packages) for known vulnerabilities using `pnpm audit` and GitHub Dependabot.
     *   Integrate these scans into the CI/CD pipeline.
-    *   Establish a process for promptly evaluating the risk of identified vulnerabilities and applying security patches for all third-party dependencies and underlying infrastructure components.
+    *   Establish a process for promptly evaluating the risk of identified vulnerabilities and applying security patches for all third-party dependencies.
+    *   Minimize the number of dependencies and prefer well-maintained, reputable libraries.
 **Rationale:** Mitigates risks from vulnerable third-party code.
 
 ---
-**Rule ID:** `SEC-010`
+**Rule ID:** `DSTYS-SEC-005`
 **Rule Title:** Secure Error Handling and Logging
-**Applies To:** Error handling and logging mechanisms
-**Purpose:** Prevent information leakage that could aid attackers.
-**Scope:** Application-wide error management.
+**Applies To:** Error handling and logging mechanisms within the library
+**Purpose:** Prevent information leakage that could be sensitive in a user's application.
+**Scope:** Library-wide error management.
 **Guideline:**
-    *   Do not expose sensitive system information, stack traces, or detailed internal error messages in client-facing error responses. Return generic error messages to the client while logging detailed errors on the backend.
-    *   Log detailed error information (including full `Cause` from EffectTS) securely on the backend for debugging purposes. Ensure logs do not contain Personally Identifiable Information (PII) or secrets unless explicitly necessary for diagnostics and are appropriately protected (e.g., redacted, access-controlled).
-**Rationale:** Balances debugging needs with security.
+    *   Internal library errors or errors from LM APIs SHOULD be wrapped in DSTyS-specific typed errors (using Effect).
+    *   Avoid logging raw API responses from LMs by default, especially if they might contain user data from prompts. Logging should be opt-in for debugging by the library user.
+    *   Ensure that stack traces or internal library details exposed in errors do not inadvertently reveal sensitive architectural information that isn't already public.
+**Rationale:** Balances debuggability with the principle of not leaking potentially sensitive operational details of the user's application.
 
 ---
-**Rule ID:** `SEC-011`
-**Rule Title:** Content Security Policy (CSP) and HTTP Security Headers
-**Applies To:** Frontend application delivery
-**Purpose:** Enhance browser-side security against XSS and other attacks.
-**Scope:** HTTP response headers from the Cloudflare Worker serving the frontend.
+**Rule ID:** `DSTYS-SEC-006`
+**Rule Title:** Tool Execution Security (for `Tool` class and `ReAct`)
+**Applies To:** `Tool.ts`, `ReAct.ts`
+**Purpose:** Ensure users understand the implications of executing tools.
+**Scope:** Tool integration and execution.
 **Guideline:**
-    *   Implement a strict Content Security Policy (CSP) for the RedwoodSDK frontend to mitigate Cross-Site Scripting (XSS) and other injection attacks.
-    *   Utilize other relevant HTTP security headers (e.g., HTTP Strict Transport Security (HSTS), X-Frame-Options, X-Content-Type-Options, Referrer-Policy).
-**Rationale:** Strengthens client-side defenses.
+    *   The `Tool` class wraps user-provided functions. DSTyS itself does not execute arbitrary code from LMs directly.
+    *   Documentation for `Tool` and `ReAct` MUST clearly state that the security of tool execution is the responsibility of the user who defines and provides the tool functions.
+    *   If DSTyS were to ever implement tools that *do* execute code suggested by an LM (e.g., a Python interpreter tool), such tools MUST run in a sandboxed environment and have strict permissions. (This is out of scope for core DSTyS but relevant for extensions).
+**Rationale:** Clarifies security responsibilities regarding tool execution.
 
 ---
-**Rule ID:** `SEC-012`
-**Rule Title:** Rate Limiting and Abuse Protection
-**Applies To:** Public-facing APIs and resource-intensive operations
-**Purpose:** Protect system resources and prevent abuse.
-**Scope:** API Gateway and Worker configurations.
+**Rule ID:** `DSTYS-SEC-007`
+**Rule Title:** Serialization Security (`save`/`load` methods)
+**Applies To:** `Module.save`, `Module.load`, `Predict.save`, `Predict.load`
+**Purpose:** Mitigate risks associated with deserializing data.
+**Scope:** Saving and loading module state.
 **Guideline:**
-    *   Implement rate limiting on public-facing Server Actions and critical API endpoints using Cloudflare Rate Limiting.
-    *   Leverage Cloudflare's built-in DDoS protection. Configure specific WAF rules or advanced DDoS mitigation features if specific threats are identified.
-    *   Monitor for abusive patterns or denial-of-service attempts using Cloudflare analytics and security tools.
-
----
-**Rule ID:** `SEC-013`
-**Rule Title:** AI Safety & Ethics
-**Applies To:** All AI model interactions and AI-generated content
-**Purpose:** Ensure responsible and ethical use of AI technologies.
-**Scope:** AI model prompting, content generation, data usage for AI.
-**Guideline:**
-    *   All AI-generated content and AI-driven processes **MUST** adhere to ethical guidelines. This includes preventing the generation of harmful, biased, or infringing content.
-    *   User data used for training or prompting AI models **MUST** be handled with appropriate disclaimers, consent (where applicable), and privacy considerations.
-    *   AI outputs **SHOULD** be clearly identifiable as AI-generated where appropriate, especially in user-facing scenarios, to maintain transparency.
-    *   Implement mechanisms to filter or moderate AI-generated content for appropriateness if it's directly published or user-visible.
-    *   Regularly review AI model outputs for potential biases or unintended harmful consequences.
-**Rationale:** Promotes responsible AI development and protects users.
----
-**Rationale:** Ensures service availability and fair usage.
+    *   When loading module state (e.g., from JSON or pickled Python objects if cross-language compatibility is ever attempted), be aware of deserialization risks.
+    *   Prefer JSON for state persistence due to its simpler, safer parsing model compared to formats like Pickle (which is not directly applicable to TS but serves as an analogy for complex binary formats).
+    *   If loading "program" behavior (e.g., Python's `save_program=True` equivalent), ensure the source is trusted or mechanisms are in place to validate/sandbox loaded code. For DSTyS, this primarily means validating the structure of loaded JSON against expected schemas.
+**Rationale:** Protects against loading malicious or corrupted state/program data.

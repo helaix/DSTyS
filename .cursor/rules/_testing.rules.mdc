@@ -1,136 +1,103 @@
-# Sparkflow Testing Rules (_testing.rules.mdc)
+# DSTyS Testing Rules (_testing.rules.mdc)
 
-**Purpose:** To ensure robustness, correctness, and reliability of the Sparkflow platform through a comprehensive and largely automated testing strategy. Emphasizes Test-Driven Development (TDD) or Behavior-Driven Development (BDD) principles where practical, especially for AI agent (Codex) implemented tasks.
-**Primary References:** Architecture Document v0.5 (Section 7), EffectTS Testing Docs, Vitest Docs, Playwright Docs, `_workplan-execution.rules.mdc`.
+**Purpose:** To ensure robustness, correctness, and reliability of the DSTyS library through a comprehensive and largely automated testing strategy. Emphasizes Test-Driven Development (TDD) by porting Python DSPy tests first.
+**Primary References:** DSTyS Architecture Document (`docs/planning/Architecture.md`, Section 7), EffectTS Testing Docs, Vitest Docs, `_workplan-execution.rules.mdc`.
 
 ---
-**Rule ID:** `TEST-001`
-**Rule Title:** Test-Driven Development (TDD) / Behavior-Driven Development (BDD) Principles
-**Applies To:** All new feature development and bug fixing
-**Purpose:** Ensure code is testable by design and meets requirements from the outset.
+**Rule ID:** `DSTYS-TEST-001`
+**Rule Title:** Test-Driven Development (TDD) by Porting Python Tests
+**Applies To:** All component implementation
+**Purpose:** Ensure feature parity with Python DSPy and guide TypeScript implementation.
 **Scope:** Development methodology.
 **Guideline:**
-    *   Where practical and beneficial (especially for well-defined EffectTS services, utility functions, and complex business logic), apply TDD/BDD principles: write tests *before* or concurrently with implementation code.
-    *   For AI agents like Codex, Workplans MUST specify tests as 'Verification Steps' that the agent writes alongside the functional code.
-**Rationale:** Leads to higher quality, more maintainable code and better requirement coverage.
+    *   For each DSTyS component corresponding to a Python DSPy component, the TDD process is:
+        1.  **Convert Python Tests:** Port the relevant Python DSPy unit/integration tests to TypeScript/Vitest. These tests should initially fail.
+        2.  **Implement Component:** Write the TypeScript DSTyS component implementation to make the ported tests pass.
+        3.  **Refactor:** Refactor the TypeScript code while ensuring all tests continue to pass.
+    *   Workplans for component implementation (`CORE-*Implementation.md`) MUST reference their corresponding test conversion workplan (`TEST-*Tests.md`) as a prerequisite.
+**Rationale:** Ensures functional equivalence with the reference implementation and drives development from specifications.
 
 ---
-**Rule ID:** `TEST-002`
+**Rule ID:** `DSTYS-TEST-002`
 **Rule Title:** Automatable Verification Steps in Workplans
 **Applies To:** Workplan definition
-**Purpose:** Enable AI agents to self-verify their work and ensure repeatable quality checks.
+**Purpose:** Ensure all implemented functionality is covered by automated tests.
 **Scope:** Workplan "Verification Steps" section.
 **Guideline:**
-    *   All 'Verification Steps' in Workplan documents MUST be translatable into automatable tests (Vitest unit/integration tests, or Playwright E2E tests where appropriate).
-    *   AI agents (especially Codex) are expected to implement these verification steps as automated tests.
-    *   Manual verification steps are a last resort and must be explicitly justified and documented with clear, repeatable instructions.
-**Rationale:** Critical for enabling AI agent autonomy and ensuring consistent quality.
+    *   The 'Verification Steps' in Workplan documents for component implementation **MUST** primarily consist of "Run the converted tests from `TEST-[ComponentName]Tests.md` and ensure all pass."
+    *   Any additional verification steps specific to the TypeScript implementation (e.g., type checking specific scenarios) should also be automatable via Vitest tests.
+**Rationale:** Links implementation directly to test outcomes.
 **Reference:** `_workplan-execution.rules.mdc` (Rule `WP-EXEC-006`)
 
 ---
-**Rule ID:** `TEST-003`
+**Rule ID:** `DSTYS-TEST-003`
 **Rule Title:** Testing Frameworks and Tools
 **Applies To:** All automated testing
 **Purpose:** Standardize testing tools across the project.
 **Scope:** Test implementation.
 **Guideline:**
-    *   **Unit & Integration Tests:** Vitest (with `@vitest/ui` for UI mode) is the primary framework.
-        *   For EffectTS code: Use `@effect/vitest` for idiomatic Effect testing or `Effect.runPromiseExit` etc. with Vitest's `expect`.
-    *   **React Component Tests:** Vitest with `@testing-library/react`.
-    *   **E2E Tests (Future, starting Phase 3):** Playwright will be used for end-to-end user flow testing.
+    *   **Primary Framework:** Vitest (with `@vitest/ui` for UI mode during development) is the testing framework.
+    *   **EffectTS Testing:**
+        *   Use `@effect/vitest` for idiomatic Effect testing (e.g., `testEffect`).
+        *   Alternatively, use `Effect.runPromiseExit` or `Effect.runPromise` within standard Vitest `test` blocks and assert on the `Exit` or resolved value/error.
     *   **Mocking:**
-        *   EffectTS Layers: Provide mock implementations for service dependencies (`Layer.succeed` with a mock service).
-        *   Vitest Mocks (`vi.mock`, `vi.spyOn`): For mocking modules or specific functions not easily replaceable by EffectTS Layers.
-        *   `msw` (Mock Service Worker): MAY be used for mocking HTTP requests to external APIs in integration or E2E tests if direct service mocking is insufficient.
-    *   **Cloudflare Local Emulation:** Wrangler (`wrangler dev`) and Miniflare for testing Workers, DOs, D1, R2, Queues, Workflows locally. Vitest integration with Miniflare is key for DO/Worker integration tests.
-**Rationale:** Provides a consistent and powerful testing toolkit.
+        *   EffectTS Layers: Provide mock implementations for service dependencies (e.g., mock LMs) using `Layer.succeed(LMServiceTag, mockLMImplementation)` when testing modules that depend on them.
+        *   Vitest Mocks (`vi.mock`, `vi.spyOn`): For mocking modules or specific functions not easily replaceable by EffectTS Layers, or for simpler synchronous mocks.
+    *   **Assertions:** Use Vitest's built-in `expect` API.
+**Rationale:** Provides a consistent and powerful testing toolkit for a TypeScript/EffectTS project.
 
 ---
-**Rule ID:** `TEST-004`
+**Rule ID:** `DSTYS-TEST-004`
 **Rule Title:** Test Coverage Expectations
 **Applies To:** All code modules
-**Purpose:** Ensure critical parts of the system are well-tested.
+**Purpose:** Ensure critical parts of the library are well-tested.
 **Scope:** Test planning and review.
 **Guideline:**
-    *   EffectTS Core Logic & Services (Pure): Aim for >90% unit test coverage.
-    *   Redwood Server Actions / API Handlers: Aim for >80% integration test coverage (success, error paths, auth).
-    *   Durable Object Methods & Workflow Activities (Logic Portion): Aim for >85% integration test coverage for key state transitions and logic.
-    *   Critical UI Components & Flows: Aim for >70% unit/integration test coverage.
-    *   Austin MVP User Flows: Aim for initial E2E test coverage for primary success paths.
-    *   Coverage reports (e.g., from Vitest) SHOULD be generated and reviewed periodically.
+    *   Aim for >85% overall test coverage for the library.
+    *   Critical core primitives (`Field.ts`, `Signature.ts`, `Module.ts`, `Example.ts`, `Prediction.ts`) SHOULD aim for >90% coverage.
+    *   Coverage reports (from Vitest via `v8` provider) MUST be generated and reviewed as part of CI and PRs.
 **Rationale:** Provides a quantitative measure of test thoroughness.
 
 ---
-**Rule ID:** `TEST-005`
-**Rule Title:** Mocking and Test Double Strategies
-**Applies To:** Unit and integration tests
-**Purpose:** Isolate units under test and ensure reliable, fast tests.
-**Scope:** Test design.
+**Rule ID:** `DSTYS-TEST-005`
+**Rule Title:** Mocking Language Models (LMs)
+**Applies To:** Tests involving `Predict` or other LM-interacting modules
+**Purpose:** Isolate units under test and ensure reliable, fast, and cost-effective tests.
+**Scope:** Test design for LM-dependent components.
 **Guideline:**
-    *   For unit and integration tests, effectively mock external dependencies (AI APIs, Cloudflare services not available in Miniflare, Clerk SDK, LFS backend) using:
-        *   EffectTS `Layer`s with test implementations (preferred for EffectTS services).
-        *   Vitest's mocking utilities (`vi.mock`, `vi.spyOn`) for non-EffectTS modules or direct SDK usage.
-    *   Avoid over-mocking; test actual integrations where feasible in integration tests (e.g., using Miniflare for D1/R2/DOs, or a test LFS instance).
-**Rationale:** Balances test isolation with realistic integration checks.
+    *   Use `dspy.utils.DummyLM` or custom mock LM implementations for most tests.
+    *   Mock LMs should allow specifying expected outputs for given inputs/prompts to test module logic.
+    *   If testing an EffectTS service that wraps an LM, provide a mock implementation of that service via a `Layer`.
+    *   Actual calls to live LMs should be reserved for a small suite of integration/E2E tests and clearly marked/separated.
+**Rationale:** Avoids flakiness and cost associated with real LM calls in unit/integration tests.
 
 ---
-**Rule ID:** `TEST-006`
-**Rule Title:** AI Agent Test Generation Responsibilities
-**Applies To:** AI agents like Codex
-**Purpose:** Leverage AI to improve test coverage and quality.
-**Scope:** Workplans for AI code generation.
-**Guideline:**
-    *   When instructing AI agents (especially Codex) to implement features, explicitly require them to generate comprehensive tests (unit and integration as appropriate) that cover:
-        *   Happy paths / success cases.
-        *   Edge cases and boundary conditions.
-        *   Expected error handling (based on EffectTS typed errors).
-        *   All acceptance criteria from the Workplan.
-    *   PRs submitted by AI agents MUST include these tests, and they must pass in CI.
-**Rationale:** Makes testing an integral part of AI-driven development.
-
----
-**Rule ID:** `TEST-007`
+**Rule ID:** `DSTYS-TEST-006`
 **Rule Title:** Testing EffectTS Programs Idiomatically
 **Applies To:** All tests for EffectTS code
 **Purpose:** Ensure effective and correct testing of EffectTS constructs.
 **Scope:** Test implementation for EffectTS logic.
 **Guideline:**
-    *   Use `@effect/vitest` (`testEffect`) or `Effect.test` for testing Effect programs.
-    *   Provide necessary dependencies via `Effect.provideLayer` using test/mock Layers.
-    *   Test success values using `expect(result).toEqual(...)` on `Effect.runPromise`.
-    *   Test failure channels and specific typed errors using `Effect.runPromiseExit` and inspecting the `Exit`'s `Cause` (e.g., `Cause.failureOption`, `Cause.isDie`) or using `Effect.flip` with `expect(error).toBeInstanceOf(...)`.
-    *   Test fiber interruption and resource cleanup (`Scope`) scenarios for complex effects.
-**Rationale:** Aligns testing practices with EffectTS patterns.
+    *   When using `Effect.runPromiseExit` for testing:
+        *   For success cases: `const exit = await Effect.runPromiseExit(myEffect); expect(Exit.isSuccess(exit)).toBe(true); if (Exit.isSuccess(exit)) { expect(exit.value).toEqual(...); }`.
+        *   For failure cases: `const exit = await Effect.runPromiseExit(myEffect); expect(Exit.isFailure(exit)).toBe(true); if (Exit.isFailure(exit)) { expect(Cause.failureOption(exit.cause).pipe(Option.map((e) => e._tag)).pipe(Option.getOrNull)).toBe("MyErrorTag"); }`.
+    *   Test fiber interruption and resource cleanup (`Scope`) scenarios where relevant for more complex Effect programs (less common in DSTyS core, but potentially for advanced optimizers or resource-intensive tools).
+**Rationale:** Aligns testing practices with EffectTS patterns for robust error and success case validation.
 
 ---
-**Rule ID:** `TEST-008`
-**Rule Title:** Testing Cloudflare Workflows
-**Applies To:** Cloudflare Workflow definitions and activities
-**Purpose:** Validate the correctness of complex asynchronous orchestrations.
-**Scope:** Workflow testing.
+**Rule ID:** `DSTYS-TEST-007`
+**Rule Title:** Test File Structure and Naming
+**Applies To:** All test files
+**Purpose:** Ensure tests are organized and easy to locate.
+**Scope:** `tests/` directory.
 **Guideline:**
-    *   **Activity Unit Tests:** Test the EffectTS programs intended to run as Workflow activities in isolation, providing mock layers for their dependencies (just like any other EffectTS service). This is the primary way to test activity logic.
-    *   **Workflow Definition Tests (Local Emulation):**
-        *   Use Wrangler's local Workflow emulator (`wrangler dev --test-scheduled` for crons, or by triggering HTTP start endpoint) to test the orchestration logic of the Workflow TypeScript class itself (sequence of steps, conditional logic, error handling, state persistence between steps).
-        *   Mock the *behavior* of activities called by `step.do()` for these orchestration tests if the actual activity execution is too slow or complex for local emulation of many steps. The goal is to test the Workflow's control flow.
-        *   Verify that workflows can be triggered, progress through steps, handle retries (for emulated failures), and complete or fail as expected.
-        *   Validate data passed between steps using `@effect/schema`.
-**Rationale:** Ensures both individual activity correctness and overall workflow orchestration logic.
+    *   Test files MUST mirror the directory structure of the `source/` directory. For example, tests for `source/primitives/Example.ts` should be in `tests/primitives/Example.test.ts`.
+    *   Test files MUST end with `.test.ts`.
+    *   Use descriptive names for `describe` blocks and `test` (or `it`) cases.
+**Rationale:** Promotes clarity and maintainability of the test suite.
 
 ---
-**Rule ID:** `TEST-009`
-**Rule Title:** Testing Local-First Sync Engine (LFS) Interactions
-**Applies To:** Components and services interacting with LFS
-**Purpose:** Ensure reliability of LFS-dependent logic and real-time state management.
-**Scope:** Testing involving LFS.
-**Guideline:**
-    *   **UI Component Tests:** Mock LFS React hooks (`useQuery`, `useStore`, etc.) to provide controlled state to UI components. Test that components react correctly to LFS state changes.
-    *   **EffectTS Service/DO Tests:** Mock the LFS Client Service Layer (EffectTS). Verify services/DOs correctly format data for LFS writes and correctly parse data from LFS reads/subscriptions.
-    *   **End-to-End Sync Tests (Integration/E2E):** Set up a test LFS instance (with local D1 backend, possibly using Miniflare). Test scenarios where one client (UI or DO) updates LFS and verify other clients (UI or DOs) receive the update reactively. This is CRITICAL for MVP.
-**Rationale:** Validates the core real-time functionality of the application.
-
----
-**Rule ID:** `TEST-010`
+**Rule ID:** `DSTYS-TEST-008`
 **Rule Title:** CI/CD Integration of Tests
 **Applies To:** All automated tests
 **Purpose:** Maintain code quality and prevent regressions automatically.
@@ -138,29 +105,5 @@
 **Guideline:**
     *   All automated tests (unit, integration) MUST run in the GitHub Actions CI/CD pipeline on every PR and push to `main`/`develop`.
     *   Builds MUST fail if any tests fail.
-    *   (Future) Builds MAY fail if test coverage drops below a defined threshold.
+    *   Builds MAY fail if test coverage drops below the defined threshold (e.g., 85%).
 **Rationale:** Provides a safety net and ensures tests are consistently executed.
-
----
-**Rule ID:** `TEST-011`
-**Rule Title:** AI Output Quality & Evaluation Framework
-**Applies To:** Outputs from AI models (Gemini, etc.)
-**Purpose:** Systematically evaluate and improve the quality, relevance, and effectiveness of AI outputs.
-**Scope:** `ANALYTICS_LINEAGE` Epic, ongoing AI model usage.
-**Guideline:**
-    *   **Human-in-the-Loop (HITL) Evaluation (MVP & Ongoing):**
-        *   Implement UI elements within Sparkflow for users (initially Austin/internal team) to rate AI-generated content, provide textual feedback, and annotate errors. (See `P5-ANL-001`). Feedback stored in `D1_APP_DATA`.
-    *   **Golden Datasets & Benchmarks (Post-MVP):** Develop representative datasets of inputs and "golden" outputs for key AI tasks. Regularly run AI models against these benchmarks.
-    *   **Automated Metrics (Post-MVP, where applicable):** Explore metrics like ROUGE/BLEU for text, execution tests for code, accuracy for video analysis against labeled data.
-    *   **Feedback Loop:** Evaluation results MUST feed back into prompt engineering, model selection/updates, and (future) fine-tuning.
-**Rationale:** Ensures AI contributions are high quality and continuously improving.
-**Reference:** PRD v1.5 (Epic `ANALYTICS_LINEAGE`)
-
----
-**Rule ID:** `TEST-012`
-**Rule Title:** Performance and Load Testing (Post-MVP)
-**Applies To:** Critical APIs and system components
-**Purpose:** Ensure system meets performance NFRs under scale.
-**Scope:** Non-functional testing.
-**Guideline:** Plan for performance and load testing of critical APIs (Server Actions), LFS sync, DO throughput, Cloudflare Workflow execution rates, and Cloudflare Container rendering capacity using tools like k6 or Artillery. Define target metrics (latency, RPS, error rates under load).
-**Rationale:** Proactively identifies and addresses performance bottlenecks.

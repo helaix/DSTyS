@@ -6,7 +6,13 @@ This directory contains documentation for the DSTy project, including templates,
 
 - **[templates/](./templates/)**: Contains standardized templates for various aspects of the development process
   - [Product Requirements Document (PRD) Template](./templates/product_requirements_document_template.md)
+  - [Architecture Document Template](./templates/architecture_document_template.md)
   - Additional templates will be added as they are developed
+
+## Project Documents
+
+- [DSTyS Product Requirements Document](./DSTyS_Product_Requirements_Document.md): Defines what we're building and why for the DSTyS project
+- [DSTyS Architecture Document](./DSTyS_Architecture_Document.md): Defines how we'll build the DSTyS project
 
 ## Software Development Workflow
 
@@ -26,4 +32,3 @@ The DSTy project follows a comprehensive software development workflow as outlin
 This documentation is designed to support the DSTy project development process. Each template and guide includes detailed instructions on how to use it effectively.
 
 For questions or suggestions regarding this documentation, please create an issue in the project repository.
-

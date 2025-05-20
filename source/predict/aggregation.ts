@@ -1,6 +1,18 @@
-import { Completion, Completions, Prediction } from '../primitives/prediction.js'
+import type { Prediction } from '../primitives/prediction.js'
+import type { Completion, Completions } from '../primitives/prediction.js'
 
 type NormalizeFunction = (text: string) => string
+
+/**
+ * Helper function to extract completions from various input types
+ * Helps to reduce complexity of the main function
+ */
+function getCompletionsArray(input: Completions | Prediction | Completion[]): Completion[] {
+  if (Array.isArray(input)) {
+    return input
+  }
+  return input.completions
+}
 
 /**
  * Find the most common value in a list of completions
@@ -18,11 +30,11 @@ export function majority(
   } = {}
 ): Prediction {
   // Extract completions array from input
-  let completions: Completion[]
-  if (Array.isArray(input)) {
-    completions = input
-  } else {
-    completions = input.completions
+  const completions = getCompletionsArray(input)
+
+  // Return early if completions is empty
+  if (completions.length === 0) {
+    return new Prediction([])
   }
 
   // Default to 'answer' if no field is specified
@@ -30,17 +42,50 @@ export function majority(
   const normalize = options.normalize
 
   // Count occurrences of each value
+  const valueCounts = countValues(completions, field, normalize)
+
+  // Find the value with the highest count
+  const majorityValue = findMajorityValue(valueCounts)
+
+  // In case we didn't find a majority, return the first completion
+  if (majorityValue === undefined) {
+    return new Prediction([completions[0]])
+  }
+
+  // Find the first completion with the majority value
+  for (const completion of completions) {
+    const value = completion[field] as string as string
+    const normalizedValue = normalize ? normalize(value) : value
+
+    if (normalizedValue === majorityValue) {
+      return new Prediction([completion])
+    }
+  }
+
+  // Fallback (should never reach here)
+  return new Prediction([completions[0]])
+}
+
+/**
+ * Count occurrences of each field value
+ */
+function countValues(completions: Completion[], field: string, normalize?: NormalizeFunction): Map<string, number> {
   const valueCounts = new Map<string, number>()
 
   for (const completion of completions) {
-    const value = completion[field]
-    // Apply normalization if provided
+    const value = completion[field] as string as string
     const normalizedValue = normalize ? normalize(value) : value
 
     valueCounts.set(normalizedValue, (valueCounts.get(normalizedValue) || 0) + 1)
   }
 
-  // Find the value with the highest count
+  return valueCounts
+}
+
+/**
+ * Find the value with the highest count
+ */
+function findMajorityValue(valueCounts: Map<string, number>): string | undefined {
   let majorityValue: string | undefined
   let maxCount = 0
 
@@ -51,21 +96,5 @@ export function majority(
     }
   }
 
-  // In case of a tie, we return the value that appears first in the completions
-  if (majorityValue === undefined) {
-    return new Prediction([completions[0]])
-  }
-
-  // Find the first completion with the majority value
-  for (const completion of completions) {
-    const value = completion[field]
-    const normalizedValue = normalize ? normalize(value) : value
-
-    if (normalizedValue === majorityValue) {
-      return new Prediction([completion])
-    }
-  }
-
-  // Fallback (should never reach here)
-  return new Prediction([completions[0]])
+  return majorityValue
 }

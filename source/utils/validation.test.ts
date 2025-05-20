@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { ensureNonEmptyString, isNonEmptyString, isPositiveNumber, isValidEmail } from './validation.js'
+import type { describe, expect, it } from 'vitest'
+import type { ensureNonEmptyString, isNonEmptyString, isPositiveNumber, isValidEmail } from './validation.js'
 
 describe('Validation Utils', () => {
   describe('isNonEmptyString', () => {

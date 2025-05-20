@@ -3,5 +3,5 @@
  * This module contains components for generating, aggregating, and managing LLM completions/predictions
  */
 
-// Re-export from aggregation
+// biome-ignore lint/performance/noBarrelFile: This is a needed sub-module entry point
 export * from './aggregation.js'

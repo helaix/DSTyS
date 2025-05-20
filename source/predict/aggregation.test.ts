@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
-import { majority } from './aggregation'
-import { Completions, Prediction } from '../primitives/prediction'
-import { normalizeText } from '../utils/text'
+import type { describe, expect, it } from 'vitest'
+import type { Completions, Prediction } from '../primitives/prediction.js'
+import type { normalizeText } from '../utils/text.js'
+import type { majority } from './aggregation.js'
 
 describe('aggregation', () => {
   it('should find majority with Prediction', () => {

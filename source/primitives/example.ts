@@ -1,7 +1,6 @@
 // Example class implementation
 // This is a basic implementation based on the DSPy Example class
 
-import { z } from 'zod';
 import { Effect, Option } from 'effect';
 
 /**
@@ -73,7 +72,3 @@ export class Example {
     return new Example(obj);
   }
 }
-
-// Schema for Example validation
-export const ExampleSchema = z.record(z.unknown());
-

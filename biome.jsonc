@@ -28,14 +28,11 @@
       },
       "correctness": {
         "noUndeclaredDependencies": "error",
-        "noUndeclaredVariables": "error",
         "noUnusedImports": "error",
         "noUnusedPrivateClassMembers": "error",
         "noUnusedVariables": "error",
         "useImportExtensions": "error",
-        "noConstantCondition": "error",
-        "noEmptyInterface": "error",
-        "noInferrableTypes": "error"
+        "noConstantCondition": "error"
       },
       "performance": {
         "noBarrelFile": "error",
@@ -43,18 +40,15 @@
       },
       "style": {
         "noDefaultExport": "error",
+        "noImplicitBoolean": "error",
         "noNamespace": "error",
-        "noNamespaceImport": "error",
         "noNegationElse": "error",
+        "noParameterAssign": "error",
         "noParameterProperties": "error",
-        "noShoutyConstants": "error",
-        "noYodaExpression": "error",
-        "useBlockStatements": "error",
-        "useCollapsedElseIf": "error",
-        "useConsistentArrayType": {
+        "noRestrictedGlobals": {
           "level": "error",
           "options": {
-            "syntax": "shorthand"
+            "deniedGlobals": ["event", "name", "length", "status"]
           }
         },
         "useFilenamingConvention": "error",
@@ -80,3 +74,4 @@
     "enabled": true
   }
 }
+

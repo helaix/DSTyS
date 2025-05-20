@@ -1,7 +1,9 @@
 import { axiom } from '@2bad/axiom'
 
 // Custom ESLint configuration with enhanced rules
-const config = axiom(import.meta.dirname)
+const config = axiom(import.meta.dirname, {
+  ignorePatterns: ['dspy/**/*']
+})
 
 // Add TypeScript-specific rules
 config.push({
@@ -34,3 +36,4 @@ config.push({
 
 // biome-ignore lint/style/noDefaultExport: acceptable for this use case
 export default config
+

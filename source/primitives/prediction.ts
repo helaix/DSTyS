@@ -2,8 +2,10 @@
 export type Completion = Record<string, unknown>;
 
 /**
- * Completions class to hold a list of completion objects
- * Analogous to DSPy's Completions class
+ * Base class for completions
+ *
+ * Provides a simple wrapper around an array of completions
+ * with utility methods for accessing and manipulating them
  */
 export class Completions {
 	completions: Completion[];
@@ -28,20 +30,20 @@ export class Completions {
 }
 
 /**
- * Prediction class that extends Completions with additional functionality
+ * Utility functions for working with predictions
+ *
  * Analogous to DSPy's Prediction class
  */
-export class Prediction extends Completions {
-	/**
-	 * Create a Prediction from a list of completions
-	 *
-	 * @param completions - Array of completions or Completions instance
-	 * @returns A new Prediction instance
-	 */
-	static fromCompletions(completions: Completion[] | Completions): Prediction {
-		if (completions instanceof Completions) {
-			return new Prediction(completions.completions);
-		}
-		return new Prediction(completions);
+export function createPrediction(
+	completions: Completion[] | Completions,
+): Prediction {
+	if (completions instanceof Completions) {
+		return new Prediction(completions.completions);
 	}
+	return new Prediction(completions);
+}
+
+// Keep the Prediction class for backward compatibility
+export class Prediction extends Completions {
+	// No static methods, just inherits from Completions
 }

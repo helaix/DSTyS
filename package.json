@@ -65,11 +65,12 @@
     "rimraf": "5.0.5",
     "tsfix": "0.1.9",
     "typescript": "5.3.3",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "1.1.0"
   },
   "dependencies": {
-    "effect": "^2.4.0",
-    "@effect/schema": "^0.64.0"
+    "@effect/schema": "^0.64.0",
+    "effect": "^2.4.0"
   },
   "engines": {
     "node": ">=20"
@@ -78,4 +79,3 @@
     "access": "public"
   }
 }
-

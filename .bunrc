@@ -1,0 +1,25 @@
+{
+  "install": {
+    "peer": true,
+    "optional": true,
+    "dev": true,
+    "production": true,
+    "exact": false,
+    "registry": "https://registry.npmjs.org/",
+    "lockfile": true,
+    "cache": true,
+    "preferOffline": false,
+    "global": false,
+    "cwd": null,
+    "silent": false,
+    "verbose": false,
+    "dryRun": false,
+    "force": false,
+    "link": false,
+    "frozen": false,
+    "frozenLockfile": false,
+    "production": false,
+    "legacyPeerDeps": true
+  }
+}
+

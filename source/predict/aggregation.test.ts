@@ -1,59 +1,34 @@
-import { describe, expect, it } from 'vitest'
-import { majority } from './aggregation.ts'
-import { Completions, Prediction } from '../primitives/prediction.ts'
-import { normalizeText } from '../utils/text.ts'
+import { describe, it, expect } from 'vitest'
+import { aggregateResults } from './aggregation.js'
 
-describe('aggregation', () => {
-  it('should find majority with Prediction', () => {
-    const prediction = Prediction.fromCompletions([{ answer: '2' }, { answer: '2' }, { answer: '3' }])
-
-    const result = majority(prediction)
-
-    expect(result.first?.answer).toBe('2')
+describe('aggregateResults', () => {
+  it('should return the most common result', () => {
+    const results = ['a', 'b', 'a', 'c', 'a']
+    expect(aggregateResults(results)).toBe('a')
   })
 
-  it('should find majority with Completions', () => {
-    const completions = new Completions([{ answer: '2' }, { answer: '2' }, { answer: '3' }])
-
-    const result = majority(completions)
-
-    expect(result.first?.answer).toBe('2')
+  it('should return the first result in case of a tie', () => {
+    const results = ['a', 'b', 'a', 'b']
+    expect(aggregateResults(results)).toBe('a')
   })
 
-  it('should find majority with array of completions', () => {
-    const completions = [{ answer: '2' }, { answer: '2' }, { answer: '3' }]
-
-    const result = majority(completions)
-
-    expect(result.first?.answer).toBe('2')
+  it('should handle empty arrays', () => {
+    const results: string[] = []
+    expect(aggregateResults(results)).toBeUndefined()
   })
 
-  it('should normalize values when finding majority', () => {
-    const completions = [{ answer: '2' }, { answer: ' 2' }, { answer: '3' }]
-
-    const result = majority(completions, { normalize: normalizeText })
-
-    expect(result.first?.answer).toBe('2')
+  it('should handle arrays with a single element', () => {
+    const results = ['a']
+    expect(aggregateResults(results)).toBe('a')
   })
 
-  it('should find majority for a specific field', () => {
-    const completions = [
-      { answer: '2', other: '1' },
-      { answer: '2', other: '1' },
-      { answer: '3', other: '2' }
-    ]
-
-    const result = majority(completions, { field: 'other' })
-
-    expect(result.first?.other).toBe('1')
+  it('should handle arrays with all unique elements', () => {
+    const results = ['a', 'b', 'c', 'd']
+    expect(aggregateResults(results)).toBe('a')
   })
 
-  it('should return first completion when there is no majority', () => {
-    const completions = [{ answer: '2' }, { answer: '3' }, { answer: '4' }]
-
-    const result = majority(completions)
-
-    // The first completion is returned in case of a tie
-    expect(result.first?.answer).toBe('2')
+  it('should handle arrays with non-string elements', () => {
+    const results = [1, 2, 1, 3, 1]
+    expect(aggregateResults(results)).toBe(1)
   })
 })

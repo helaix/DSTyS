@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Example } from '../../source/primitives/example';
+import { Example } from '../../source/primitives/example.js';
 import { Option } from 'effect';
 
 describe('Example', () => {
@@ -9,27 +9,27 @@ describe('Example', () => {
   });
 
   it('should create an example with data', () => {
-    const example = new Example({ input: 'test', output: 42 });
-    expect(example.get('input')).toEqual(Option.some('test'));
-    expect(example.get('output')).toEqual(Option.some(42));
+    const example = new Example({ foo: 'bar', baz: 123 });
+    expect(example.get('foo')._tag).toBe('Some');
+    expect(Option.getOrUndefined(example.get('foo'))).toBe('bar');
+    expect(Option.getOrUndefined(example.get('baz'))).toBe(123);
   });
 
   it('should set and get values', () => {
     const example = new Example();
-    example.set('key', 'value');
-    expect(example.get('key')).toEqual(Option.some('value'));
+    example.set('foo', 'bar');
+    expect(Option.getOrUndefined(example.get('foo'))).toBe('bar');
   });
 
   it('should check if a key exists', () => {
-    const example = new Example({ exists: true });
-    expect(example.has('exists')).toBe(true);
-    expect(example.has('nonexistent')).toBe(false);
+    const example = new Example({ foo: 'bar' });
+    expect(example.has('foo')).toBe(true);
+    expect(example.has('baz')).toBe(false);
   });
 
   it('should convert to and from objects', () => {
-    const data = { a: 1, b: 'two', c: [3, 4, 5] };
+    const data = { foo: 'bar', baz: 123 };
     const example = Example.fromObject(data);
     expect(example.toObject()).toEqual(data);
   });
 });
-

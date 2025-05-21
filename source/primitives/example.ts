@@ -1,23 +1,23 @@
 // Example class implementation
 // This is a basic implementation based on the DSPy Example class
 
-import { Effect, Option } from 'effect';
+import { Option } from 'effect'
 
 /**
  * Example class for DSTyS
- * 
+ *
  * This class represents an example input/output pair for training and evaluation.
  * It's similar to the DSPy Example class but implemented in TypeScript with Effect.
  */
 export class Example {
-  private _data: Record<string, unknown>;
-  
+  private _data: Record<string, unknown>
+
   /**
    * Create a new Example
    * @param data Object containing the example data
    */
   constructor(data: Record<string, unknown> = {}) {
-    this._data = { ...data };
+    this._data = { ...data }
   }
 
   /**
@@ -26,7 +26,7 @@ export class Example {
    * @returns The value or undefined if not found
    */
   get<T>(key: string): Option.Option<T> {
-    return Option.fromNullable(this._data[key] as T);
+    return Option.fromNullable(this._data[key] as T)
   }
 
   /**
@@ -35,7 +35,7 @@ export class Example {
    * @param value The value to set
    */
   set(key: string, value: unknown): void {
-    this._data[key] = value;
+    this._data[key] = value
   }
 
   /**
@@ -44,7 +44,7 @@ export class Example {
    * @returns True if the key exists
    */
   has(key: string): boolean {
-    return key in this._data;
+    return key in this._data
   }
 
   /**
@@ -52,7 +52,7 @@ export class Example {
    * @returns Array of keys
    */
   keys(): string[] {
-    return Object.keys(this._data);
+    return Object.keys(this._data)
   }
 
   /**
@@ -60,7 +60,7 @@ export class Example {
    * @returns Plain object representation
    */
   toObject(): Record<string, unknown> {
-    return { ...this._data };
+    return { ...this._data }
   }
 
   /**
@@ -69,6 +69,6 @@ export class Example {
    * @returns New Example instance
    */
   static fromObject(obj: Record<string, unknown>): Example {
-    return new Example(obj);
+    return new Example(obj)
   }
 }

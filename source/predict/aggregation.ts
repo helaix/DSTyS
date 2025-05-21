@@ -43,9 +43,9 @@ export function majority(
 	const counts = new Map<string, { count: number; original: string }>();
 	values.forEach((value, index) => {
 		const original = items[index][field] as string;
-		const existingEntry = counts.get(value);
-		if (existingEntry) {
-			existingEntry.count += 1;
+		const entry = counts.get(value);
+		if (entry !== undefined) {
+			entry.count += 1;
 		} else {
 			counts.set(value, { count: 1, original });
 		}
@@ -64,3 +64,4 @@ export function majority(
 
 	return maxValue;
 }
+

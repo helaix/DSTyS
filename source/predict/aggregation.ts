@@ -67,4 +67,3 @@ export function majority(
 
 	return maxValue;
 }
-

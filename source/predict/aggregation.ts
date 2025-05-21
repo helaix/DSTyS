@@ -58,7 +58,7 @@ export function majority(
 	let maxCount = 0;
 	let maxValue: string | undefined;
 
-	for (const [value, { count, original }] of counts.entries()) {
+	for (const [_, { count, original }] of counts.entries()) {
 		if (count > maxCount) {
 			maxCount = count;
 			maxValue = original;
@@ -67,3 +67,4 @@ export function majority(
 
 	return maxValue;
 }
+

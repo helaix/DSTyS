@@ -39,7 +39,7 @@
     "prebuild": "rimraf build",
     "build": "run-p build:*",
     "postbuild": "tsfix",
-    "build:swc": "swc ./source -d ./build --strip-leading-paths",
+    "build:swc": "swc ./source -d ./build",
     "build:types": "tsc --project tsconfig.build.json",
     "check": "run-p check:*",
     "check:eslint": "eslint . --report-unused-disable-directives --max-warnings 0",
@@ -79,3 +79,4 @@
     "access": "public"
   }
 }
+

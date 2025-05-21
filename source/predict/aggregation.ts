@@ -14,7 +14,7 @@ export interface MajorityOptions {
 
 /**
  * Find the most common value for a given field in a set of completions
- * 
+ *
  * @param completions - The completions to analyze
  * @param field - The field to extract from each completion
  * @param options - Options for the majority function
@@ -44,8 +44,11 @@ export function majority(
 	values.forEach((value, index) => {
 		const original = items[index][field] as string;
 		if (counts.has(value)) {
-			const entry = counts.get(value)!;
-			entry.count += 1;
+			// We know this exists because we just checked with counts.has()
+			const entry = counts.get(value);
+			if (entry) {
+				entry.count += 1;
+			}
 		} else {
 			counts.set(value, { count: 1, original });
 		}
@@ -64,4 +67,3 @@ export function majority(
 
 	return maxValue;
 }
-

@@ -1,0 +1,130 @@
+# DSTyS Spikes Rule (spikes.mdc)
+
+This rule provides guidance for creating, executing, and documenting spikes in the DSTyS project. Use this rule when you need to investigate uncertain aspects of a workplan, evaluate alternative approaches, or gather information to refine implementation plans.
+
+## What is a Spike?
+
+A spike is a time-boxed investigation aimed at reducing uncertainty, evaluating alternatives, or gathering information needed to refine a workplan. Spikes are used when:
+- There is significant technical uncertainty about how to implement a feature
+- Multiple implementation approaches need to be evaluated
+- The scope or complexity of a task is unclear
+- New technologies or libraries need to be assessed
+- Performance or scalability concerns need to be investigated
+
+## When to Use This Rule
+
+Use this rule when:
+1. You need to create a new spike to investigate an uncertain aspect of a workplan
+2. You're executing a spike and need guidance on documentation and process
+3. You're reviewing spike results and need to apply findings to workplans
+4. You need to evaluate whether a task requires a spike before implementation
+
+## Spike Template
+
+When creating a new spike, use the following template structure:
+
+```markdown
+# SPIKE-[Identifier]
+
+## Investigation Objective
+[Clear statement of what the spike aims to discover]
+
+## Investigation Approach
+[Methodology for conducting the spike]
+
+## Areas of Focus
+[Specific aspects to investigate]
+
+## Evaluation Criteria
+[How to determine if the spike was successful]
+
+## Documentation Requirements
+[What should be recorded during the spike]
+
+## Review Process
+[How spike results will be evaluated]
+
+## Time Box
+[Maximum time allocated for the spike]
+
+## Related Workplans
+[Workplans that will be informed by this spike]
+
+## Status
+[Current state of the spike: Not Started, In Progress, Completed]
+
+## Findings
+[Summary of discoveries and recommendations]
+```
+
+## Spike Creation Process
+
+When creating a new spike:
+
+1. **Identify the Need**: Determine if a spike is necessary based on uncertainties in workplans
+2. **Define Objectives**: Clearly articulate what the spike aims to discover
+3. **Set Time Box**: Establish a maximum duration for the spike (typically 2-3 days)
+4. **Define Approach**: Outline the methodology for conducting the investigation
+5. **Establish Criteria**: Define how to evaluate the success of the spike
+6. **Document**: Create a spike document using the template above
+7. **Reference**: Link the spike to related workplans
+
+## Spike Execution Process
+
+When executing a spike:
+
+1. **Create Branch**: If code will be written, create a branch with naming convention `spike/[identifier]`
+2. **Follow Approach**: Execute the investigation as outlined in the approach
+3. **Document Findings**: Record discoveries, challenges, and insights
+4. **Create Prototypes**: Develop minimal code samples to validate approaches
+5. **Evaluate Options**: Assess alternatives against the evaluation criteria
+6. **Formulate Recommendations**: Develop clear recommendations for implementation
+7. **Update Status**: Keep the spike document updated with current progress
+
+## Spike Review Process
+
+When reviewing spike results:
+
+1. **Present Findings**: Share discoveries with relevant stakeholders
+2. **Validate Recommendations**: Ensure recommendations align with project goals
+3. **Make Decisions**: Agree on implementation approach based on findings
+4. **Update Workplans**: Refine related workplans based on spike findings
+5. **Document Decisions**: Record decisions made based on spike results
+6. **Archive Code**: Ensure spike code is properly documented and stored
+
+## Spike Documentation Location
+
+All spike documentation should be stored in the `docs/planning/spikes/` directory with a filename format of `SPIKE-[Identifier].md`.
+
+## Example Prompts
+
+### Creating a New Spike
+
+```
+I need to create a spike to investigate the best approach for implementing streaming responses with Effect TS. The workplan mentions uncertainty about how to handle backpressure and cancellation. Can you help me create a spike document for this investigation?
+```
+
+### Executing a Spike
+
+```
+I'm working on SPIKE-EffectTS-Streaming and need to evaluate different approaches for implementing streaming responses. Can you help me design experiments to test the performance and reliability of each approach?
+```
+
+### Reviewing Spike Results
+
+```
+I've completed SPIKE-EffectTS-Streaming and found that the Stream module in Effect provides the best solution for our needs. Can you help me update the related workplan with these findings and create implementation recommendations?
+```
+
+### Determining if a Spike is Needed
+
+```
+I'm planning to implement the authentication system as described in workplan AUTH-01. There's uncertainty about which OAuth provider to use. Should I create a spike to investigate this before implementation?
+```
+
+## Related Rules
+
+- `_workplan-execution.rules.mdc`: For understanding how spikes relate to workplans
+- `_project-context.rules.mdc`: For understanding the broader project context
+- `_git_workflow.rules.mdc`: For guidance on managing spike code branches
+

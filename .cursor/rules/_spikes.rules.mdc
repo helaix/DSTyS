@@ -1,0 +1,119 @@
+# DSTyS Spikes Rules (_spikes.rules.mdc)
+
+**Purpose:** To define the standards for creating, executing, and documenting spikes in the DSTyS project. Spikes are time-boxed investigations that help reduce uncertainty, evaluate alternatives, and refine workplans before implementation.
+
+**Primary Reference:** DSTyS Project Overview (`docs/planning/ProjectOverview.md`), Workplan Execution Rules (`_workplan-execution.rules.mdc`).
+
+---
+**Rule ID:** `DSTYS-SPIKE-001`
+**Rule Title:** Spike Definition and Purpose
+**Applies To:** All spike investigations
+**Purpose:** Ensure consistent understanding of what constitutes a spike.
+**Scope:** All investigative work prior to implementation.
+**Guideline:** A spike is a time-boxed investigation aimed at reducing uncertainty, evaluating alternatives, or gathering information needed to refine a workplan. Spikes **SHOULD** be used when:
+    * There is significant technical uncertainty about how to implement a feature
+    * Multiple implementation approaches need to be evaluated
+    * The scope or complexity of a task is unclear
+    * New technologies or libraries need to be assessed
+    * Performance or scalability concerns need to be investigated
+**Rationale:** Spikes help reduce risk by addressing uncertainties before committing to a specific implementation approach.
+
+---
+**Rule ID:** `DSTYS-SPIKE-002`
+**Rule Title:** Spike Template Structure
+**Applies To:** All spike documentation
+**Purpose:** Ensure comprehensive and consistent documentation of spikes.
+**Scope:** Creation and documentation of spikes.
+**Guideline:** All spikes **MUST** be documented using the following structure:
+    * **Spike Identifier**: Unique ID for tracking (e.g., `SPIKE-EffectTS-Streaming`)
+    * **Investigation Objective**: Clear statement of what the spike aims to discover
+    * **Investigation Approach**: Methodology for conducting the spike
+    * **Areas of Focus**: Specific aspects to investigate
+    * **Evaluation Criteria**: How to determine if the spike was successful
+    * **Documentation Requirements**: What should be recorded during the spike
+    * **Review Process**: How spike results will be evaluated
+    * **Time Box**: Maximum time allocated for the spike
+    * **Related Workplans**: Workplans that will be informed by this spike
+    * **Status**: Current state of the spike (Not Started, In Progress, Completed)
+    * **Findings**: Summary of discoveries and recommendations
+**Rationale:** Standardizes spike documentation for better tracking and knowledge sharing.
+
+---
+**Rule ID:** `DSTYS-SPIKE-003`
+**Rule Title:** Spike Time Boxing
+**Applies To:** All spike investigations
+**Purpose:** Prevent spikes from becoming open-ended research projects.
+**Scope:** Duration and scope of spikes.
+**Guideline:** All spikes **MUST** be time-boxed with a clear maximum duration. The time box **SHOULD** be proportional to the complexity of the investigation but typically should not exceed 2-3 days. If a spike cannot be completed within its time box, it **SHOULD** be:
+    * Documented with current findings
+    * Evaluated for continuation as a new spike with refined focus
+    * Or converted into multiple smaller, more focused spikes
+**Rationale:** Prevents scope creep and ensures investigations remain focused and productive.
+
+---
+**Rule ID:** `DSTYS-SPIKE-004`
+**Rule Title:** Spike Outcomes and Deliverables
+**Applies To:** All spike investigations
+**Purpose:** Ensure spikes produce actionable results.
+**Scope:** Documentation and application of spike findings.
+**Guideline:** All spikes **MUST** produce clear, documented outcomes that include:
+    * Summary of findings
+    * Recommendations for implementation approach
+    * Code samples or prototypes (where applicable)
+    * Updated workplan(s) based on findings
+    * Identified risks or constraints
+    * Decision points with rationale
+These outcomes **MUST** be documented in the spike document and referenced in any related workplans.
+**Rationale:** Ensures spike results are captured and applied to improve implementation plans.
+
+---
+**Rule ID:** `DSTYS-SPIKE-005`
+**Rule Title:** Spike Relationship to Workplans
+**Applies To:** Integration of spikes with workplans
+**Purpose:** Ensure spikes inform and improve workplans.
+**Scope:** Planning and execution of spikes in relation to workplans.
+**Guideline:** Spikes **SHOULD** be:
+    * Initiated when uncertainties are identified in workplans
+    * Referenced in workplan "Questions/Uncertainties" sections
+    * Used to update and refine workplans upon completion
+    * Considered before implementation of complex or uncertain features
+Workplans **SHOULD** be updated based on spike findings before implementation begins.
+**Rationale:** Establishes the relationship between spikes and workplans in the development process.
+
+---
+**Rule ID:** `DSTYS-SPIKE-006`
+**Rule Title:** Spike Review Process
+**Applies To:** Evaluation of spike results
+**Purpose:** Ensure spike findings are properly reviewed and applied.
+**Scope:** Review and application of spike outcomes.
+**Guideline:** All completed spikes **SHOULD** undergo a review process that includes:
+    * Presentation of findings to relevant stakeholders
+    * Validation of recommendations against project goals
+    * Agreement on implementation approach based on findings
+    * Updating of related workplans
+    * Documentation of decisions made based on spike results
+**Rationale:** Ensures spike findings are properly evaluated and integrated into the development process.
+
+---
+**Rule ID:** `DSTYS-SPIKE-007`
+**Rule Title:** Spike Documentation Location
+**Applies To:** Storage and organization of spike documentation
+**Purpose:** Ensure spike documentation is easily accessible.
+**Scope:** Storage and referencing of spike documents.
+**Guideline:** All spike documentation **SHOULD** be stored in the `docs/planning/spikes/` directory with a filename format of `SPIKE-[Identifier].md`. Spikes **SHOULD** be referenced in related workplans and the project overview document.
+**Rationale:** Establishes a consistent location for spike documentation to improve discoverability.
+
+---
+**Rule ID:** `DSTYS-SPIKE-008`
+**Rule Title:** Spike Code and Prototypes
+**Applies To:** Code created during spikes
+**Purpose:** Manage code artifacts from spikes.
+**Scope:** Development and storage of spike code.
+**Guideline:** Code created during spikes **SHOULD**:
+    * Be stored in a dedicated branch with a naming convention of `spike/[identifier]`
+    * Include clear documentation explaining its purpose and limitations
+    * Not be merged directly into the main codebase without review
+    * Be referenced in the spike documentation
+If spike code will be incorporated into the main codebase, it **SHOULD** be refactored to meet project quality standards and included in a regular implementation PR.
+**Rationale:** Ensures spike code is properly managed and doesn't compromise codebase quality.
+

@@ -1,0 +1,108 @@
+# DSTyS Main Agent Rules (dsty.main.rules.mdc)
+
+**Purpose:** To serve as the master entry point and primary router for AI assistants, guiding them to relevant specialized rule files and setting overall project context for DSTyS development.
+
+---
+
+## Master Prompt
+
+**(This master prompt is intended to be a starting point for interacting with a general-purpose AI assistant like Gemini or for configuring a meta-agent orchestrating other specialized AI agents. It sets the stage and guides the AI to use more specific rules.)**
+
+---
+
+**MASTER PROMPT START**
+
+"You are a senior full-stack lead engineer and AI orchestration expert for the **DSTyS** project. Your primary role is to assist in the development of the DSTyS project, following the established software development workflow.
+
+**Project Context:** DSTyS (Data Science TypeScript) is a TypeScript port of the Python DSPy framework, designed to provide a structured approach to prompt engineering and LLM application development. The project aims to bring the benefits of DSPy to the TypeScript ecosystem, with a focus on type safety, functional programming patterns using Effect TS, and seamless integration with modern web development workflows.
+
+**Primary Sources of Truth (MUST CONSULT):**
+**Always** refer to the latest versions of:
+1. **Project Overview**: `docs/planning/ProjectOverview.md`
+2. **Architecture Document**: `docs/planning/Architecture.md`
+3. **Workplans**: `Documentation/Plans/`
+
+**Development Workflow:**
+The DSTyS project follows a structured software development workflow with the following steps:
+1. Product Requirements Document (PRD)
+2. Architecture Document
+3. UX/UI Plan (Optional)
+4. Project Overview
+5. Workplans
+6. Rules
+7. Spikes
+8. Reviews
+
+**Specialized Rules:**
+Depending on the task at hand, consult these specialized rule files:
+- For general project context: `_project-context.rules.mdc`
+- For workplan execution: `_workplan-execution.rules.mdc`
+- For Effect TS patterns: `_effect-ts.rules.mdc`
+- For testing strategies: `_testing.rules.mdc`
+- For documentation standards: `_documentation.rules.mdc`
+- For security considerations: `_security.rules.mdc`
+- For git workflow: `_git_workflow.rules.mdc`
+- For spike investigations: `_spikes.rules.mdc` and `spikes.mdc`
+
+**Task Routing:**
+- If working on a **spike investigation**, use the `spikes.mdc` rule
+- If implementing a **workplan**, use the `_workplan-execution.rules.mdc` rule
+- If writing **tests**, use the `_testing.rules.mdc` rule
+- If working with **Effect TS**, use the `_effect-ts.rules.mdc` rule
+- If documenting code or features, use the `_documentation.rules.mdc` rule
+
+**MASTER PROMPT END**
+
+---
+
+## Rule Routing
+
+This section helps direct AI assistants to the appropriate specialized rules based on the task at hand.
+
+### Spike Investigations
+
+If the task involves creating, executing, or reviewing a spike investigation:
+- Use the `spikes.mdc` rule for comprehensive guidance on spike creation and management
+- Use the `_spikes.rules.mdc` rule for detailed standards and requirements
+- Reference the spike template at `docs/planning/templates/Spike.md`
+- Store spike documentation in `docs/planning/spikes/`
+
+### Workplan Execution
+
+If the task involves implementing a workplan:
+- Use the `_workplan-execution.rules.mdc` rule for detailed guidance
+- Reference the workplan template at `docs/planning/templates/Workplan.md`
+- Store workplan documentation in `Documentation/Plans/`
+
+### Testing
+
+If the task involves writing or executing tests:
+- Use the `_testing.rules.mdc` rule for detailed guidance
+- Follow the testing strategy outlined in the architecture document
+
+### Effect TS Development
+
+If the task involves working with Effect TS:
+- Use the `_effect-ts.rules.mdc` rule for detailed guidance
+- Follow the Effect TS patterns established in the codebase
+
+### Documentation
+
+If the task involves documentation:
+- Use the `_documentation.rules.mdc` rule for detailed guidance
+- Follow the documentation standards established in the project
+
+---
+
+## Integration with Development Workflow
+
+The rules in this file are designed to integrate with the established software development workflow for the DSTyS project. Each step in the workflow has corresponding rules and templates to guide implementation:
+
+1. **PRD**: Use the template at `docs/planning/templates/PRD.md`
+2. **Architecture**: Use the template at `docs/planning/templates/Architecture.md`
+3. **Project Overview**: Use the template at `docs/planning/templates/ProjectOverview.md`
+4. **Workplans**: Use the template at `docs/planning/templates/Workplan.md` and the `_workplan-execution.rules.mdc` rule
+5. **Rules**: Use the `cursor_rules.mdc` rule for guidance on creating new rules
+6. **Spikes**: Use the template at `docs/planning/templates/Spike.md` and the `spikes.mdc` rule
+7. **Reviews**: Use the review process outlined in the project documentation
+

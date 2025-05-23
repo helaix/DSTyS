@@ -2,9 +2,10 @@ name: PR Comment on CI Failure
 
 on:
   workflow_run:
-    workflows: ["Test"]
+    workflows: ["Test", "Build"]
     types:
       - completed
+
 
 jobs:
   comment-on-failure:
@@ -46,20 +47,20 @@ jobs:
               repo: context.repo.repo,
               ref: '${{ github.event.workflow_run.head_sha }}'
             });
-            
+
             const failedChecks = checks.check_runs.filter(check => check.conclusion === 'failure');
             const failureDetails = failedChecks.map(check => {
               return `- **${check.name}**: ${check.output.title}\n  ${check.output.summary || 'No details available'}`;
             }).join('\n');
-            
-            const comment = `👋 Hi there! I noticed the CI checks failed on this PR.
-            
+
+            const comment = `👋 Hi there @codegen! I noticed the CI checks failed on this PR.
+
             Here's what went wrong:
-            
+
             ${failureDetails}
-            
+
             Let me know if you need any help fixing these issues! 🛠️`;
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,

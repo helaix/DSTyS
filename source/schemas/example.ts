@@ -1,11 +1,11 @@
 /**
  * Example Schema Definition
  * 
- * Defines Effect Schema types for DSPy Example primitives that store data,
+ * Defines Effect Schema types for DSPy Examples, which store data with
  * input keys, and metadata for few-shot demonstrations and training.
  */
 
-import { Schema } from "effect"
+import { Schema, Effect, ParseResult } from "effect"
 
 /**
  * Base data storage schema for Example
@@ -101,23 +101,28 @@ export const createExample = (
   metadata?: ExampleMetadata
 ): Example => ({
   data,
-  ...(inputKeys && { inputKeys }),
-  ...(metadata && { metadata })
+  ...(inputKeys !== undefined && { inputKeys }),
+  ...(metadata !== undefined && { metadata })
 })
 
 /**
- * Utility function to create an Example with validation
+ * Factory function to create a validated Example
+ * 
+ * @param data - The example data
+ * @param inputKeys - Optional input keys
+ * @param metadata - Optional metadata
+ * @returns Effect that resolves to a validated Example
  */
 export const createValidatedExample = (
   data: unknown,
   inputKeys?: unknown,
   metadata?: unknown
-) => {
+): Effect.Effect<Example, ParseResult.ParseError> => {
   const exampleData = {
     data,
-    ...(inputKeys && { inputKeys }),
-    ...(metadata && { metadata })
+    ...(inputKeys !== undefined && { inputKeys }),
+    ...(metadata !== undefined && { metadata })
   }
-  
-  return validateExample(exampleData)
+  return Schema.decodeUnknown(ExampleSchema)(exampleData)
 }
+

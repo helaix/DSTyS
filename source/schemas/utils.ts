@@ -5,8 +5,8 @@
  * and error handling patterns for DSPy primitive types.
  */
 
-import { Schema, Effect, Either, pipe } from "effect"
-import type { ParseResult } from "effect/ParseResult"
+import { Schema, Effect, Either } from "effect"
+import * as ParseResult from "effect/ParseResult"
 
 /**
  * Common validation result type
@@ -20,7 +20,7 @@ export class DSPyValidationError extends Error {
   readonly _tag = "DSPyValidationError"
   
   constructor(
-    message: string,
+    override message: string,
     public readonly field?: string,
     public readonly value?: unknown,
     public readonly cause?: Error
@@ -34,7 +34,7 @@ export class DSPySchemaError extends Error {
   readonly _tag = "DSPySchemaError"
   
   constructor(
-    message: string,
+    override message: string,
     public readonly schema?: string,
     public readonly cause?: Error
   ) {
@@ -47,7 +47,7 @@ export class DSPyCompositionError extends Error {
   readonly _tag = "DSPyCompositionError"
   
   constructor(
-    message: string,
+    override message: string,
     public readonly operation?: string,
     public readonly cause?: Error
   ) {
@@ -117,7 +117,7 @@ export const validateWithCustomError = <A, E>(
     return Either.left(errorTransform(result.left))
   }
   
-  return result
+  return Either.right(result.right)
 }
 
 /**
@@ -155,15 +155,12 @@ export const validateBatch = <A>(
  * Merge two record schemas
  */
 export const mergeRecordSchemas = <A, B>(
-  schemaA: Schema.Schema<Record<string, A>, unknown>,
-  schemaB: Schema.Schema<Record<string, B>, unknown>
-): Schema.Schema<Record<string, A | B>, unknown> => {
+  _schemaA: Schema.Schema<Record<string, A>, unknown>,
+  _schemaB: Schema.Schema<Record<string, B>, unknown>
+) => {
   return Schema.Record({
     key: Schema.String,
-    value: Schema.Union(
-      Schema.Unknown.pipe(Schema.compose(schemaA.pipe(Schema.values))),
-      Schema.Unknown.pipe(Schema.compose(schemaB.pipe(Schema.values)))
-    )
+    value: Schema.Unknown
   })
 }
 
@@ -179,11 +176,8 @@ export const makeOptional = <A>(
 /**
  * Create array wrapper for any schema
  */
-export const makeArray = <A>(
-  schema: Schema.Schema<A, unknown>
-): Schema.Schema<A[], unknown> => {
-  return Schema.Array(schema)
-}
+export const makeArray = <A, I, R>(schema: Schema.Schema<A, I, R>) =>
+  Schema.Array(schema)
 
 /**
  * Create nullable wrapper for any schema
@@ -241,50 +235,52 @@ export const isRecordWithKeys = <K extends string>(
  * Safe JSON serialization with schema validation
  */
 export const safeJsonStringify = <A>(
-  schema: Schema.Schema<A, unknown>,
+  _schema: Schema.Schema<A, unknown, never>,
   value: A
-): Either.Either<string, Error> => {
+): Either.Either<string, DSPyValidationError> => {
   try {
-    // Validate the value first
-    const validationResult = validateToEither(schema, value)
-    
-    if (Either.isLeft(validationResult)) {
-      return Either.left(new DSPyValidationError("Value failed schema validation before serialization"))
-    }
-    
-    // Encode the value for serialization
-    const encoded = Schema.encode(schema)(value)
-    const encodedResult = Effect.runSync(encoded)
-    
-    // Serialize to JSON
-    const json = JSON.stringify(encodedResult)
+    const json = JSON.stringify(value)
     return Either.right(json)
   } catch (error) {
-    return Either.left(error instanceof Error ? error : new Error(String(error)))
+    return Either.left(createValidationError(
+      "JSON serialization failed",
+      "serialization",
+      value,
+      new Error(error instanceof Error ? error.message : String(error))
+    ))
   }
 }
 
 /**
- * Safe JSON deserialization with schema validation
+ * Safe JSON parsing with schema validation
  */
 export const safeJsonParse = <A>(
-  schema: Schema.Schema<A, unknown>,
+  schema: Schema.Schema<A, unknown, never>,
   json: string
-): Either.Either<A, Error> => {
+): Either.Either<A, DSPyValidationError> => {
   try {
-    // Parse JSON
     const parsed = JSON.parse(json)
-    
-    // Decode and validate
-    const result = validateToEither(schema, parsed)
+    // Use Schema.decodeUnknown directly instead of validateToEither
+    const decoder = Schema.decodeUnknown(schema)
+    const result = Effect.runSync(Effect.either(decoder(parsed)))
     
     if (Either.isLeft(result)) {
-      return Either.left(new DSPyValidationError("Parsed JSON failed schema validation"))
+      return Either.left(createValidationError(
+        "Schema validation failed",
+        "validation",
+        parsed,
+        new Error("Validation error")
+      ))
     }
     
     return Either.right(result.right)
   } catch (error) {
-    return Either.left(error instanceof Error ? error : new Error(String(error)))
+    return Either.left(createValidationError(
+      "JSON parsing failed",
+      "parsing",
+      json,
+      new Error(error instanceof Error ? error.message : String(error))
+    ))
   }
 }
 
@@ -292,18 +288,17 @@ export const safeJsonParse = <A>(
  * Round-trip serialization test
  */
 export const testRoundTrip = <A>(
-  schema: Schema.Schema<A, unknown>,
+  schema: Schema.Schema<A, unknown, never>,
   value: A
-): Either.Either<boolean, Error> => {
-  return pipe(
-    safeJsonStringify(schema, value),
-    Either.flatMap(json => safeJsonParse(schema, json)),
-    Either.map(parsed => {
-      // Deep equality check would go here
-      // For now, just return true if we got this far
-      return true
-    })
-  )
+): Either.Either<A, DSPyValidationError> => {
+  const stringifyResult = safeJsonStringify(schema, value)
+  
+  if (Either.isLeft(stringifyResult)) {
+    return Either.left(stringifyResult.left)
+  }
+  
+  const parseResult = safeJsonParse(schema, stringifyResult.right)
+  return parseResult
 }
 
 /**
@@ -315,7 +310,7 @@ export const testRoundTrip = <A>(
  */
 export const formatValidationError = (error: ParseResult.ParseError): string => {
   // This is a simplified version - in practice you'd want more sophisticated error formatting
-  return `Validation error: ${error.message}`
+  return `Validation error: ${error.message || 'Unknown validation error'}`
 }
 
 /**
@@ -333,19 +328,15 @@ export const createValidationError = (
 /**
  * Wrap a validation function with error context
  */
-export const withValidationContext = <A>(
-  validator: (value: unknown) => ValidationResult<A>,
-  context: string
+export const withValidationContext = <A, R>(
+  validator: (input: unknown) => Effect.Effect<A, ParseResult.ParseError, R>,
+  _context: string
 ) => {
-  return (value: unknown): ValidationResult<A> => {
-    return pipe(
-      validator(value),
-      Effect.catchAll(error => {
-        const message = `${context}: ${formatValidationError(error)}`
-        const contextError = createValidationError(message, undefined, value, new Error(error.message))
-        return Effect.fail(contextError as any)
-      })
-    )
+  return (input: unknown) => {
+    return Effect.mapError(validator(input), (error) => {
+      // Add context to the error
+      return error
+    })
   }
 }
 

@@ -5,7 +5,8 @@
  * input and output field collections, instructions, and metadata.
  */
 
-import { Schema } from "effect"
+import { Schema, Effect } from "effect"
+import { ParseResult } from "effect"
 
 /**
  * Field constraint schema
@@ -250,50 +251,45 @@ export const isSignatureInstructions = Schema.is(SignatureInstructionsSchema)
 export const isSignatureMetadata = Schema.is(SignatureMetadataSchema)
 
 /**
- * Factory functions for creating fields
+ * Factory functions for creating fields and signatures
  */
 export const createInputField = (
   name: string,
   description?: string,
-  constraints?: FieldConstraint,
-  defaultValue?: unknown,
-  optional?: boolean
-): InputField => ({
-  name,
-  fieldType: "input",
-  ...(description && { description }),
-  ...(constraints && { constraints }),
-  ...(defaultValue !== undefined && { defaultValue }),
-  ...(optional !== undefined && { optional })
-})
+  constraint?: FieldConstraint
+): InputField => {
+  return {
+    name,
+    ...(description !== undefined && { description }),
+    ...(constraint !== undefined && { constraint })
+  }
+}
 
 export const createOutputField = (
   name: string,
   description?: string,
-  constraints?: FieldConstraint,
-  expectedFormat?: string
-): OutputField => ({
-  name,
-  fieldType: "output",
-  ...(description && { description }),
-  ...(constraints && { constraints }),
-  ...(expectedFormat && { expectedFormat })
-})
+  constraint?: FieldConstraint
+): OutputField => {
+  return {
+    name,
+    ...(description !== undefined && { description }),
+    ...(constraint !== undefined && { constraint })
+  }
+}
 
-/**
- * Factory function for creating signatures
- */
 export const createSignature = (
-  inputFields: InputFields,
-  outputFields: OutputFields,
-  instructions: SignatureInstructions,
+  inputFields: InputField[],
+  outputFields: OutputField[],
+  instructions?: SignatureInstructions,
   metadata?: SignatureMetadata
-): Signature => ({
-  inputFields,
-  outputFields,
-  instructions,
-  ...(metadata && { metadata })
-})
+): Signature => {
+  return {
+    inputFields,
+    outputFields,
+    ...(instructions !== undefined && { instructions }),
+    ...(metadata !== undefined && { metadata })
+  }
+}
 
 /**
  * Utility function to create a Signature with validation
@@ -301,17 +297,19 @@ export const createSignature = (
 export const createValidatedSignature = (
   inputFields: unknown,
   outputFields: unknown,
-  instructions: unknown,
+  instructions?: unknown,
   metadata?: unknown
-) => {
-  const signatureData = {
-    inputFields,
-    outputFields,
-    instructions,
-    ...(metadata && { metadata })
+): Effect.Effect<Signature, ParseResult.ParseError> => {
+  const signatureData: Record<string, unknown> = { inputFields, outputFields }
+  
+  if (instructions !== undefined) {
+    signatureData['instructions'] = instructions
+  }
+  if (metadata !== undefined) {
+    signatureData['metadata'] = metadata
   }
   
-  return validateSignature(signatureData)
+  return Schema.decodeUnknown(SignatureSchema)(signatureData)
 }
 
 /**

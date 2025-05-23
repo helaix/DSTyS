@@ -5,7 +5,8 @@
  * completions, reasoning, confidence, and aggregation metadata.
  */
 
-import { Schema } from "effect"
+import { Schema, Effect } from "effect"
+import { ParseResult } from "effect"
 
 /**
  * Single completion schema
@@ -172,15 +173,18 @@ export const createPrediction = (
   reasoning?: Reasoning,
   confidence?: Confidence,
   aggregation?: AggregationMetadata,
-  metadata?: Record<string, unknown>
-): Prediction => ({
-  completions,
-  ...(reasoning && { reasoning }),
-  ...(confidence && { confidence }),
-  ...(aggregation && { aggregation }),
-  ...(metadata && { metadata }),
-  timestamp: new Date().toISOString()
-})
+  metadata?: Record<string, unknown>,
+  timestamp?: string
+): Prediction => {
+  return {
+    completions,
+    ...(reasoning !== undefined && { reasoning }),
+    ...(confidence !== undefined && { confidence }),
+    ...(aggregation !== undefined && { aggregation }),
+    ...(metadata !== undefined && { metadata }),
+    ...(timestamp !== undefined && { timestamp })
+  }
+}
 
 /**
  * Utility function to create a Prediction with validation
@@ -190,18 +194,28 @@ export const createValidatedPrediction = (
   reasoning?: unknown,
   confidence?: unknown,
   aggregation?: unknown,
-  metadata?: unknown
-) => {
-  const predictionData = {
-    completions,
-    ...(reasoning && { reasoning }),
-    ...(confidence && { confidence }),
-    ...(aggregation && { aggregation }),
-    ...(metadata && { metadata }),
-    timestamp: new Date().toISOString()
+  metadata?: unknown,
+  timestamp?: unknown
+): Effect.Effect<Prediction, ParseResult.ParseError> => {
+  const predictionData: Record<string, unknown> = { completions }
+  
+  if (reasoning !== undefined) {
+    predictionData['reasoning'] = reasoning
+  }
+  if (confidence !== undefined) {
+    predictionData['confidence'] = confidence
+  }
+  if (aggregation !== undefined) {
+    predictionData['aggregation'] = aggregation
+  }
+  if (metadata !== undefined) {
+    predictionData['metadata'] = metadata
+  }
+  if (timestamp !== undefined) {
+    predictionData['timestamp'] = timestamp
   }
   
-  return validatePrediction(predictionData)
+  return Schema.decodeUnknown(PredictionSchema)(predictionData)
 }
 
 /**

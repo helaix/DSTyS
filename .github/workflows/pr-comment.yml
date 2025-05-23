@@ -1,0 +1,69 @@
+name: PR Comment on CI Failure
+
+on:
+  workflow_run:
+    workflows: ["Test"]
+    types:
+      - completed
+
+jobs:
+  comment-on-failure:
+    runs-on: ubuntu-latest
+    if: |
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_branch != 'main' &&
+      github.event.workflow_run.head_branch != 'master'
+    steps:
+      - name: Get PR information
+        uses: potiuk/get-workflow-origin@v1_5
+        id: source-run-info
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          sourceRunId: ${{ github.event.workflow_run.id }}
+
+      - name: Check PR labels
+        uses: actions/github-script@v7
+        id: check-labels
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ steps.source-run-info.outputs.pullRequestNumber }}
+            });
+            const hasFixCiLabel = pr.labels.some(label => label.name === 'fix-ci');
+            return hasFixCiLabel;
+
+      - name: Post comment
+        if: steps.check-labels.outputs.result == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.ARTIMATH_TOKEN }}
+          script: |
+            const { data: checks } = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: '${{ github.event.workflow_run.head_sha }}'
+            });
+            
+            const failedChecks = checks.check_runs.filter(check => check.conclusion === 'failure');
+            const failureDetails = failedChecks.map(check => {
+              return `- **${check.name}**: ${check.output.title}\n  ${check.output.summary || 'No details available'}`;
+            }).join('\n');
+            
+            const comment = `👋 Hi there! I noticed the CI checks failed on this PR.
+            
+            Here's what went wrong:
+            
+            ${failureDetails}
+            
+            Let me know if you need any help fixing these issues! 🛠️`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.source-run-info.outputs.pullRequestNumber }},
+              body: comment
+            });
+

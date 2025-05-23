@@ -22,3 +22,6 @@ export { majority }
 
 // Utils
 export { normalizeText }
+
+// Export new Effect Schema types
+export * from './schemas/index.js'

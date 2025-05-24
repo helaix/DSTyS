@@ -1,12 +1,12 @@
 /**
  * Signature Schema Definition
- * 
+ *
  * Defines Effect Schema types for DSPy Signature primitives that define
  * input and output field collections, instructions, and metadata.
  */
 
-import { Schema, Effect } from "effect"
-import { ParseResult } from "effect"
+import { Schema, type Effect } from 'effect'
+import type { ParseResult } from 'effect'
 
 /**
  * Field constraint schema
@@ -15,32 +15,34 @@ import { ParseResult } from "effect"
 export const FieldConstraintSchema = Schema.Struct({
   // Type constraint (e.g., "string", "number", "boolean")
   type: Schema.optional(Schema.String),
-  
+
   // Format constraint (e.g., "email", "url", "date")
   format: Schema.optional(Schema.String),
-  
+
   // Length constraints
   minLength: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.nonNegative())),
   maxLength: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.positive())),
-  
+
   // Numeric constraints
   minimum: Schema.optional(Schema.Number),
   maximum: Schema.optional(Schema.Number),
-  
+
   // Pattern constraint (regex)
   pattern: Schema.optional(Schema.String),
-  
+
   // Enum constraint (allowed values)
   enum: Schema.optional(Schema.Array(Schema.Unknown)),
-  
+
   // Required field flag
   required: Schema.optional(Schema.Boolean),
-  
+
   // Custom validation metadata
-  custom: Schema.optional(Schema.Record({
-    key: Schema.String,
-    value: Schema.Unknown
-  }))
+  custom: Schema.optional(
+    Schema.Record({
+      key: Schema.String,
+      value: Schema.Unknown
+    })
+  )
 })
 
 /**
@@ -50,21 +52,23 @@ export const FieldConstraintSchema = Schema.Struct({
 export const FieldSchema = Schema.Struct({
   // Field name/key
   name: Schema.String,
-  
+
   // Field description
   description: Schema.optional(Schema.String),
-  
+
   // Field prefix for prompting
   prefix: Schema.optional(Schema.String),
-  
+
   // Field constraints
   constraints: Schema.optional(FieldConstraintSchema),
-  
+
   // Field metadata
-  metadata: Schema.optional(Schema.Record({
-    key: Schema.String,
-    value: Schema.Unknown
-  }))
+  metadata: Schema.optional(
+    Schema.Record({
+      key: Schema.String,
+      value: Schema.Unknown
+    })
+  )
 })
 
 /**
@@ -72,16 +76,18 @@ export const FieldSchema = Schema.Struct({
  * Extends base field with input-specific properties
  */
 export const InputFieldSchema = FieldSchema.pipe(
-  Schema.extend(Schema.Struct({
-    // Mark as input field
-    fieldType: Schema.Literal("input"),
-    
-    // Default value for input field
-    defaultValue: Schema.optional(Schema.Unknown),
-    
-    // Whether this input is optional
-    optional: Schema.optional(Schema.Boolean)
-  }))
+  Schema.extend(
+    Schema.Struct({
+      // Mark as input field
+      fieldType: Schema.Literal('input'),
+
+      // Default value for input field
+      defaultValue: Schema.optional(Schema.Unknown),
+
+      // Whether this input is optional
+      optional: Schema.optional(Schema.Boolean)
+    })
+  )
 )
 
 /**
@@ -89,16 +95,18 @@ export const InputFieldSchema = FieldSchema.pipe(
  * Extends base field with output-specific properties
  */
 export const OutputFieldSchema = FieldSchema.pipe(
-  Schema.extend(Schema.Struct({
-    // Mark as output field
-    fieldType: Schema.Literal("output"),
-    
-    // Expected output format/structure
-    expectedFormat: Schema.optional(Schema.String),
-    
-    // Post-processing instructions
-    postProcessing: Schema.optional(Schema.String)
-  }))
+  Schema.extend(
+    Schema.Struct({
+      // Mark as output field
+      fieldType: Schema.Literal('output'),
+
+      // Expected output format/structure
+      expectedFormat: Schema.optional(Schema.String),
+
+      // Post-processing instructions
+      postProcessing: Schema.optional(Schema.String)
+    })
+  )
 )
 
 /**
@@ -120,27 +128,29 @@ export const FieldsSchema = Schema.Array(AnyFieldSchema)
 export const SignatureInstructionsSchema = Schema.Struct({
   // Main instruction text
   main: Schema.String,
-  
+
   // Additional context or background
   context: Schema.optional(Schema.String),
-  
+
   // Examples of expected behavior
   examples: Schema.optional(Schema.Array(Schema.String)),
-  
+
   // Constraints or requirements
   constraints: Schema.optional(Schema.Array(Schema.String)),
-  
+
   // Output format instructions
   outputFormat: Schema.optional(Schema.String),
-  
+
   // Chain-of-thought instructions
   chainOfThought: Schema.optional(Schema.Boolean),
-  
+
   // Custom instruction metadata
-  metadata: Schema.optional(Schema.Record({
-    key: Schema.String,
-    value: Schema.Unknown
-  }))
+  metadata: Schema.optional(
+    Schema.Record({
+      key: Schema.String,
+      value: Schema.Unknown
+    })
+  )
 })
 
 /**
@@ -150,34 +160,38 @@ export const SignatureInstructionsSchema = Schema.Struct({
 export const SignatureMetadataSchema = Schema.Struct({
   // Signature name/identifier
   name: Schema.optional(Schema.String),
-  
+
   // Version information
   version: Schema.optional(Schema.String),
-  
+
   // Author/creator
   author: Schema.optional(Schema.String),
-  
+
   // Creation timestamp
   created: Schema.optional(Schema.String.pipe(Schema.pattern(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/))),
-  
+
   // Last modified timestamp
   modified: Schema.optional(Schema.String.pipe(Schema.pattern(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/))),
-  
+
   // Tags for categorization
   tags: Schema.optional(Schema.Array(Schema.String)),
-  
+
   // Usage statistics
-  usage: Schema.optional(Schema.Struct({
-    count: Schema.Number.pipe(Schema.int(), Schema.nonNegative()),
-    lastUsed: Schema.optional(Schema.String.pipe(Schema.pattern(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/))),
-    averageLatency: Schema.optional(Schema.Number.pipe(Schema.positive()))
-  })),
-  
+  usage: Schema.optional(
+    Schema.Struct({
+      count: Schema.Number.pipe(Schema.int(), Schema.nonNegative()),
+      lastUsed: Schema.optional(Schema.String.pipe(Schema.pattern(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/))),
+      averageLatency: Schema.optional(Schema.Number.pipe(Schema.positive()))
+    })
+  ),
+
   // Custom metadata
-  custom: Schema.optional(Schema.Record({
-    key: Schema.String,
-    value: Schema.Unknown
-  }))
+  custom: Schema.optional(
+    Schema.Record({
+      key: Schema.String,
+      value: Schema.Unknown
+    })
+  )
 })
 
 /**
@@ -187,13 +201,13 @@ export const SignatureMetadataSchema = Schema.Struct({
 export const SignatureSchema = Schema.Struct({
   // Input fields - required
   inputFields: InputFieldsSchema,
-  
+
   // Output fields - required
   outputFields: OutputFieldsSchema,
-  
+
   // Instructions - required
   instructions: SignatureInstructionsSchema,
-  
+
   // Metadata - optional
   metadata: Schema.optional(SignatureMetadataSchema)
 })
@@ -256,37 +270,47 @@ export const isSignatureMetadata = Schema.is(SignatureMetadataSchema)
 export const createInputField = (
   name: string,
   description?: string,
-  constraint?: FieldConstraint
+  constraint?: FieldConstraint,
+  defaultValue?: string,
+  optional?: boolean
 ): InputField => {
   return {
     name,
+    fieldType: 'input' as const,
     ...(description !== undefined && { description }),
-    ...(constraint !== undefined && { constraint })
+    ...(constraint !== undefined && { constraints: constraint }),
+    ...(defaultValue !== undefined && { defaultValue }),
+    ...(optional !== undefined && { optional })
   }
 }
 
 export const createOutputField = (
   name: string,
   description?: string,
-  constraint?: FieldConstraint
+  constraint?: FieldConstraint,
+  expectedFormat?: string,
+  postProcessing?: string
 ): OutputField => {
   return {
     name,
+    fieldType: 'output' as const,
     ...(description !== undefined && { description }),
-    ...(constraint !== undefined && { constraint })
+    ...(constraint !== undefined && { constraints: constraint }),
+    ...(expectedFormat !== undefined && { expectedFormat }),
+    ...(postProcessing !== undefined && { postProcessing })
   }
 }
 
 export const createSignature = (
   inputFields: InputField[],
   outputFields: OutputField[],
-  instructions?: SignatureInstructions,
+  instructions: SignatureInstructions,
   metadata?: SignatureMetadata
 ): Signature => {
   return {
     inputFields,
     outputFields,
-    ...(instructions !== undefined && { instructions }),
+    instructions,
     ...(metadata !== undefined && { metadata })
   }
 }
@@ -301,14 +325,14 @@ export const createValidatedSignature = (
   metadata?: unknown
 ): Effect.Effect<Signature, ParseResult.ParseError> => {
   const signatureData: Record<string, unknown> = { inputFields, outputFields }
-  
+
   if (instructions !== undefined) {
     signatureData['instructions'] = instructions
   }
   if (metadata !== undefined) {
     signatureData['metadata'] = metadata
   }
-  
+
   return Schema.decodeUnknown(SignatureSchema)(signatureData)
 }
 
@@ -320,8 +344,8 @@ export const createValidatedSignature = (
  * Get all field names from a signature
  */
 export const getAllFieldNames = (signature: Signature): string[] => {
-  const inputNames = signature.inputFields.map(field => field.name)
-  const outputNames = signature.outputFields.map(field => field.name)
+  const inputNames = signature.inputFields.map((field) => field.name)
+  const outputNames = signature.outputFields.map((field) => field.name)
   return [...inputNames, ...outputNames]
 }
 
@@ -329,14 +353,14 @@ export const getAllFieldNames = (signature: Signature): string[] => {
  * Get input field names only
  */
 export const getInputFieldNames = (signature: Signature): string[] => {
-  return signature.inputFields.map(field => field.name)
+  return signature.inputFields.map((field) => field.name)
 }
 
 /**
  * Get output field names only
  */
 export const getOutputFieldNames = (signature: Signature): string[] => {
-  return signature.outputFields.map(field => field.name)
+  return signature.outputFields.map((field) => field.name)
 }
 
 /**
@@ -344,7 +368,7 @@ export const getOutputFieldNames = (signature: Signature): string[] => {
  */
 export const findField = (signature: Signature, name: string): AnyField | undefined => {
   const allFields = [...signature.inputFields, ...signature.outputFields]
-  return allFields.find(field => field.name === name)
+  return allFields.find((field) => field.name === name)
 }
 
 /**
@@ -358,12 +382,12 @@ export const hasField = (signature: Signature, name: string): boolean => {
  * Get required input fields
  */
 export const getRequiredInputFields = (signature: Signature): InputField[] => {
-  return signature.inputFields.filter(field => !field.optional)
+  return signature.inputFields.filter((field) => !field.optional)
 }
 
 /**
  * Get optional input fields
  */
 export const getOptionalInputFields = (signature: Signature): InputField[] => {
-  return signature.inputFields.filter(field => field.optional === true)
+  return signature.inputFields.filter((field) => field.optional === true)
 }

@@ -1,9 +1,9 @@
 /**
  * Schema Index
- * 
+ *
  * Central export point for all DSPy schema types and utilities.
  * Provides a clean API for importing schemas, types, and helper functions.
- * 
+ *
  * @example
  * import { ExampleSchema, PredictionSchema, SignatureSchema } from './schemas'
  * import { validateExample, createPrediction } from './schemas'
@@ -11,110 +11,142 @@
 
 // Export Example types and functions
 export type {
-  Example,
   ExampleData,
-  ExampleMetadata
-} from "./example.js"
+  InputKeys,
+  ExampleMetadata,
+  Example,
+  ExampleDataEncoded,
+  ExampleMetadataEncoded,
+  ExampleEncoded
+} from './example.js'
 
+// biome-ignore lint/performance/noBarrelFile: Schema exports need to be centralized
 export {
-  ExampleSchema,
   ExampleDataSchema,
+  InputKeysSchema,
   ExampleMetadataSchema,
+  ExampleSchema,
   validateExample,
   validateExampleData,
   validateExampleMetadata,
-  createExample,
-  createValidatedExample,
+  encodeExample,
+  decodeExample,
   isExample,
   isExampleData,
   isExampleMetadata,
-  encodeExample,
-  decodeExample
-} from "./example.js"
+  createExample,
+  createValidatedExample
+} from './example.js'
 
 // Export Prediction types and functions
 export type {
-  Prediction,
   Completion,
   Completions,
   Reasoning,
   Confidence,
-  AggregationMetadata
-} from "./prediction.js"
+  AggregationMetadata,
+  Prediction,
+  CompletionEncoded,
+  CompletionsEncoded,
+  ReasoningEncoded,
+  ConfidenceEncoded,
+  AggregationMetadataEncoded,
+  PredictionEncoded
+} from './prediction.js'
 
 export {
-  PredictionSchema,
   CompletionSchema,
   CompletionsSchema,
   ReasoningSchema,
   ConfidenceSchema,
   AggregationMetadataSchema,
+  PredictionSchema,
   validatePrediction,
   validateCompletion,
   validateCompletions,
   validateReasoning,
   validateConfidence,
   validateAggregationMetadata,
-  createPrediction,
-  createValidatedPrediction,
+  encodePrediction,
+  decodePrediction,
   isPrediction,
   isCompletion,
   isCompletions,
   isReasoning,
   isConfidence,
   isAggregationMetadata,
-  encodePrediction,
-  decodePrediction
-} from "./prediction.js"
+  createPrediction,
+  createValidatedPrediction
+} from './prediction.js'
 
 // Export Signature types and functions
 export type {
-  Signature,
+  FieldConstraint,
+  Field,
   InputField,
   OutputField,
-  FieldConstraint,
+  AnyField,
+  InputFields,
+  OutputFields,
+  Fields,
   SignatureInstructions,
-  SignatureMetadata
-} from "./signature.js"
+  SignatureMetadata,
+  Signature,
+  FieldConstraintEncoded,
+  FieldEncoded,
+  InputFieldEncoded,
+  OutputFieldEncoded,
+  SignatureInstructionsEncoded,
+  SignatureMetadataEncoded,
+  SignatureEncoded
+} from './signature.js'
 
 export {
-  SignatureSchema,
+  FieldConstraintSchema,
+  FieldSchema,
   InputFieldSchema,
   OutputFieldSchema,
-  FieldConstraintSchema,
+  AnyFieldSchema,
+  InputFieldsSchema,
+  OutputFieldsSchema,
+  FieldsSchema,
   SignatureInstructionsSchema,
   SignatureMetadataSchema,
+  SignatureSchema,
   validateSignature,
   validateInputField,
   validateOutputField,
+  validateField,
   validateSignatureInstructions,
   validateSignatureMetadata,
+  encodeSignature,
+  decodeSignature,
+  isSignature,
+  isInputField,
+  isOutputField,
+  isField,
+  isSignatureInstructions,
+  isSignatureMetadata,
   createInputField,
   createOutputField,
   createSignature,
   createValidatedSignature,
-  isSignature,
-  isInputField,
-  isOutputField,
-  isSignatureInstructions,
-  isSignatureMetadata,
   getAllFieldNames,
   getInputFieldNames,
   getOutputFieldNames,
   findField,
   hasField,
   getRequiredInputFields,
-  getOptionalInputFields,
-  encodeSignature,
-  decodeSignature
-} from "./signature.js"
+  getOptionalInputFields
+} from './signature.js'
 
 // Export utility types and functions
 export type {
+  ValidationResult,
   DSPyValidationError,
   DSPySchemaError,
   DSPyCompositionError
-} from "./utils.js"
+} from './utils.js'
 
 export {
   validateToEither,
@@ -130,10 +162,5 @@ export {
   makeOptional,
   makeArray,
   makeNullable,
-  withValidationContext,
-  createValidationError,
-  hasRequiredKeys,
-  extractKeys,
-  omitKeys,
-  deepMerge
-} from "./utils.js"
+  mergeRecordSchemas
+} from './utils.js'

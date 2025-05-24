@@ -1,11 +1,11 @@
 /**
  * Example Schema Definition
- * 
+ *
  * Defines Effect Schema types for DSPy Examples, which store data with
  * input keys, and metadata for few-shot demonstrations and training.
  */
 
-import { Schema, Effect, ParseResult } from "effect"
+import { Schema, type Effect, type ParseResult } from 'effect'
 
 /**
  * Base data storage schema for Example
@@ -27,19 +27,21 @@ export const InputKeysSchema = Schema.Array(Schema.String)
  */
 export const ExampleMetadataSchema = Schema.Struct({
   // DSPy-specific metadata
-  dspy_uuid: Schema.optional(Schema.String),
-  dspy_split: Schema.optional(Schema.String),
-  
+  dspyUuid: Schema.optional(Schema.String),
+  dspySplit: Schema.optional(Schema.String),
+
   // General metadata
   source: Schema.optional(Schema.String),
   timestamp: Schema.optional(Schema.String.pipe(Schema.pattern(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/))),
   tags: Schema.optional(Schema.Array(Schema.String)),
-  
+
   // Custom metadata - allows arbitrary additional fields
-  custom: Schema.optional(Schema.Record({
-    key: Schema.String,
-    value: Schema.Unknown
-  }))
+  custom: Schema.optional(
+    Schema.Record({
+      key: Schema.String,
+      value: Schema.Unknown
+    })
+  )
 })
 
 /**
@@ -49,10 +51,10 @@ export const ExampleMetadataSchema = Schema.Struct({
 export const ExampleSchema = Schema.Struct({
   // Core data storage - required
   data: ExampleDataSchema,
-  
+
   // Input keys - optional, defaults to empty array
   inputKeys: Schema.optional(InputKeysSchema),
-  
+
   // Metadata - optional
   metadata: Schema.optional(ExampleMetadataSchema)
 })
@@ -95,11 +97,7 @@ export const isExampleMetadata = Schema.is(ExampleMetadataSchema)
 /**
  * Factory functions for creating Examples
  */
-export const createExample = (
-  data: ExampleData,
-  inputKeys?: InputKeys,
-  metadata?: ExampleMetadata
-): Example => ({
+export const createExample = (data: ExampleData, inputKeys?: InputKeys, metadata?: ExampleMetadata): Example => ({
   data,
   ...(inputKeys !== undefined && { inputKeys }),
   ...(metadata !== undefined && { metadata })
@@ -107,7 +105,7 @@ export const createExample = (
 
 /**
  * Factory function to create a validated Example
- * 
+ *
  * @param data - The example data
  * @param inputKeys - Optional input keys
  * @param metadata - Optional metadata
@@ -125,4 +123,3 @@ export const createValidatedExample = (
   }
   return Schema.decodeUnknown(ExampleSchema)(exampleData)
 }
-

@@ -1,12 +1,12 @@
 /**
  * Base Type Utilities and Helpers
- * 
+ *
  * Common validation helpers, type guard functions, schema composition utilities,
  * and error handling patterns for DSPy primitive types.
  */
 
-import { Schema, Effect, Either } from "effect"
-import * as ParseResult from "effect/ParseResult"
+import { Schema, Effect, Either } from 'effect'
+import type * as ParseResult from 'effect/ParseResult'
 
 /**
  * Common validation result type
@@ -17,42 +17,70 @@ export type ValidationResult<T> = Effect.Effect<T, ParseResult.ParseError>
  * Common error types for DSPy operations
  */
 export class DSPyValidationError extends Error {
-  readonly _tag = "DSPyValidationError"
-  
+  readonly _tag = 'DSPyValidationError'
+  public readonly field?: string
+  public readonly value?: unknown
+  public override readonly cause?: Error
+
   constructor(
     override message: string,
-    public readonly field?: string,
-    public readonly value?: unknown,
-    public readonly cause?: Error
+    field?: string,
+    value?: unknown,
+    cause?: Error
   ) {
     super(message)
-    this.name = "DSPyValidationError"
+    if (field !== undefined) {
+      this.field = field
+    }
+    if (value !== undefined) {
+      this.value = value
+    }
+    if (cause !== undefined) {
+      this.cause = cause
+    }
+    this.name = 'DSPyValidationError'
   }
 }
 
 export class DSPySchemaError extends Error {
-  readonly _tag = "DSPySchemaError"
-  
+  readonly _tag = 'DSPySchemaError'
+  public readonly schema?: string
+  public override readonly cause?: Error
+
   constructor(
     override message: string,
-    public readonly schema?: string,
-    public readonly cause?: Error
+    schema?: string,
+    cause?: Error
   ) {
     super(message)
-    this.name = "DSPySchemaError"
+    if (schema !== undefined) {
+      this.schema = schema
+    }
+    if (cause !== undefined) {
+      this.cause = cause
+    }
+    this.name = 'DSPySchemaError'
   }
 }
 
 export class DSPyCompositionError extends Error {
-  readonly _tag = "DSPyCompositionError"
-  
+  readonly _tag = 'DSPyCompositionError'
+  public readonly operation?: string
+  public override readonly cause?: Error
+
   constructor(
     override message: string,
-    public readonly operation?: string,
-    public readonly cause?: Error
+    operation?: string,
+    cause?: Error
   ) {
     super(message)
-    this.name = "DSPyCompositionError"
+    if (operation !== undefined) {
+      this.operation = operation
+    }
+    if (cause !== undefined) {
+      this.cause = cause
+    }
+    this.name = 'DSPyCompositionError'
   }
 }
 
@@ -74,28 +102,21 @@ export const validateToEither = <A>(
 /**
  * Generic validation helper that throws on error
  */
-export const validateOrThrow = <A>(
-  schema: Schema.Schema<A, unknown>,
-  value: unknown,
-  errorMessage?: string
-): A => {
+export const validateOrThrow = <A>(schema: Schema.Schema<A, unknown>, value: unknown, errorMessage?: string): A => {
   const result = validateToEither(schema, value)
-  
+
   if (Either.isLeft(result)) {
     const message = errorMessage || `Validation failed: ${result.left.message}`
     throw new DSPyValidationError(message, undefined, value, new Error(result.left.message))
   }
-  
+
   return result.right
 }
 
 /**
  * Safe validation helper that returns undefined on error
  */
-export const validateSafe = <A>(
-  schema: Schema.Schema<A, unknown>,
-  value: unknown
-): A | undefined => {
+export const validateSafe = <A>(schema: Schema.Schema<A, unknown>, value: unknown): A | undefined => {
   try {
     return validateOrThrow(schema, value)
   } catch {
@@ -112,11 +133,11 @@ export const validateWithCustomError = <A, E>(
   errorTransform: (error: ParseResult.ParseError) => E
 ): Either.Either<A, E> => {
   const result = validateToEither(schema, value)
-  
+
   if (Either.isLeft(result)) {
     return Either.left(errorTransform(result.left))
   }
-  
+
   return Either.right(result.right)
 }
 
@@ -129,21 +150,21 @@ export const validateBatch = <A>(
 ): Either.Either<A[], { index: number; error: ParseResult.ParseError }[]> => {
   const results: A[] = []
   const errors: { index: number; error: ParseResult.ParseError }[] = []
-  
+
   values.forEach((value, index) => {
     const result = validateToEither(schema, value)
-    
+
     if (Either.isLeft(result)) {
       errors.push({ index, error: result.left })
     } else {
       results.push(result.right)
     }
   })
-  
+
   if (errors.length > 0) {
     return Either.left(errors)
   }
-  
+
   return Either.right(results)
 }
 
@@ -167,24 +188,19 @@ export const mergeRecordSchemas = <A, B>(
 /**
  * Create optional wrapper for any schema
  */
-export const makeOptional = <A>(
-  schema: Schema.Schema<A, unknown>
-): Schema.Schema<A | undefined, unknown> => {
+export const makeOptional = <A>(schema: Schema.Schema<A, unknown>): Schema.Schema<A | undefined, unknown> => {
   return Schema.Union(schema, Schema.Undefined)
 }
 
 /**
  * Create array wrapper for any schema
  */
-export const makeArray = <A, I, R>(schema: Schema.Schema<A, I, R>) =>
-  Schema.Array(schema)
+export const makeArray = <A, I, R>(schema: Schema.Schema<A, I, R>) => Schema.Array(schema)
 
 /**
  * Create nullable wrapper for any schema
  */
-export const makeNullable = <A>(
-  schema: Schema.Schema<A, unknown>
-): Schema.Schema<A | null, unknown> => {
+export const makeNullable = <A>(schema: Schema.Schema<A, unknown>): Schema.Schema<A | null, unknown> => {
   return Schema.NullOr(schema)
 }
 
@@ -195,9 +211,7 @@ export const makeNullable = <A>(
 /**
  * Generic type guard creator
  */
-export const createTypeGuard = <A>(
-  schema: Schema.Schema<A, unknown>
-) => {
+export const createTypeGuard = <A>(schema: Schema.Schema<A, unknown>) => {
   const guard = Schema.is(schema)
   return (value: unknown): value is A => guard(value)
 }
@@ -209,7 +223,7 @@ export const isAnyOf = <A extends readonly Schema.Schema<any, unknown>[]>(
   schemas: A,
   value: unknown
 ): value is Schema.Schema.Type<A[number]> => {
-  return schemas.some(schema => Schema.is(schema)(value))
+  return schemas.some((schema) => Schema.is(schema)(value))
 }
 
 /**
@@ -219,12 +233,12 @@ export const isRecordWithKeys = <K extends string>(
   keySchema: Schema.Schema<K, unknown>,
   value: unknown
 ): value is Record<K, unknown> => {
-  if (typeof value !== "object" || value === null) {
+  if (typeof value !== 'object' || value === null) {
     return false
   }
-  
+
   const record = value as Record<string, unknown>
-  return Object.keys(record).every(key => Schema.is(keySchema)(key))
+  return Object.keys(record).every((key) => Schema.is(keySchema)(key))
 }
 
 /**
@@ -235,19 +249,34 @@ export const isRecordWithKeys = <K extends string>(
  * Safe JSON serialization with schema validation
  */
 export const safeJsonStringify = <A>(
-  _schema: Schema.Schema<A, unknown, never>,
+  schema: Schema.Schema<A, unknown, never>,
   value: A
 ): Either.Either<string, DSPyValidationError> => {
+  // First validate the value against the schema
+  const validationResult = validateToEither(schema, value)
+  if (Either.isLeft(validationResult)) {
+    return Either.left(
+      createValidationError(
+        'Schema validation failed before serialization',
+        'validation',
+        value,
+        new Error(validationResult.left.message || 'Validation error')
+      )
+    )
+  }
+
   try {
     const json = JSON.stringify(value)
     return Either.right(json)
   } catch (error) {
-    return Either.left(createValidationError(
-      "JSON serialization failed",
-      "serialization",
-      value,
-      new Error(error instanceof Error ? error.message : String(error))
-    ))
+    return Either.left(
+      createValidationError(
+        'JSON serialization failed',
+        'serialization',
+        value,
+        new Error(error instanceof Error ? error.message : String(error))
+      )
+    )
   }
 }
 
@@ -263,24 +292,23 @@ export const safeJsonParse = <A>(
     // Use Schema.decodeUnknown directly instead of validateToEither
     const decoder = Schema.decodeUnknown(schema)
     const result = Effect.runSync(Effect.either(decoder(parsed)))
-    
+
     if (Either.isLeft(result)) {
-      return Either.left(createValidationError(
-        "Schema validation failed",
-        "validation",
-        parsed,
-        new Error("Validation error")
-      ))
+      return Either.left(
+        createValidationError('Schema validation failed', 'validation', parsed, new Error('Validation error'))
+      )
     }
-    
+
     return Either.right(result.right)
   } catch (error) {
-    return Either.left(createValidationError(
-      "JSON parsing failed",
-      "parsing",
-      json,
-      new Error(error instanceof Error ? error.message : String(error))
-    ))
+    return Either.left(
+      createValidationError(
+        'JSON parsing failed',
+        'parsing',
+        json,
+        new Error(error instanceof Error ? error.message : String(error))
+      )
+    )
   }
 }
 
@@ -290,15 +318,20 @@ export const safeJsonParse = <A>(
 export const testRoundTrip = <A>(
   schema: Schema.Schema<A, unknown, never>,
   value: A
-): Either.Either<A, DSPyValidationError> => {
+): Either.Either<boolean, DSPyValidationError> => {
   const stringifyResult = safeJsonStringify(schema, value)
-  
+
   if (Either.isLeft(stringifyResult)) {
     return Either.left(stringifyResult.left)
   }
-  
+
   const parseResult = safeJsonParse(schema, stringifyResult.right)
-  return parseResult
+  if (Either.isLeft(parseResult)) {
+    return Either.left(parseResult.left)
+  }
+
+  // Return true if round-trip was successful
+  return Either.right(true)
 }
 
 /**
@@ -351,23 +384,20 @@ export const hasRequiredKeys = <T extends Record<string, unknown>>(
   obj: unknown,
   requiredKeys: (keyof T)[]
 ): obj is T => {
-  if (typeof obj !== "object" || obj === null) {
+  if (typeof obj !== 'object' || obj === null) {
     return false
   }
-  
+
   const record = obj as Record<string, unknown>
-  return requiredKeys.every(key => key in record)
+  return requiredKeys.every((key) => key in record)
 }
 
 /**
  * Extract specific keys from an object
  */
-export const extractKeys = <T extends Record<string, unknown>, K extends keyof T>(
-  obj: T,
-  keys: K[]
-): Pick<T, K> => {
+export const extractKeys = <T extends Record<string, unknown>, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> => {
   const result = {} as Pick<T, K>
-  keys.forEach(key => {
+  keys.forEach((key) => {
     if (key in obj) {
       result[key] = obj[key]
     }
@@ -378,12 +408,9 @@ export const extractKeys = <T extends Record<string, unknown>, K extends keyof T
 /**
  * Omit specific keys from an object
  */
-export const omitKeys = <T extends Record<string, unknown>, K extends keyof T>(
-  obj: T,
-  keys: K[]
-): Omit<T, K> => {
+export const omitKeys = <T extends Record<string, unknown>, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> => {
   const result = { ...obj }
-  keys.forEach(key => {
+  keys.forEach((key) => {
     delete result[key]
   })
   return result
@@ -392,20 +419,17 @@ export const omitKeys = <T extends Record<string, unknown>, K extends keyof T>(
 /**
  * Deep merge two objects (simple implementation)
  */
-export const deepMerge = <T extends Record<string, unknown>>(
-  target: T,
-  source: Partial<T>
-): T => {
+export const deepMerge = <T extends Record<string, unknown>>(target: T, source: Partial<T>): T => {
   const result = { ...target }
-  
-  Object.keys(source).forEach(key => {
+
+  Object.keys(source).forEach((key) => {
     const sourceValue = source[key as keyof T]
     const targetValue = result[key as keyof T]
-    
+
     if (
-      typeof sourceValue === "object" &&
+      typeof sourceValue === 'object' &&
       sourceValue !== null &&
-      typeof targetValue === "object" &&
+      typeof targetValue === 'object' &&
       targetValue !== null &&
       !Array.isArray(sourceValue) &&
       !Array.isArray(targetValue)
@@ -418,6 +442,6 @@ export const deepMerge = <T extends Record<string, unknown>>(
       result[key as keyof T] = sourceValue as T[keyof T]
     }
   })
-  
+
   return result
 }

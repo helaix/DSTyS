@@ -1,12 +1,12 @@
 /**
  * Prediction Schema Definition
- * 
+ *
  * Defines Effect Schema types for DSPy Prediction primitives that store
  * completions, reasoning, confidence, and aggregation metadata.
  */
 
-import { Schema, Effect } from "effect"
-import { ParseResult } from "effect"
+import { Schema, type Effect } from 'effect'
+import type { ParseResult } from 'effect'
 
 /**
  * Single completion schema
@@ -28,13 +28,13 @@ export const CompletionsSchema = Schema.Array(CompletionSchema)
 export const ReasoningSchema = Schema.Struct({
   // Main reasoning text
   text: Schema.String,
-  
+
   // Optional structured reasoning steps
   steps: Schema.optional(Schema.Array(Schema.String)),
-  
+
   // Reasoning type (e.g., "chain-of-thought", "explanation", "justification")
   type: Schema.optional(Schema.String),
-  
+
   // Confidence in the reasoning
   confidence: Schema.optional(Schema.Number.pipe(Schema.between(0, 1)))
 })
@@ -45,21 +45,25 @@ export const ReasoningSchema = Schema.Struct({
 export const ConfidenceSchema = Schema.Struct({
   // Overall confidence score (0-1)
   score: Schema.Number.pipe(Schema.between(0, 1)),
-  
+
   // Method used to calculate confidence
   method: Schema.optional(Schema.String),
-  
+
   // Per-field confidence scores
-  fieldScores: Schema.optional(Schema.Record({
-    key: Schema.String,
-    value: Schema.Number.pipe(Schema.between(0, 1))
-  })),
-  
+  fieldScores: Schema.optional(
+    Schema.Record({
+      key: Schema.String,
+      value: Schema.Number.pipe(Schema.between(0, 1))
+    })
+  ),
+
   // Additional confidence metadata
-  metadata: Schema.optional(Schema.Record({
-    key: Schema.String,
-    value: Schema.Unknown
-  }))
+  metadata: Schema.optional(
+    Schema.Record({
+      key: Schema.String,
+      value: Schema.Unknown
+    })
+  )
 })
 
 /**
@@ -69,27 +73,31 @@ export const ConfidenceSchema = Schema.Struct({
 export const AggregationMetadataSchema = Schema.Struct({
   // Method used for aggregation (e.g., "majority", "weighted", "ensemble")
   method: Schema.String,
-  
+
   // Number of predictions aggregated
   count: Schema.Number.pipe(Schema.int(), Schema.positive()),
-  
+
   // Weights used in aggregation (if applicable)
   weights: Schema.optional(Schema.Array(Schema.Number)),
-  
+
   // Agreement/consensus metrics
-  agreement: Schema.optional(Schema.Struct({
-    score: Schema.Number.pipe(Schema.between(0, 1)),
-    metric: Schema.String // e.g., "exact_match", "semantic_similarity"
-  })),
-  
+  agreement: Schema.optional(
+    Schema.Struct({
+      score: Schema.Number.pipe(Schema.between(0, 1)),
+      metric: Schema.String // e.g., "exact_match", "semantic_similarity"
+    })
+  ),
+
   // Individual prediction scores before aggregation
   individualScores: Schema.optional(Schema.Array(Schema.Number)),
-  
+
   // Additional aggregation metadata
-  metadata: Schema.optional(Schema.Record({
-    key: Schema.String,
-    value: Schema.Unknown
-  }))
+  metadata: Schema.optional(
+    Schema.Record({
+      key: Schema.String,
+      value: Schema.Unknown
+    })
+  )
 })
 
 /**
@@ -99,22 +107,24 @@ export const AggregationMetadataSchema = Schema.Struct({
 export const PredictionSchema = Schema.Struct({
   // Core completions - required
   completions: CompletionsSchema,
-  
+
   // Reasoning information - optional
   reasoning: Schema.optional(ReasoningSchema),
-  
+
   // Confidence information - optional
   confidence: Schema.optional(ConfidenceSchema),
-  
+
   // Aggregation metadata - optional (present when prediction is result of aggregation)
   aggregation: Schema.optional(AggregationMetadataSchema),
-  
+
   // General metadata
-  metadata: Schema.optional(Schema.Record({
-    key: Schema.String,
-    value: Schema.Unknown
-  })),
-  
+  metadata: Schema.optional(
+    Schema.Record({
+      key: Schema.String,
+      value: Schema.Unknown
+    })
+  ),
+
   // Timestamp when prediction was created
   timestamp: Schema.optional(Schema.String.pipe(Schema.pattern(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/)))
 })
@@ -182,7 +192,7 @@ export const createPrediction = (
     ...(confidence !== undefined && { confidence }),
     ...(aggregation !== undefined && { aggregation }),
     ...(metadata !== undefined && { metadata }),
-    ...(timestamp !== undefined && { timestamp })
+    timestamp: timestamp ?? new Date().toISOString()
   }
 }
 
@@ -198,7 +208,7 @@ export const createValidatedPrediction = (
   timestamp?: unknown
 ): Effect.Effect<Prediction, ParseResult.ParseError> => {
   const predictionData: Record<string, unknown> = { completions }
-  
+
   if (reasoning !== undefined) {
     predictionData['reasoning'] = reasoning
   }
@@ -214,7 +224,7 @@ export const createValidatedPrediction = (
   if (timestamp !== undefined) {
     predictionData['timestamp'] = timestamp
   }
-  
+
   return Schema.decodeUnknown(PredictionSchema)(predictionData)
 }
 
@@ -242,6 +252,8 @@ export const hasConfidence = (prediction: Prediction): prediction is Prediction 
 /**
  * Utility to check if prediction is aggregated
  */
-export const isAggregated = (prediction: Prediction): prediction is Prediction & { aggregation: AggregationMetadata } => {
+export const isAggregated = (
+  prediction: Prediction
+): prediction is Prediction & { aggregation: AggregationMetadata } => {
   return prediction.aggregation !== undefined
 }

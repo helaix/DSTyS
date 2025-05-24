@@ -5,6 +5,7 @@ on:
     paths-ignore:
       - 'docs/**'
       - '*.md'
+      - "**/*" # Do not run, since we have it all combined in ci-with-comment.yml
   # schedule:
   #   - cron: 0 20 * * *
 

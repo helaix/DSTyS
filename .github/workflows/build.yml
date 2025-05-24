@@ -1,3 +1,7 @@
+# NOTE: This workflow has been integrated into test-with-comment.yml
+# You can disable or delete this file if you want all CI in one workflow
+# Or keep it separate if you prefer modular workflows
+
 name: Build
 
 on:
@@ -5,6 +9,7 @@ on:
     paths-ignore:
       - 'docs/**'
       - '*.md'
+      - "**/*" # Do not run, since we have it all combined in ci-with-comment.yml
 
 jobs:
   build:

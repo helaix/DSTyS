@@ -1,11 +1,9 @@
 name: PR Comment on CI Failure
 
 on:
-  pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
-      - "**/*" # Do not run, since we have it all combined in ci-with-comment.yml
+  workflow_run:
+    workflows: ["never"]
+
 #   workflow_run:
 #     workflows: ["Test"]
 #     types:

@@ -6,7 +6,7 @@
     "baseUrl": "source",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "allowImportingTsExtensions": true,
+    "moduleResolution": "NodeNext",
     "paths": {
       "~/*": ["./*"]
     }

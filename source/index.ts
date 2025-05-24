@@ -1,24 +1,25 @@
-import { go, where } from '~/quotes/parts.ts'
-// Import specific modules instead of using barrel exports
-import { Completion, Completions, Prediction } from './primitives/prediction.ts'
-import { majority } from './predict/index.ts'
-import { normalizeText } from './utils/text.ts'
-
-// Keep the original export for test compatibility
-export const quote = `${go} ${where}`
-
 /**
- * DSTyS - DSPy in TypeScript with Effect
+ * DSTyS - TypeScript + Effect rewrite of DSPy
  *
- * A TypeScript + Effect rewrite of DSPy's framework for programming with foundation models
+ * A framework for working with foundation models.
  */
 
-// Export specific modules
-// Primitives
-export { Completion, Completions, Prediction }
+// Re-export specific exports instead of using barrel files
+import { Example } from './primitives/example.js'
+import { aggregateResults } from './predict/aggregation.js'
 
-// Predict
-export { majority }
+export {
+  // Primitives
+  Example,
+  // Predict
+  aggregateResults
+}
 
-// Utils
-export { normalizeText }
+// These will be implemented as the project progresses
+// export * from './signatures/index.js';
+// export * from './retrieve/index.js';
+// export * from './teleprompt/index.js';
+// export * from './clients/index.js';
+// export * from './evaluate/index.js';
+// export * from './utils/index.js';
+// export * from './quotes/index.js';

@@ -1,11 +1,9 @@
-import { describe, expect, it } from 'vitest'
-import { quote } from '~/index.ts'
+import { describe, it, expect } from 'vitest'
+import { Example } from './primitives/example.js'
 
-describe('index', () => {
-  it('phrase', () => {
-    expect.assertions(2)
-
-    expect(quote).toBeTypeOf('string')
-    expect(quote.length).toBeGreaterThan(0)
+describe('Example', () => {
+  it('should create an empty example', () => {
+    const example = new Example()
+    expect(example.keys()).toEqual([])
   })
 })

@@ -1,89 +1,34 @@
-import { type Completion, type Completions, Prediction } from '../primitives/prediction.ts'
-
-type NormalizeFunction = (text: string) => string
+/**
+ * Aggregation utilities for prediction results
+ */
 
 /**
- * Find the most common value in a list of completions
- * Analogous to DSPy's majority function
- *
- * @param input - Completions, Prediction, or array of completions
- * @param options - Configuration options
- * @returns A Prediction containing the majority value
+ * Aggregates results by finding the most common value
+ * @param results Array of results to aggregate
+ * @returns The most common result, or undefined if the array is empty
  */
-export function majority(
-  input: Completions | Prediction | Completion[],
-  options: {
-    field?: string
-    normalize?: NormalizeFunction
-  } = {}
-): Prediction {
-  // Extract completions array from input
-  let completions: Completion[]
-  if (Array.isArray(input)) {
-    completions = input
-  } else {
-    completions = input.completions
+export function aggregateResults<T>(results: T[]): T | undefined {
+  if (results.length === 0) {
+    return undefined
   }
 
-  // If completions array is empty, return an empty prediction
-  if (completions.length === 0) {
-    return new Prediction([])
+  const counts = new Map<T, number>()
+
+  // Count occurrences of each result
+  for (const result of results) {
+    counts.set(result, (counts.get(result) || 0) + 1)
   }
 
-  // Create a default completion as fallback
-  const defaultCompletion: Completion = completions[0] || { answer: '' }
-
-  // Default to 'answer' if no field is specified
-  const field = options.field || 'answer'
-  const normalize = options.normalize
-
-  // Count occurrences of each value
-  const valueCounts = new Map<string, number>()
-
-  for (const completion of completions) {
-    // Skip completions that don't have the specified field
-    if (!(field in completion)) {
-      continue
-    }
-
-    const value = completion[field] as string
-    // Apply normalization if provided
-    const normalizedValue = normalize ? normalize(value) : value
-
-    valueCounts.set(normalizedValue, (valueCounts.get(normalizedValue) || 0) + 1)
-  }
-
-  // Find the value with the highest count
-  let majorityValue: string | undefined
+  // Find the most common result
   let maxCount = 0
+  let mostCommon: T | undefined = undefined
 
-  for (const [value, count] of valueCounts.entries()) {
+  for (const [result, count] of counts.entries()) {
     if (count > maxCount) {
       maxCount = count
-      majorityValue = value
+      mostCommon = result
     }
   }
 
-  // In case of a tie or no majority, we return the default completion
-  if (majorityValue === undefined) {
-    return new Prediction([defaultCompletion])
-  }
-
-  // Find the first completion with the majority value
-  for (const completion of completions) {
-    // Skip completions that don't have the specified field
-    if (!(field in completion)) {
-      continue
-    }
-
-    const value = completion[field] as string
-    const normalizedValue = normalize ? normalize(value) : value
-
-    if (normalizedValue === majorityValue) {
-      return new Prediction([completion])
-    }
-  }
-
-  // Fallback (should never reach here if completions array is not empty)
-  return new Prediction([defaultCompletion])
+  return mostCommon !== undefined ? mostCommon : results[0]
 }

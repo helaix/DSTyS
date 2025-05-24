@@ -814,6 +814,419 @@ Now let me update the combined workflow to include the build job:
 
 ---
 
+```diff
+  
+  jobs:
++   build:
++     name: build on node@${{ matrix.node-version }}
++     runs-on: ubuntu-latest
++     strategy:
++       matrix:
++         node-version:
++           - 22
++           - 24
++     steps:
++       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
++         with:
++           persist-credentials: false
++       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
++         with:
++           node-version: ${{ matrix.node-version }}
++       - run: npm ci
++       - run: npm run check
++       - run: npm run build
++ 
+    test:
+      name: test on ${{ matrix.os-release }} node@${{ matrix.node-version }}
+```
+
+```diff
+      name: Comment on PR if tests fail
+      runs-on: ubuntu-latest
+-     needs: [test, coverage]
++     needs: [build, test, coverage]
+      if: |
+        always() &&
+-       (needs.test.result == 'failure' || needs.coverage.result == 'failure') &&
++       (needs.build.result == 'failure' || needs.test.result == 'failure' || needs.coverage.result == 'failure') &&
+        github.event_name == 'pull_request'
+      steps:
+```
+
+```diff
+                job.name !== 'Comment on PR if tests fail'
+              );
++ 
++             // Group failures by job type
++             const buildFailures = [];
++             const testFailures = [];
++             const coverageFailures = [];
+  
+              failedJobs.forEach(job => {
+-               failureDetails.push(`- **${job.name}**: Failed\n  Check the logs: ${job.html_url}`);
+-             });
+- 
+-             const comment = `👋 Hi there! I noticed the CI checks failed on this PR.
+- 
+-             Here's what went wrong:
+- 
+-             ${failureDetails.join('\n') || 'Check the workflow logs for details.'}
+- 
+-             Let me know if you need any help fixing these issues! 🛠️`;
+- 
+-             await github.rest.issues.createComment({
++               const jobInfo = {
++                 name: job.name,
++                 url: job.html_url
++               };
++ 
++               if (job.name.includes('build')) {
++                 buildFailures.push(jobInfo);
++               } else if (job.name.includes('coverage')) {
++                 coverageFailures.push(jobInfo);
++               } else {
++                 testFailures.push(jobInfo);
++               }
++             });
++ 
++             // Build the comment with grouped failures
++             let commentBody = `## ❌ CI Failed\n\nHi there! The CI checks have failed on this PR.\n\n`;
++ 
++             if (buildFailures.length > 0) {
++               commentBody += `### 🔨 Build Failures\n`;
++               buildFailures.forEach(job => {
++                 commentBody += `- **${job.name}**: [View logs](${job.url})\n`;
++               });
++               commentBody += '\n';
++             }
++ 
++             if (testFailures.length > 0) {
++               commentBody += `### 🧪 Test Failures\n`;
++               testFailures.forEach(job => {
++                 commentBody += `- **${job.name}**: [View logs](${job.url})\n`;
++               });
++               commentBody += '\n';
++             }
++ 
++             if (coverageFailures.length > 0) {
++               commentBody += `### 📊 Coverage Failures\n`;
++               coverageFailures.forEach(job => {
++                 commentBody += `- **${job.name}**: [View logs](${job.url})\n`;
++               });
++               commentBody += '\n';
++             }
++ 
++             commentBody += `Please review the logs and fix the issues. If you need help, feel free to ask! 🛠️`;
++ 
++             // Check if we've already commented on this PR
++             const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+-               issue_number: context.payload.pull_request.number,
+-               body: comment
++               issue_number: context.payload.pull_request.number
++             });
++ 
++             const botComment = comments.find(comment =>
++               comment.user.type === 'Bot' &&
++               comment.body.includes('## ❌ CI Failed')
++             );
++ 
++             if (botComment) {
++               // Update existing comment
++               await github.rest.issues.updateComment({
++                 owner: context.repo.owner,
++                 repo: context.repo.repo,
++                 comment_id: botComment.id,
++                 body: commentBody
+                });
++               console.log('Updated existing comment');
++             } else {
++               // Create new comment
++               await github.rest.issues.createComment({
++                 owner: context.repo.owner,
++                 repo: context.repo.repo,
++                 issue_number: context.payload.pull_request.number,
++                 body: commentBody
++               });
++               console.log('Created new comment');
++             }
+  
+```
+
+---
+
+Now you can optionally remove or disable the separate build workflow since it's now integrated:
+
+---
+
+```diff
++ # NOTE: This workflow has been integrated into test-with-comment.yml
++ # You can disable or delete this file if you want all CI in one workflow
++ # Or keep it separate if you prefer modular workflows
++ 
+  name: Build
+  
+```
+
+---
+
+Perfect! I've updated the workflow to include the build job. Here's what's changed:
+
+## Key Updates
+
+1. **Added the build job** to the combined workflow - it now runs build, test, and coverage checks
+
+2. **Single comment for all failures** - The comment job waits for all jobs (build, test, coverage) to complete and creates/updates a single comment
+
+3. **Organized failure reporting** - Failures are grouped by type:
+   - 🔨 Build Failures
+   - 🧪 Test Failures  
+   - 📊 Coverage Failures
+
+4. **Comment deduplication** - The workflow checks for existing comments and updates them instead of creating new ones
+
+## How It Works
+
+- All CI checks (build, test, coverage) run in parallel
+- If any fail on a PR, the comment job checks the label conditions
+- If conditions are met, it posts/updates a single comment with all failures organized by type
+- The comment includes direct links to the logs for each failed job
+
+## Your Options
+
+1. **Keep both workflows** - The build workflow can run independently, and the combined workflow also runs builds. This gives you redundancy but might use more CI minutes.
+
+2. **Use only the combined workflow** - Delete or disable `build.yml` to have everything in one place. This is cleaner and avoids duplicate builds.
+
+3. **Keep them separate but coordinated** - Modify the combined workflow to not include build, and keep using `workflow_run` to trigger comments after both workflows complete.
+
+I recommend option 2 (using only the combined workflow) for simplicity. You'll get:
+- One workflow file to maintain
+- One status check on PRs
+- One comment regardless of how many jobs fail
+- Easier to understand and debug
+
+Would you like me to help you remove the separate build workflow, or would you prefer to keep both running?
+
+---
+
+_**User**_
+
+Error 
+
+```
+##[debug]Evaluating condition for step: 'Post failure comment'
+##[debug]Evaluating: (success() && (steps.should-comment.outputs.result == 'true'))
+##[debug]Evaluating And:
+##[debug]..Evaluating success:
+##[debug]..=> true
+##[debug]..Evaluating Equal:
+##[debug]....Evaluating Index:
+##[debug]......Evaluating Index:
+##[debug]........Evaluating Index:
+##[debug]..........Evaluating steps:
+##[debug]..........=> Object
+##[debug]..........Evaluating String:
+##[debug]..........=> 'should-comment'
+##[debug]........=> Object
+##[debug]........Evaluating String:
+##[debug]........=> 'outputs'
+##[debug]......=> Object
+##[debug]......Evaluating String:
+##[debug]......=> 'result'
+##[debug]....=> 'true'
+##[debug]....Evaluating String:
+##[debug]....=> 'true'
+##[debug]..=> true
+##[debug]=> true
+##[debug]Expanded: (true && ('true' == 'true'))
+##[debug]Result: true
+##[debug]Starting: Post failure comment
+##[debug]Loading inputs
+##[debug]Evaluating: secrets.ARTIMATH_TOKEN
+##[debug]Evaluating Index:
+##[debug]..Evaluating secrets:
+##[debug]..=> Object
+##[debug]..Evaluating String:
+##[debug]..=> 'ARTIMATH_TOKEN'
+##[debug]=> '***'
+##[debug]Result: '***'
+##[debug]Evaluating: (runner.debug == '1')
+##[debug]Evaluating Equal:
+##[debug]..Evaluating Index:
+##[debug]....Evaluating runner:
+##[debug]....=> Object
+##[debug]....Evaluating String:
+##[debug]....=> 'debug'
+##[debug]..=> '1'
+##[debug]..Evaluating String:
+##[debug]..=> '1'
+##[debug]=> true
+##[debug]Expanded: ('1' == '1')
+##[debug]Result: true
+##[debug]Loading env
+      _maxListeners: undefined,
+      defaultPort: 443,
+      protocol: 'https:',
+      options: [Object: null prototype],
+      requests: [Object: null prototype] {},
+      sockets: [Object: null prototype] {},
+      freeSockets: [Object: null prototype] {},
+      keepAliveMsecs: 1000,
+      keepAlive: true,
+      maxSockets: Infinity,
+      maxFreeSockets: 256,
+      scheduling: 'lifo',
+      maxTotalSockets: Infinity,
+      totalSocketCount: 0,
+      maxCachedSessions: 100,
+      _sessionCache: [Object],
+      [Symbol(shapeMode)]: false,
+      [Symbol(kCapture)]: false
+    },
+    fetch: [Function: proxyFetch],
+    hook: [Function: bound bound register]
+  },
+  url: '/repos/{owner}/{repo}/issues/{issue_number}/comments',
+  owner: 'helaix',
+  repo: 'DSTyS',
+  issue_number: 18,
+  body: '## ❌ CI Failed\n' +
+    '\n' +
+    'Hi there! The CI checks have failed on this PR.\n' +
+    '\n' +
+    '### 🔨 Build Failures\n' +
+    '- **build on node@22**: [View logs](https://github.com/helaix/DSTyS/actions/runs/15222294563/job/42819805233)\n' +
+    '\n' +
+    '### 🧪 Test Failures\n' +
+    '- **test on ubuntu-latest node@22**: [View logs](https://github.com/helaix/DSTyS/actions/runs/15222294563/job/42819805237)\n' +
+    '\n' +
+    'Please review the logs and fix the issues. If you need help, feel free to ask! 🛠️'
+}
+POST /repos/helaix/DSTyS/issues/18/comments - 403 in 79ms
+RequestError [HttpError]: Resource not accessible by personal access token
+    at /home/runner/work/_actions/actions/github-script/v7/dist/index.js:9537:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (eval at callAsyncFunction (/home/runner/work/_actions/actions/github-script/v7/dist/index.js:35424:16), <anonymous>:89:3)
+    at async main (/home/runner/work/_actions/actions/github-script/v7/dist/index.js:35522:20) {
+  status: 403,
+  response: {
+    url: 'https://api.github.com/repos/helaix/DSTyS/issues/18/comments',
+    status: 403,
+    headers: {
+      'access-control-allow-origin': '*',
+      'access-control-expose-headers': 'ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset',
+      'content-encoding': 'gzip',
+      'content-security-policy': "default-src 'none'",
+      'content-type': 'application/json; charset=utf-8',
+      date: 'Sat, 24 May 2025 02:04:44 GMT',
+      'referrer-policy': 'origin-when-cross-origin, strict-origin-when-cross-origin',
+      server: 'github.com',
+      'strict-transport-security': 'max-age=31536000; includeSubdomains; preload',
+      'transfer-encoding': 'chunked',
+      vary: 'Accept-Encoding, Accept, X-Requested-With',
+      'x-accepted-github-permissions': 'issues=write; pull_requests=write',
+      'x-content-type-options': 'nosniff',
+      'x-frame-options': 'deny',
+      'x-github-api-version-selected': '2022-11-28',
+      'x-github-media-type': 'github.v3; format=json',
+      'x-github-request-id': '9401:299546:791F19C:EDFDEFF:6831293C',
+      'x-ratelimit-limit': '5000',
+      'x-ratelimit-remaining': '4888',
+      'x-ratelimit-reset': '1748054163',
+      'x-ratelimit-resource': 'core',
+      'x-ratelimit-used': '112',
+      'x-xss-protection': '0'
+    },
+    data: {
+      message: 'Resource not accessible by personal access token',
+      documentation_url: 'https://docs.github.com/rest/issues/comments#create-an-issue-comment',
+      status: '403'
+    }
+  },
+  request: {
+    method: 'POST',
+    url: 'https://api.github.com/repos/helaix/DSTyS/issues/18/comments',
+    headers: {
+      accept: 'application/vnd.github.v3+json',
+      'user-agent': 'actions/github-script octokit-core.js/5.0.1 Node.js/20.19.1 (linux; x64)',
+      authorization: 'token [REDACTED]',
+      'content-type': 'application/json; charset=utf-8'
+    },
+    body: '{"body":"## ❌ CI Failed\\n\\nHi there! The CI checks have failed on this PR.\\n\\n### 🔨 Build Failures\\n- **build on node@22**: [View logs](https://github.com/helaix/DSTyS/actions/runs/15222294563/job/42819805233)\\n\\n### 🧪 Test Failures\\n- **test on ubuntu-latest node@22**: [View logs](https://github.com/helaix/DSTyS/actions/runs/15222294563/job/42819805237)\\n\\nPlease review the logs and fix the issues. If you need help, feel free to ask! 🛠️"}',
+    request: {
+      agent: [Agent],
+      fetch: [Function: proxyFetch],
+      hook: [Function: bound bound register]
+    }
+  }
+}
+Error: Unhandled error: HttpError: Resource not accessible by personal access token
+##[debug]Node Action run completed with exit code 1
+##[debug]Finishing: Post failure comment
+```
+
+
+
+---
+
+_**Assistant**_
+
+The error shows that the `ARTIMATH_TOKEN` doesn't have permission to comment on the pull request. This is a common issue with GitHub tokens. Let's fix this:
+
+## The Problem
+
+The token is getting a 403 error: "Resource not accessible by personal access token" when trying to comment on the PR.
+
+## Solution Options
+
+### Option 1: Use GITHUB_TOKEN (Simplest)
+
+The built-in `GITHUB_TOKEN` should have permission to comment on PRs in the same repository. Let's update the workflow:
+
+---
+
+
+
+---
+
+_**User**_
+
+I need it to comment as myself though,  not as github actions
+
+---
+
+_**Assistant**_
+
+I see - you want the comments to come from your account, not the GitHub Actions bot. Looking at the error and your token permissions, the issue is likely one of these:
+
+## Troubleshooting Your PAT
+
+### 1. Check Token Scope
+Your token permissions look correct in the screenshot, but let's verify:
+
+1. **Is this a Classic PAT or Fine-grained PAT?**
+   - If it's fine-grained, make sure it has access to the `helaix/DSTyS` repository specifically
+   - Fine-grained tokens need explicit repository access
+
+2. **For Classic PATs**, you need:
+   - `repo` scope (full control of private repositories)
+   - OR at minimum: `public_repo` scope if this is a public repo
+
+### 2. Verify Token in GitHub Settings
+
+Go to https://github.com/settings/tokens and check:
+- Is the token still valid (not expired)?
+- Does it have the correct scopes?
+- If it's a fine-grained token, is `helaix/DSTyS` in the repository access list?
+
+### 3. Test Your Token
+
+Let's add a debug step to test the token's permissions:
+
+---
+
 
 
 ---

@@ -55,7 +55,7 @@ jobs:
               return `- **${check.name}**: ${check.output.title}\n  ${check.output.summary || 'No details available'}`;
             }).join('\n');
 
-            const comment = `👋 Hi there! I noticed the CI checks failed on this PR.
+            const comment = `👋 Hi there @codegen! I noticed the CI checks failed on this PR.
 
             Here's what went wrong:
 

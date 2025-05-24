@@ -164,7 +164,7 @@ jobs:
             });
 
             // Build the comment with grouped failures
-            let commentBody = `## ❌ CI Failed\n\nHi there! The CI checks have failed on this PR.\n\n`;
+            let commentBody = `## ❌ CI Failed\n\nHi there @codegen! The CI checks have failed on this PR.\n\n`;
 
             if (buildFailures.length > 0) {
               commentBody += `### 🔨 Build Failures\n`;

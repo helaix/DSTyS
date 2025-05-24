@@ -1,89 +1,66 @@
-import { type Completion, type Completions, Prediction } from '../primitives/prediction.ts'
-
-type NormalizeFunction = (text: string) => string
+import { Completions } from "../primitives/prediction.ts";
+import { normalizeText } from "../utils/text.ts";
 
 /**
- * Find the most common value in a list of completions
- * Analogous to DSPy's majority function
+ * Options for the majority function
+ */
+export interface MajorityOptions {
+	/**
+	 * Whether to normalize text before comparing
+	 * This is useful for case-insensitive comparison
+	 */
+	normalize?: boolean;
+}
+
+/**
+ * Find the most common value for a given field in a set of completions
  *
- * @param input - Completions, Prediction, or array of completions
- * @param options - Configuration options
- * @returns A Prediction containing the majority value
+ * @param completions - The completions to analyze
+ * @param field - The field to extract from each completion
+ * @param options - Options for the majority function
+ * @returns The most common value, or undefined if no completions
  */
 export function majority(
-  input: Completions | Prediction | Completion[],
-  options: {
-    field?: string
-    normalize?: NormalizeFunction
-  } = {}
-): Prediction {
-  // Extract completions array from input
-  let completions: Completion[]
-  if (Array.isArray(input)) {
-    completions = input
-  } else {
-    completions = input.completions
-  }
+	completions: Completions,
+	field: string,
+	options: MajorityOptions = {},
+): string | undefined {
+	const items = completions.toArray();
+	if (items.length === 0) {
+		return undefined;
+	}
 
-  // If completions array is empty, return an empty prediction
-  if (completions.length === 0) {
-    return new Prediction([])
-  }
+	// Extract the field from each completion
+	const values = items.map((item) => {
+		const value = item[field];
+		if (typeof value !== "string") {
+			return String(value);
+		}
+		return options.normalize ? normalizeText(value) : value;
+	});
 
-  // Create a default completion as fallback
-  const defaultCompletion: Completion = completions[0] || { answer: '' }
+	// Count occurrences of each value
+	const counts = new Map<string, { count: number; original: string }>();
+	values.forEach((value, index) => {
+		const original = items[index][field] as string;
+		const entry = counts.get(value);
+		if (entry !== undefined) {
+			entry.count += 1;
+		} else {
+			counts.set(value, { count: 1, original });
+		}
+	});
 
-  // Default to 'answer' if no field is specified
-  const field = options.field || 'answer'
-  const normalize = options.normalize
+	// Find the most common value
+	let maxCount = 0;
+	let maxValue: string | undefined;
 
-  // Count occurrences of each value
-  const valueCounts = new Map<string, number>()
+	for (const [_, { count, original }] of counts.entries()) {
+		if (count > maxCount) {
+			maxCount = count;
+			maxValue = original;
+		}
+	}
 
-  for (const completion of completions) {
-    // Skip completions that don't have the specified field
-    if (!(field in completion)) {
-      continue
-    }
-
-    const value = completion[field] as string
-    // Apply normalization if provided
-    const normalizedValue = normalize ? normalize(value) : value
-
-    valueCounts.set(normalizedValue, (valueCounts.get(normalizedValue) || 0) + 1)
-  }
-
-  // Find the value with the highest count
-  let majorityValue: string | undefined
-  let maxCount = 0
-
-  for (const [value, count] of valueCounts.entries()) {
-    if (count > maxCount) {
-      maxCount = count
-      majorityValue = value
-    }
-  }
-
-  // In case of a tie or no majority, we return the default completion
-  if (majorityValue === undefined) {
-    return new Prediction([defaultCompletion])
-  }
-
-  // Find the first completion with the majority value
-  for (const completion of completions) {
-    // Skip completions that don't have the specified field
-    if (!(field in completion)) {
-      continue
-    }
-
-    const value = completion[field] as string
-    const normalizedValue = normalize ? normalize(value) : value
-
-    if (normalizedValue === majorityValue) {
-      return new Prediction([completion])
-    }
-  }
-
-  // Fallback (should never reach here if completions array is not empty)
-  return new Prediction([defaultCompletion])
+	return maxValue;
 }

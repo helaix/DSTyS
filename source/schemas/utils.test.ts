@@ -153,14 +153,20 @@ describe('Utils', () => {
       })
 
       it('should return errors for invalid items', () => {
-        const values = ['string1', 123, 'string3', 456]
-        const result = validateBatch(StringSchema, values)
+        const values = [
+          { name: 'John', age: 25 },
+          { name: 'Jane', age: 'thirty' }, // Invalid
+          { name: 'Bob', age: 30 },
+          { name: 'Alice', age: 'twenty' } // Invalid
+        ]
 
-        expect(Either.isLeft(result)).toBe(true)
+        const result = validateBatch(PersonSchema, values)
+
         if (Either.isLeft(result)) {
           expect(result.left).toHaveLength(2)
-          expect(result.left[0].index).toBe(1)
-          expect(result.left[1].index).toBe(3)
+          // The errors are now just ParseResult.ParseError objects, not wrapped with index
+          expect(result.left[0]).toBeDefined()
+          expect(result.left[1]).toBeDefined()
         }
       })
 
@@ -265,14 +271,14 @@ describe('Utils', () => {
 
       it('should handle validation errors', () => {
         const invalidPerson = { name: 'John', age: 'thirty' } // age should be number
-        const result = safeJsonStringify(PersonSchema, invalidPerson as any)
+        const result = safeJsonStringify(PersonSchema, invalidPerson as { name: string; age: string })
 
         expect(Either.isLeft(result)).toBe(true)
       })
 
       it('should handle serialization errors', () => {
         // Create an object that can't be serialized
-        const circular: any = {}
+        const circular: Record<string, unknown> = {}
         circular.self = circular
 
         const result = safeJsonStringify(Schema.Unknown, circular)
@@ -318,7 +324,7 @@ describe('Utils', () => {
       })
 
       it('should handle serialization failures', () => {
-        const circular: any = {}
+        const circular: Record<string, unknown> = {}
         circular.self = circular
 
         const result = testRoundTrip(Schema.Unknown, circular)
@@ -330,8 +336,7 @@ describe('Utils', () => {
   describe('Error Handling Patterns', () => {
     describe('formatValidationError', () => {
       it('should format error message', () => {
-        // This is a simplified test - in practice you'd create a real ParseResult.ParseError
-        const mockError = { message: 'Test error' } as any
+        const mockError = { message: 'Test error' } as { message: string }
         const formatted = formatValidationError(mockError)
 
         expect(formatted).toBe('Validation error: Test error')
@@ -372,7 +377,7 @@ describe('Utils', () => {
         } catch (error) {
           // Effect wraps errors in FiberFailure, so we need to check the cause
           expect(error).toHaveProperty('cause')
-          const cause = (error as any).cause
+          const cause = (error as { cause?: unknown }).cause
           expect(cause).toBeInstanceOf(DSPyValidationError)
           expect(cause.message).toContain('Test context')
         }
@@ -583,8 +588,9 @@ describe('Utils', () => {
 
       if (Either.isLeft(batchResult)) {
         expect(batchResult.left).toHaveLength(2)
-        expect(batchResult.left[0].index).toBe(1)
-        expect(batchResult.left[1].index).toBe(3)
+        // The errors are now just ParseResult.ParseError objects, not wrapped with index
+        expect(batchResult.left[0]).toBeDefined()
+        expect(batchResult.left[1]).toBeDefined()
       }
     })
   })

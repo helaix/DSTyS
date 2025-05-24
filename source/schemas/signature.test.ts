@@ -50,8 +50,8 @@ describe('Signature Schema', () => {
         enum: ['option1', 'option2', 'option3'],
         required: true,
         custom: {
-          validation_rule: 'custom_rule',
-          error_message: 'Custom error'
+          validationRule: 'custom_rule',
+          errorMessage: 'Custom error'
         }
       }
 
@@ -97,7 +97,7 @@ describe('Signature Schema', () => {
         defaultValue: 'What is...?',
         optional: false,
         metadata: {
-          category: 'user_input',
+          category: 'userInput',
           priority: 'high'
         }
       }
@@ -146,9 +146,9 @@ describe('Signature Schema', () => {
           minLength: 1
         },
         expectedFormat: 'Natural language response',
-        postProcessing: 'trim_whitespace',
+        postProcessing: 'trimWhitespace',
         metadata: {
-          category: 'generated_content',
+          category: 'generatedContent',
           validation: 'semantic_check'
         }
       }
@@ -238,9 +238,9 @@ describe('Signature Schema', () => {
           averageLatency: 250.5
         },
         custom: {
-          domain: 'general_knowledge',
+          domain: 'generalKnowledge',
           complexity: 'medium',
-          performance_tier: 'standard'
+          performanceTier: 'standard'
         }
       }
 

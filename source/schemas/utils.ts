@@ -16,18 +16,14 @@ export type ValidationResult<T> = Effect.Effect<T, ParseResult.ParseError>
 /**
  * Common error types for DSPy operations
  */
+// biome-ignore lint/style/useNamingConvention: DSPy is the framework name
 export class DSPyValidationError extends Error {
   readonly _tag = 'DSPyValidationError'
   public readonly field?: string
   public readonly value?: unknown
   public override readonly cause?: Error
 
-  constructor(
-    override message: string,
-    field?: string,
-    value?: unknown,
-    cause?: Error
-  ) {
+  constructor(message: string, field?: string, value?: unknown, cause?: Error) {
     super(message)
     if (field !== undefined) {
       this.field = field
@@ -42,16 +38,13 @@ export class DSPyValidationError extends Error {
   }
 }
 
+// biome-ignore lint/style/useNamingConvention: DSPy is the framework name
 export class DSPySchemaError extends Error {
   readonly _tag = 'DSPySchemaError'
   public readonly schema?: string
   public override readonly cause?: Error
 
-  constructor(
-    override message: string,
-    schema?: string,
-    cause?: Error
-  ) {
+  constructor(message: string, schema?: string, cause?: Error) {
     super(message)
     if (schema !== undefined) {
       this.schema = schema
@@ -63,16 +56,13 @@ export class DSPySchemaError extends Error {
   }
 }
 
+// biome-ignore lint/style/useNamingConvention: DSPy is the framework name
 export class DSPyCompositionError extends Error {
   readonly _tag = 'DSPyCompositionError'
   public readonly operation?: string
   public override readonly cause?: Error
 
-  constructor(
-    override message: string,
-    operation?: string,
-    cause?: Error
-  ) {
+  constructor(message: string, operation?: string, cause?: Error) {
     super(message)
     if (operation !== undefined) {
       this.operation = operation
@@ -144,22 +134,22 @@ export const validateWithCustomError = <A, E>(
 /**
  * Batch validation helper for arrays
  */
-export const validateBatch = <A>(
-  schema: Schema.Schema<A, unknown>,
-  values: unknown[]
-): Either.Either<A[], { index: number; error: ParseResult.ParseError }[]> => {
+export const validateBatch = <A, I>(
+  schema: Schema.Schema<A, I>,
+  values: I[]
+): Either.Either<A[], ParseResult.ParseError[]> => {
   const results: A[] = []
-  const errors: { index: number; error: ParseResult.ParseError }[] = []
+  const errors: ParseResult.ParseError[] = []
 
-  values.forEach((value, index) => {
-    const result = validateToEither(schema, value)
-
+  for (let index = 0; index < values.length; index++) {
+    const value = values[index]
+    const result = Schema.decodeUnknownEither(schema)(value)
     if (Either.isLeft(result)) {
-      errors.push({ index, error: result.left })
+      errors.push(result.left)
     } else {
       results.push(result.right)
     }
-  })
+  }
 
   if (errors.length > 0) {
     return Either.left(errors)
@@ -219,7 +209,7 @@ export const createTypeGuard = <A>(schema: Schema.Schema<A, unknown>) => {
 /**
  * Type guard for checking if value matches any of multiple schemas
  */
-export const isAnyOf = <A extends readonly Schema.Schema<any, unknown>[]>(
+export const isAnyOf = <A extends readonly Schema.Schema<unknown, unknown>[]>(
   schemas: A,
   value: unknown
 ): value is Schema.Schema.Type<A[number]> => {
@@ -397,11 +387,11 @@ export const hasRequiredKeys = <T extends Record<string, unknown>>(
  */
 export const extractKeys = <T extends Record<string, unknown>, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> => {
   const result = {} as Pick<T, K>
-  keys.forEach((key) => {
+  for (const key of keys) {
     if (key in obj) {
       result[key] = obj[key]
     }
-  })
+  }
   return result
 }
 
@@ -410,9 +400,9 @@ export const extractKeys = <T extends Record<string, unknown>, K extends keyof T
  */
 export const omitKeys = <T extends Record<string, unknown>, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> => {
   const result = { ...obj }
-  keys.forEach((key) => {
+  for (const key of keys) {
     delete result[key]
-  })
+  }
   return result
 }
 
@@ -422,15 +412,15 @@ export const omitKeys = <T extends Record<string, unknown>, K extends keyof T>(o
 export const deepMerge = <T extends Record<string, unknown>>(target: T, source: Partial<T>): T => {
   const result = { ...target }
 
-  Object.keys(source).forEach((key) => {
+  for (const key of Object.keys(source)) {
     const sourceValue = source[key as keyof T]
-    const targetValue = result[key as keyof T]
+    const targetValue = target[key as keyof T]
 
     if (
+      sourceValue &&
+      targetValue &&
       typeof sourceValue === 'object' &&
-      sourceValue !== null &&
       typeof targetValue === 'object' &&
-      targetValue !== null &&
       !Array.isArray(sourceValue) &&
       !Array.isArray(targetValue)
     ) {
@@ -441,7 +431,7 @@ export const deepMerge = <T extends Record<string, unknown>>(target: T, source: 
     } else {
       result[key as keyof T] = sourceValue as T[keyof T]
     }
-  })
+  }
 
   return result
 }

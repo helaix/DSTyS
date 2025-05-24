@@ -56,7 +56,7 @@ describe('Prediction Schema', () => {
         text: 'response',
         score: 0.8,
         valid: true,
-        metadata: { source: 'model_v1' },
+        metadata: { source: 'modelV1' },
         tokens: [1, 2, 3]
       }
 
@@ -155,14 +155,14 @@ describe('Prediction Schema', () => {
     it('should validate complete confidence', async () => {
       const validConfidence = {
         score: 0.85,
-        method: 'ensemble_voting',
+        method: 'ensembleVoting',
         fieldScores: {
           answer: 0.9,
           reasoning: 0.8
         },
         metadata: {
-          model_agreement: 0.75,
-          calibration_score: 0.82
+          modelAgreement: 0.75,
+          calibrationScore: 0.82
         }
       }
 
@@ -210,17 +210,17 @@ describe('Prediction Schema', () => {
   describe('AggregationMetadataSchema', () => {
     it('should validate complete aggregation metadata', async () => {
       const validAggregation = {
-        method: 'weighted_majority',
+        method: 'weightedMajority',
         count: 5,
         weights: [0.3, 0.25, 0.2, 0.15, 0.1],
         agreement: {
           score: 0.8,
-          metric: 'exact_match'
+          metric: 'exactMatch'
         },
         individualScores: [0.9, 0.85, 0.8, 0.75, 0.7],
         metadata: {
-          ensemble_type: 'diverse_models',
-          voting_threshold: 0.6
+          ensembleType: 'diverse_models',
+          votingThreshold: 0.6
         }
       }
 
@@ -269,7 +269,7 @@ describe('Prediction Schema', () => {
         count: 3,
         agreement: {
           score: 1.5, // > 1
-          metric: 'exact_match'
+          metric: 'exactMatch'
         }
       }
 
@@ -286,7 +286,7 @@ describe('Prediction Schema', () => {
         ],
         reasoning: {
           text: 'Based on geographical knowledge...',
-          type: 'factual_recall',
+          type: 'factualRecall',
           confidence: 0.95
         },
         confidence: {
@@ -551,9 +551,9 @@ describe('Prediction Schema', () => {
                 { text: 'alt2', score: 0.3 }
               ]
             },
-            reasoning_trace: {
+            reasoningTrace: {
               steps: ['step1', 'step2'],
-              intermediate_results: [
+              intermediateResults: [
                 { step: 1, result: 'intermediate1' },
                 { step: 2, result: 'intermediate2' }
               ]

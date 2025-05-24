@@ -68,7 +68,7 @@ describe('Example Schema', () => {
       const validMetadata = {
         dspyUuid: '123e4567-e89b-12d3-a456-426614174000',
         dspySplit: 'train',
-        source: 'dataset_v1',
+        source: 'datasetV1',
         timestamp: '2023-01-01T00:00:00Z',
         tags: ['geography', 'capitals'],
         custom: {
@@ -125,7 +125,7 @@ describe('Example Schema', () => {
         inputKeys: ['question'],
         metadata: {
           dspyUuid: 'test-uuid',
-          source: 'math_dataset',
+          source: 'mathDataset',
           tags: ['arithmetic']
         }
       }
@@ -358,9 +358,9 @@ describe('Example Schema', () => {
     })
 
     it('should handle very large inputKeys array', async () => {
-      const largeInputKeys = Array.from({ length: 1000 }, (_, i) => `field_${i}`)
+      const largeInputKeys = Array.from({ length: 1000 }, (_, i) => `field${i}`)
       const example = {
-        data: { field_0: 'value' },
+        data: { field0: 'value' },
         inputKeys: largeInputKeys
       }
 

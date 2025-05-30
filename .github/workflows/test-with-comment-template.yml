@@ -45,18 +45,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
       - name: Run tests
-        run: |
-          echo "Replace this with your actual test commands"
-          # npm ci && npm test
-          # or
-          # make test
-          # or
-          # python -m pytest
-          # etc.
-
-          # Uncomment the line below to simulate a test failure for testing
-          # exit 1
+        run: npm test
 
   # Add more test jobs as needed
   # another-test:

@@ -17,6 +17,9 @@ export const quote = `${go} ${where}`
 // Primitives
 export { Completion, Completions, Prediction }
 
+// Export Module system
+export * from './primitives/module.js'
+
 // Predict
 export { majority }
 

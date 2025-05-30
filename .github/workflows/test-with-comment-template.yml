@@ -1,0 +1,194 @@
+name: CI with PR Comment
+
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+
+# ============================================================================
+# CONFIGURATION SECTION - Customize these values for your repository
+# ============================================================================
+env:
+  # Performance and runner configuration
+  RUNNER_TYPE: 'ubuntu-latest'  # Can be upgraded to 'blacksmith-4vcpu-ubuntu-2204' for faster execution
+  
+  # Node.js configuration (adjust for your project)
+  NODE_VERSIONS: '[18, 20, 22]'  # Customize based on your Node.js support
+  PLATFORMS: '["ubuntu-latest", "windows-latest"]'  # Add/remove platforms as needed
+  
+  # Label mode: 'require-label' or 'exclude-label'
+  # - 'require-label': Only comment when the specified label IS present
+  # - 'exclude-label': Only comment when the specified label is NOT present
+  LABEL_MODE: 'require-label'
+
+  # The label to check for (change this to your preferred label)
+  # Examples: 'fix-ci', 'needs-help', 'dont-fix', 'no-comment'
+  LABEL_NAME: 'fix-ci'
+
+  # Comment token - Use a PAT or GitHub App token if you need to trigger other workflows
+  # Otherwise, you can use ${{ secrets.GITHUB_TOKEN }}
+  COMMENT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  # ============================================================================
+  # TEST JOBS - Replace these with your actual test jobs
+  # ============================================================================
+
+  # Example test job - replace with your actual tests
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: |
+          echo "Replace this with your actual test commands"
+          # npm ci && npm test
+          # or
+          # make test
+          # or
+          # python -m pytest
+          # etc.
+
+          # Uncomment the line below to simulate a test failure for testing
+          # exit 1
+
+  # Add more test jobs as needed
+  # another-test:
+  #   name: Another Test Suite
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Run other tests
+  #       run: echo "More tests here"
+
+  # ============================================================================
+  # COMMENT JOB - This job handles the PR commenting logic
+  # ============================================================================
+  comment-on-failure:
+    name: Comment on PR if tests fail
+    runs-on: ubuntu-latest
+    # Update this 'needs' array to include all your test job names
+    needs: [test]  # Add all your test job names here: [test, another-test, lint, etc.]
+    if: |
+      always() &&
+      contains(needs.*.result, 'failure') &&
+      github.event_name == 'pull_request'
+    steps:
+      - name: Check label conditions
+        id: should-comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const labelMode = '${{ env.LABEL_MODE }}';
+            const labelName = '${{ env.LABEL_NAME }}';
+
+            // Get PR labels
+            const labels = context.payload.pull_request.labels.map(l => l.name);
+            console.log(`PR labels: ${labels.join(', ') || 'none'}`);
+            console.log(`Label mode: ${labelMode}`);
+            console.log(`Looking for label: ${labelName}`);
+
+            let shouldComment = false;
+
+            if (labelMode === 'require-label') {
+              // Only comment if the label IS present
+              shouldComment = labels.includes(labelName);
+              console.log(`Require label mode: Label '${labelName}' ${shouldComment ? 'found' : 'not found'}`);
+            } else if (labelMode === 'exclude-label') {
+              // Only comment if the label is NOT present
+              shouldComment = !labels.includes(labelName);
+              console.log(`Exclude label mode: Label '${labelName}' ${shouldComment ? 'not found (will comment)' : 'found (will not comment)'}`);
+            } else {
+              console.log(`Invalid label mode: ${labelMode}. Use 'require-label' or 'exclude-label'`);
+              shouldComment = true; // Default to commenting if mode is invalid
+            }
+
+            return shouldComment;
+
+      - name: Post failure comment
+        if: steps.should-comment.outputs.result == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ env.COMMENT_TOKEN }}
+          script: |
+            const failureDetails = [];
+
+            // Get job statuses from the current workflow run
+            const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
+
+            const failedJobs = jobs.jobs.filter(job =>
+              job.conclusion === 'failure' &&
+              job.name !== 'Comment on PR if tests fail'
+            );
+
+            failedJobs.forEach(job => {
+              // Extract the actual job name without the matrix suffix
+              const jobName = job.name.replace(/ \(.+\)$/, '');
+              const matrixInfo = job.name.match(/\((.+)\)$/)?.[1] || '';
+
+              if (matrixInfo) {
+                failureDetails.push(`- **${jobName}** (${matrixInfo}): Failed\n  [View logs](${job.html_url})`);
+              } else {
+                failureDetails.push(`- **${jobName}**: Failed\n  [View logs](${job.html_url})`);
+              }
+            });
+
+            // You can customize this message template
+            const comment = `## ❌ CI Failed
+
+            Hi there! The CI checks have failed on this PR. Here's what went wrong:
+
+            ${failureDetails.join('\n')}
+
+            Please review the logs and fix the issues. If you need help, feel free to ask!
+
+            <details>
+            <summary>🔧 Debugging Tips</summary>
+
+            - Click on the "View logs" links above to see detailed error messages
+            - Run the tests locally to reproduce the issue
+            - Check if you've committed all necessary files
+            - Ensure all dependencies are properly declared
+
+            </details>`;
+
+            // Check if we've already commented on this PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('## ❌ CI Failed')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: comment
+              });
+            }

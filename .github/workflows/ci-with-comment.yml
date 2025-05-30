@@ -1,0 +1,246 @@
+name: Test with PR Comment
+
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+
+# Configuration - Change these values to customize for your repo
+env:
+  # Performance and runner configuration
+  RUNNER_TYPE: 'ubuntu-latest'  # Can be upgraded to 'blacksmith-4vcpu-ubuntu-2204' for faster execution
+  
+  # Node.js configuration
+  NODE_VERSIONS: '[22, 24]'
+  PLATFORMS: '["ubuntu-latest", "windows-latest"]'
+  
+  # Label mode: 'require-label' or 'exclude-label'
+  # - 'require-label': Only comment when the specified label IS present
+  # - 'exclude-label': Only comment when the specified label is NOT present
+  LABEL_MODE: 'require-label'
+
+  # The label to check for (change this to your preferred label)
+  # Examples: 'fix-ci', 'needs-help', 'dont-fix', 'no-comment'
+  LABEL_NAME: 'fix-ci'
+
+  # Set to true to always run tests, but only comment based on label
+  # Set to false to skip the entire workflow if label conditions aren't met
+  ALWAYS_RUN_TESTS: true
+
+jobs:
+  build:
+    name: build on node@${{ matrix.node-version }}
+    runs-on: ${{ fromJson(env.RUNNER_TYPE == 'ubuntu-latest' && '"ubuntu-latest"' || '"blacksmith-4vcpu-ubuntu-2204"') }}
+    strategy:
+      matrix:
+        node-version: ${{ fromJson(env.NODE_VERSIONS) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+
+  test:
+    name: test on ${{ matrix.os-release }} node@${{ matrix.node-version }}
+    runs-on: ${{ matrix.os-release }}
+    strategy:
+      matrix:
+        node-version: ${{ fromJson(env.NODE_VERSIONS) }}
+        os-release: ${{ fromJson(env.PLATFORMS) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run test
+
+  coverage:
+    name: collect coverage
+    runs-on: ${{ fromJson(env.RUNNER_TYPE == 'ubuntu-latest' && '"ubuntu-latest"' || '"blacksmith-4vcpu-ubuntu-2204"') }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: package.json
+      - run: npm ci
+      - run: npm run test:unit
+      - uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unit
+
+  comment-on-failure:
+    name: Comment on PR if tests fail
+    runs-on: ${{ fromJson(env.RUNNER_TYPE == 'ubuntu-latest' && '"ubuntu-latest"' || '"blacksmith-4vcpu-ubuntu-2204"') }}
+    needs: [build, test, coverage]
+    if: |
+      always() &&
+      (needs.build.result == 'failure' || needs.test.result == 'failure' || needs.coverage.result == 'failure') &&
+      github.event_name == 'pull_request'
+    steps:
+      - name: Check label conditions
+        id: should-comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const labelMode = '${{ env.LABEL_MODE }}';
+            const labelName = '${{ env.LABEL_NAME }}';
+
+            // Get PR labels
+            const labels = context.payload.pull_request.labels.map(l => l.name);
+            console.log(`PR labels: ${labels.join(', ') || 'none'}`);
+            console.log(`Label mode: ${labelMode}`);
+            console.log(`Looking for label: ${labelName}`);
+
+            let shouldComment = false;
+
+            if (labelMode === 'require-label') {
+              // Only comment if the label IS present
+              shouldComment = labels.includes(labelName);
+              console.log(`Require label mode: Label '${labelName}' ${shouldComment ? 'found' : 'not found'}`);
+            } else if (labelMode === 'exclude-label') {
+              // Only comment if the label is NOT present
+              shouldComment = !labels.includes(labelName);
+              console.log(`Exclude label mode: Label '${labelName}' ${shouldComment ? 'not found (will comment)' : 'found (will not comment)'}`);
+            } else {
+              console.log(`Invalid label mode: ${labelMode}. Use 'require-label' or 'exclude-label'`);
+              shouldComment = true; // Default to commenting if mode is invalid
+            }
+
+            return shouldComment;
+
+      - name: Post failure comment
+        if: steps.should-comment.outputs.result == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.ARTIMATH_TOKEN }}
+          script: |
+            const failureDetails = [];
+
+            // Get job statuses from the current workflow run
+            const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
+
+            const failedJobs = jobs.jobs.filter(job =>
+              job.conclusion === 'failure' &&
+              job.name !== 'Comment on PR if tests fail'
+            );
+
+            // Group failures by job type with better categorization
+            const buildFailures = [];
+            const testFailures = [];
+            const coverageFailures = [];
+            const otherFailures = [];
+
+            failedJobs.forEach(job => {
+              const jobInfo = {
+                name: job.name,
+                url: job.html_url
+              };
+
+              if (job.name.toLowerCase().includes('build')) {
+                buildFailures.push(jobInfo);
+              } else if (job.name.toLowerCase().includes('coverage')) {
+                coverageFailures.push(jobInfo);
+              } else if (job.name.toLowerCase().includes('test')) {
+                testFailures.push(jobInfo);
+              } else {
+                otherFailures.push(jobInfo);
+              }
+            });
+
+            // Build the comment with enhanced failure reporting
+            let commentBody = `## ❌ CI Failed\n\nHi there @codegen! The CI checks have failed on this PR.\n\n`;
+
+            if (buildFailures.length > 0) {
+              commentBody += `### 🔨 Build Failures\n`;
+              buildFailures.forEach(job => {
+                commentBody += `- **${job.name}**: [View logs](${job.url})\n`;
+              });
+              commentBody += '\n';
+            }
+
+            if (testFailures.length > 0) {
+              commentBody += `### 🧪 Test Failures\n`;
+              testFailures.forEach(job => {
+                commentBody += `- **${job.name}**: [View logs](${job.url})\n`;
+              });
+              commentBody += '\n';
+            }
+
+            if (coverageFailures.length > 0) {
+              commentBody += `### 📊 Coverage Failures\n`;
+              coverageFailures.forEach(job => {
+                commentBody += `- **${job.name}**: [View logs](${job.url})\n`;
+              });
+              commentBody += '\n';
+            }
+
+            if (otherFailures.length > 0) {
+              commentBody += `### ⚠️ Other Failures\n`;
+              otherFailures.forEach(job => {
+                commentBody += `- **${job.name}**: [View logs](${job.url})\n`;
+              });
+              commentBody += '\n';
+            }
+
+            commentBody += `Please review the logs and fix the issues. If you need help, feel free to ask! 🛠️\n\n`;
+            commentBody += `<details>\n<summary>🔧 Debugging Tips</summary>\n\n`;
+            commentBody += `- Click on the "View logs" links above to see detailed error messages\n`;
+            commentBody += `- Run the tests locally to reproduce the issue: \`npm test\`\n`;
+            commentBody += `- Check if you've committed all necessary files\n`;
+            commentBody += `- Ensure all dependencies are properly declared in package.json\n`;
+            commentBody += `- Verify TypeScript compilation: \`npm run check\`\n\n`;
+            commentBody += `</details>`;
+
+            // Check if we've already commented on this PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('## ❌ CI Failed')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+              console.log('Updated existing comment');
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: commentBody
+              });
+              console.log('Created new comment');
+            }
+

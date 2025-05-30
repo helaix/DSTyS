@@ -22,3 +22,7 @@ export { majority }
 
 // Utils
 export { normalizeText }
+
+// Export new Effect Schema types
+// biome-ignore lint/performance/noBarrelFile: This is the main package export
+export * from './schemas/index.js'

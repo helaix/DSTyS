@@ -20,6 +20,9 @@ export { Completion, Completions, Prediction }
 // Export Module system
 export * from './primitives/module.js'
 
+// Export concrete modules
+export * from './modules/index.js'
+
 // Predict
 export { majority }
 

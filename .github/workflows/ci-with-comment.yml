@@ -12,6 +12,13 @@ on:
 
 # Configuration - Change these values to customize for your repo
 env:
+  # Performance and runner configuration
+  RUNNER_TYPE: 'ubuntu-latest'  # Can be upgraded to 'blacksmith-4vcpu-ubuntu-2204' for faster execution
+  
+  # Node.js configuration
+  NODE_VERSIONS: '[22, 24]'
+  PLATFORMS: '["ubuntu-latest", "windows-latest"]'
+  
   # Label mode: 'require-label' or 'exclude-label'
   # - 'require-label': Only comment when the specified label IS present
   # - 'exclude-label': Only comment when the specified label is NOT present
@@ -28,12 +35,10 @@ env:
 jobs:
   build:
     name: build on node@${{ matrix.node-version }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJson(env.RUNNER_TYPE == 'ubuntu-latest' && '"ubuntu-latest"' || '"blacksmith-4vcpu-ubuntu-2204"') }}
     strategy:
       matrix:
-        node-version:
-          - 22
-          - 24
+        node-version: ${{ fromJson(env.NODE_VERSIONS) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
@@ -50,12 +55,8 @@ jobs:
     runs-on: ${{ matrix.os-release }}
     strategy:
       matrix:
-        node-version:
-          - 22
-          - 24
-        os-release:
-          - ubuntu-latest
-          - windows-latest
+        node-version: ${{ fromJson(env.NODE_VERSIONS) }}
+        os-release: ${{ fromJson(env.PLATFORMS) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
@@ -68,7 +69,7 @@ jobs:
 
   coverage:
     name: collect coverage
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJson(env.RUNNER_TYPE == 'ubuntu-latest' && '"ubuntu-latest"' || '"blacksmith-4vcpu-ubuntu-2204"') }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
@@ -85,7 +86,7 @@ jobs:
 
   comment-on-failure:
     name: Comment on PR if tests fail
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJson(env.RUNNER_TYPE == 'ubuntu-latest' && '"ubuntu-latest"' || '"blacksmith-4vcpu-ubuntu-2204"') }}
     needs: [build, test, coverage]
     if: |
       always() &&
@@ -103,7 +104,7 @@ jobs:
 
             // Get PR labels
             const labels = context.payload.pull_request.labels.map(l => l.name);
-            console.log(`PR labels: ${labels.join(', ')}`);
+            console.log(`PR labels: ${labels.join(', ') || 'none'}`);
             console.log(`Label mode: ${labelMode}`);
             console.log(`Looking for label: ${labelName}`);
 
@@ -119,6 +120,7 @@ jobs:
               console.log(`Exclude label mode: Label '${labelName}' ${shouldComment ? 'not found (will comment)' : 'found (will not comment)'}`);
             } else {
               console.log(`Invalid label mode: ${labelMode}. Use 'require-label' or 'exclude-label'`);
+              shouldComment = true; // Default to commenting if mode is invalid
             }
 
             return shouldComment;
@@ -143,10 +145,11 @@ jobs:
               job.name !== 'Comment on PR if tests fail'
             );
 
-            // Group failures by job type
+            // Group failures by job type with better categorization
             const buildFailures = [];
             const testFailures = [];
             const coverageFailures = [];
+            const otherFailures = [];
 
             failedJobs.forEach(job => {
               const jobInfo = {
@@ -154,16 +157,18 @@ jobs:
                 url: job.html_url
               };
 
-              if (job.name.includes('build')) {
+              if (job.name.toLowerCase().includes('build')) {
                 buildFailures.push(jobInfo);
-              } else if (job.name.includes('coverage')) {
+              } else if (job.name.toLowerCase().includes('coverage')) {
                 coverageFailures.push(jobInfo);
-              } else {
+              } else if (job.name.toLowerCase().includes('test')) {
                 testFailures.push(jobInfo);
+              } else {
+                otherFailures.push(jobInfo);
               }
             });
 
-            // Build the comment with grouped failures
+            // Build the comment with enhanced failure reporting
             let commentBody = `## ❌ CI Failed\n\nHi there @codegen! The CI checks have failed on this PR.\n\n`;
 
             if (buildFailures.length > 0) {
@@ -190,7 +195,22 @@ jobs:
               commentBody += '\n';
             }
 
-            commentBody += `Please review the logs and fix the issues. If you need help, feel free to ask! 🛠️`;
+            if (otherFailures.length > 0) {
+              commentBody += `### ⚠️ Other Failures\n`;
+              otherFailures.forEach(job => {
+                commentBody += `- **${job.name}**: [View logs](${job.url})\n`;
+              });
+              commentBody += '\n';
+            }
+
+            commentBody += `Please review the logs and fix the issues. If you need help, feel free to ask! 🛠️\n\n`;
+            commentBody += `<details>\n<summary>🔧 Debugging Tips</summary>\n\n`;
+            commentBody += `- Click on the "View logs" links above to see detailed error messages\n`;
+            commentBody += `- Run the tests locally to reproduce the issue: \`npm test\`\n`;
+            commentBody += `- Check if you've committed all necessary files\n`;
+            commentBody += `- Ensure all dependencies are properly declared in package.json\n`;
+            commentBody += `- Verify TypeScript compilation: \`npm run check\`\n\n`;
+            commentBody += `</details>`;
 
             // Check if we've already commented on this PR
             const { data: comments } = await github.rest.issues.listComments({
@@ -223,3 +243,4 @@ jobs:
               });
               console.log('Created new comment');
             }
+

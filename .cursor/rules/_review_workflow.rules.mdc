@@ -1,0 +1,598 @@
+# DSTyS Review Workflow Rules (_review_workflow.rules.mdc)
+
+**Purpose:** To establish a structured and comprehensive approach for conducting code, design, and security reviews in the DSTyS project. This rule guides the process of generating, conducting, and documenting reviews to ensure code quality and consistency.
+**Primary References:** DSTyS Architecture Document, Workplan Template (Review Checklist section), Software Development Workflow Implementation (HLX-1401).
+
+---
+**Rule ID:** `DSTYS-REVIEW-001`
+**Rule Title:** Review Types and Scope
+**Applies To:** All review activities
+**Purpose:** Define the different types of reviews and their scope.
+**Scope:** Review planning and execution.
+**Guideline:**
+    * **Code Reviews:** Focus on implementation quality, adherence to coding standards, and technical correctness.
+        * Scope: Pull requests, implementation of workplans, bug fixes, and feature additions.
+        * Primary concerns: Code quality, maintainability, performance, and adherence to TypeScript/Effect best practices.
+    * **Design Reviews:** Focus on architectural decisions, component interactions, and overall system design.
+        * Scope: Architecture documents, component designs, API specifications, and data models.
+        * Primary concerns: Scalability, extensibility, modularity, and alignment with project requirements.
+    * **Security Reviews:** Focus on identifying and addressing security vulnerabilities and risks.
+        * Scope: Authentication mechanisms, data handling, input validation, and dependency management.
+        * Primary concerns: Data protection, secure coding practices, and vulnerability prevention.
+    * **Documentation Reviews:** Focus on the clarity, completeness, and accuracy of documentation.
+        * Scope: API documentation, user guides, architecture documents, and code comments.
+        * Primary concerns: Clarity, completeness, accuracy, and usefulness to the target audience.
+**Rationale:** Different aspects of software development require specialized review approaches to ensure comprehensive quality assurance.
+
+---
+**Rule ID:** `DSTYS-REVIEW-002`
+**Rule Title:** Review Process Workflow
+**Applies To:** All review activities
+**Purpose:** Define the standard workflow for conducting reviews.
+**Scope:** Review methodology.
+**Guideline:**
+    * **Preparation Phase:**
+        1. Identify the review type and scope.
+        2. Gather relevant context (requirements, related documents, previous reviews).
+        3. Select appropriate review checklist(s) based on review type.
+        4. Allocate sufficient time for thorough review.
+    * **Review Phase:**
+        1. Examine the artifact against the selected checklist(s).
+        2. Document findings, categorizing them as:
+           * Critical: Must be addressed before approval
+           * Major: Should be addressed before approval
+           * Minor: Can be addressed in future iterations
+           * Suggestion: Optional improvements
+        3. Provide specific, actionable feedback with examples where applicable.
+    * **Resolution Phase:**
+        1. Discuss findings with the author/team.
+        2. Track resolution of identified issues.
+        3. Verify fixes for critical and major issues.
+        4. Document final approval or rejection.
+    * **Follow-up Phase:**
+        1. Capture lessons learned and patterns for future reference.
+        2. Update review checklists if new patterns emerge.
+        3. Share insights with the broader team if valuable.
+**Rationale:** A structured review process ensures consistency, thoroughness, and effective communication of findings.
+
+---
+**Rule ID:** `DSTYS-REVIEW-003`
+**Rule Title:** Code Review Checklist
+**Applies To:** All code reviews
+**Purpose:** Provide a comprehensive checklist for code reviews.
+**Scope:** Code review execution.
+**Guideline:**
+    * **Functionality:**
+        * [ ] Code correctly implements the specified requirements.
+        * [ ] Edge cases are handled appropriately.
+        * [ ] Error handling is comprehensive and follows Effect patterns.
+        * [ ] Functions and methods have clear, single responsibilities.
+    * **Code Quality:**
+        * [ ] Code follows the project's style guide and linting rules.
+        * [ ] Variables and functions have clear, descriptive names.
+        * [ ] Code is DRY (Don't Repeat Yourself).
+        * [ ] Complex logic is commented and explained.
+        * [ ] No unnecessary dependencies are introduced.
+        * [ ] No hardcoded values (use constants or configuration).
+    * **TypeScript Specifics:**
+        * [ ] Types are properly defined and used consistently.
+        * [ ] Generics are used appropriately to provide type safety.
+        * [ ] Type assertions are minimized and justified when used.
+        * [ ] Interfaces and type aliases are well-designed.
+        * [ ] `any` type is avoided unless absolutely necessary.
+    * **Effect Integration:**
+        * [ ] Effect is used for all operations that can fail or have side effects.
+        * [ ] Error types are properly defined with discriminated unions.
+        * [ ] Resources are properly managed with `Scope` or similar constructs.
+        * [ ] Effect composition follows best practices (pipe, gen, etc.).
+    * **Testing:**
+        * [ ] Tests cover both success and failure paths.
+        * [ ] Edge cases are tested.
+        * [ ] Tests are readable and maintainable.
+        * [ ] Test coverage meets or exceeds project standards.
+    * **Performance:**
+        * [ ] Algorithms and data structures are appropriate for the use case.
+        * [ ] Unnecessary computations or object creations are avoided.
+        * [ ] Potential performance bottlenecks are identified and addressed.
+    * **Security:**
+        * [ ] Input validation is thorough and appropriate.
+        * [ ] Sensitive information is handled securely.
+        * [ ] Dependencies are up-to-date and free from known vulnerabilities.
+    * **Documentation:**
+        * [ ] Public APIs have JSDoc comments.
+        * [ ] Complex logic is explained with inline comments.
+        * [ ] README or other documentation is updated if necessary.
+**Rationale:** A comprehensive checklist ensures all important aspects of code quality are evaluated consistently.
+
+---
+**Rule ID:** `DSTYS-REVIEW-004`
+**Rule Title:** Design Review Checklist
+**Applies To:** All design reviews
+**Purpose:** Provide a comprehensive checklist for design reviews.
+**Scope:** Design review execution.
+**Guideline:**
+    * **Alignment with Requirements:**
+        * [ ] Design addresses all functional requirements.
+        * [ ] Design considers non-functional requirements (performance, scalability, etc.).
+        * [ ] Design aligns with project vision and goals.
+    * **Architecture Quality:**
+        * [ ] Components have clear, single responsibilities.
+        * [ ] Interfaces between components are well-defined.
+        * [ ] Dependencies between components are minimized and justified.
+        * [ ] System is modular and extensible.
+    * **TypeScript/Effect Considerations:**
+        * [ ] Type system is leveraged effectively for compile-time safety.
+        * [ ] Effect is integrated appropriately for error handling and functional programming.
+        * [ ] Design follows functional programming principles where appropriate.
+    * **API Design:**
+        * [ ] APIs are intuitive and consistent.
+        * [ ] APIs follow TypeScript best practices.
+        * [ ] APIs are well-documented with JSDoc comments.
+        * [ ] APIs are versioned appropriately if applicable.
+    * **Data Model:**
+        * [ ] Data models are well-structured and normalized.
+        * [ ] Relationships between data models are clear and appropriate.
+        * [ ] Data validation is comprehensive and appropriate.
+    * **Scalability and Performance:**
+        * [ ] Design can scale to handle expected load.
+        * [ ] Performance considerations are addressed.
+        * [ ] Potential bottlenecks are identified and mitigated.
+    * **Security:**
+        * [ ] Security considerations are addressed in the design.
+        * [ ] Authentication and authorization mechanisms are appropriate.
+        * [ ] Data protection measures are in place.
+    * **Testability:**
+        * [ ] Design facilitates unit testing.
+        * [ ] Design facilitates integration testing.
+        * [ ] Design facilitates end-to-end testing.
+    * **Documentation:**
+        * [ ] Design is well-documented with diagrams and explanations.
+        * [ ] Design decisions and trade-offs are explained.
+        * [ ] Open questions or future considerations are documented.
+**Rationale:** A comprehensive checklist ensures all important aspects of design quality are evaluated consistently.
+
+---
+**Rule ID:** `DSTYS-REVIEW-005`
+**Rule Title:** Security Review Checklist
+**Applies To:** All security reviews
+**Purpose:** Provide a comprehensive checklist for security reviews.
+**Scope:** Security review execution.
+**Guideline:**
+    * **Input Validation:**
+        * [ ] All user inputs are validated before processing.
+        * [ ] Validation is performed on the server side.
+        * [ ] Input validation errors are handled gracefully.
+    * **Authentication and Authorization:**
+        * [ ] Authentication mechanisms are secure and follow best practices.
+        * [ ] Authorization checks are comprehensive and appropriate.
+        * [ ] Sensitive operations require appropriate permissions.
+    * **Data Protection:**
+        * [ ] Sensitive data is encrypted in transit and at rest.
+        * [ ] Access to sensitive data is restricted and logged.
+        * [ ] Data retention policies are defined and enforced.
+    * **Dependency Management:**
+        * [ ] Dependencies are up-to-date and free from known vulnerabilities.
+        * [ ] Dependency updates are regularly reviewed and applied.
+        * [ ] Unnecessary dependencies are removed.
+    * **Error Handling:**
+        * [ ] Error messages do not reveal sensitive information.
+        * [ ] Errors are logged appropriately for debugging.
+        * [ ] Error handling does not introduce security vulnerabilities.
+    * **Secure Coding Practices:**
+        * [ ] Code is free from common security vulnerabilities (e.g., XSS, CSRF, SQL injection).
+        * [ ] Security-sensitive operations are logged for audit purposes.
+        * [ ] Secure defaults are used for all configurations.
+    * **API Security:**
+        * [ ] APIs are protected against abuse and misuse.
+        * [ ] Rate limiting is implemented where appropriate.
+        * [ ] API keys and tokens are managed securely.
+    * **Documentation:**
+        * [ ] Security considerations are documented.
+        * [ ] Security-related configurations are documented.
+        * [ ] Security incident response procedures are documented.
+**Rationale:** A comprehensive checklist ensures all important aspects of security are evaluated consistently.
+
+---
+**Rule ID:** `DSTYS-REVIEW-006`
+**Rule Title:** Documentation Review Checklist
+**Applies To:** All documentation reviews
+**Purpose:** Provide a comprehensive checklist for documentation reviews.
+**Scope:** Documentation review execution.
+**Guideline:**
+    * **Completeness:**
+        * [ ] All public APIs are documented.
+        * [ ] All configuration options are documented.
+        * [ ] All error messages and their resolutions are documented.
+        * [ ] Examples are provided for common use cases.
+    * **Accuracy:**
+        * [ ] Documentation matches the actual implementation.
+        * [ ] Code examples are correct and up-to-date.
+        * [ ] Version information is accurate.
+        * [ ] Links to external resources are valid.
+    * **Clarity:**
+        * [ ] Documentation is written in clear, concise language.
+        * [ ] Technical terms are explained or linked to explanations.
+        * [ ] Complex concepts are illustrated with diagrams or examples.
+        * [ ] Documentation follows a logical structure.
+    * **Usability:**
+        * [ ] Documentation is easy to navigate.
+        * [ ] Search functionality works effectively.
+        * [ ] Documentation is accessible to the target audience.
+        * [ ] Documentation is available in appropriate formats.
+    * **Maintenance:**
+        * [ ] Documentation is versioned alongside the code.
+        * [ ] Documentation update process is defined.
+        * [ ] Ownership of documentation is clear.
+        * [ ] Documentation review is part of the development process.
+**Rationale:** A comprehensive checklist ensures all important aspects of documentation quality are evaluated consistently.
+
+---
+**Rule ID:** `DSTYS-REVIEW-007`
+**Rule Title:** Review Output Format
+**Applies To:** All review documentation
+**Purpose:** Define a consistent format for documenting review findings.
+**Scope:** Review documentation.
+**Guideline:**
+    * **Review Header:**
+        ```markdown
+        # Review: [Title of Reviewed Artifact]
+        
+        - **Review Type:** [Code/Design/Security/Documentation]
+        - **Reviewer:** [Name or ID]
+        - **Date:** [YYYY-MM-DD]
+        - **Artifact:** [Link or reference to the reviewed artifact]
+        - **Version/Commit:** [Version number or commit hash]
+        ```
+    * **Summary Section:**
+        ```markdown
+        ## Summary
+        
+        [Brief overview of the review findings, including overall assessment and key recommendations]
+        
+        - **Overall Assessment:** [Approved/Approved with Minor Issues/Needs Revision/Rejected]
+        - **Critical Issues:** [Number]
+        - **Major Issues:** [Number]
+        - **Minor Issues:** [Number]
+        - **Suggestions:** [Number]
+        ```
+    * **Findings Section:**
+        ```markdown
+        ## Findings
+        
+        ### Critical Issues
+        
+        1. **[Issue Title]**
+           - **Location:** [File/Line/Component]
+           - **Description:** [Detailed description of the issue]
+           - **Recommendation:** [Specific, actionable recommendation]
+           - **Rationale:** [Explanation of why this is an issue]
+        
+        ### Major Issues
+        
+        1. **[Issue Title]**
+           - **Location:** [File/Line/Component]
+           - **Description:** [Detailed description of the issue]
+           - **Recommendation:** [Specific, actionable recommendation]
+           - **Rationale:** [Explanation of why this is an issue]
+        
+        ### Minor Issues
+        
+        1. **[Issue Title]**
+           - **Location:** [File/Line/Component]
+           - **Description:** [Detailed description of the issue]
+           - **Recommendation:** [Specific, actionable recommendation]
+           - **Rationale:** [Explanation of why this is an issue]
+        
+        ### Suggestions
+        
+        1. **[Suggestion Title]**
+           - **Location:** [File/Line/Component]
+           - **Description:** [Detailed description of the suggestion]
+           - **Recommendation:** [Specific, actionable recommendation]
+           - **Rationale:** [Explanation of why this would be beneficial]
+        ```
+    * **Checklist Section:**
+        ```markdown
+        ## Checklist
+        
+        [Include the relevant checklist from DSTYS-REVIEW-003/004/005/006 with items marked as checked or unchecked]
+        ```
+    * **Follow-up Section:**
+        ```markdown
+        ## Follow-up
+        
+        [Document any follow-up actions, including verification of fixes and lessons learned]
+        
+        - **Verification Date:** [YYYY-MM-DD or "Pending"]
+        - **Verification Status:** [Complete/Partial/Pending]
+        - **Lessons Learned:** [Any insights or patterns identified during the review]
+        ```
+**Rationale:** A consistent format for review documentation ensures clarity, completeness, and ease of tracking.
+
+---
+**Rule ID:** `DSTYS-REVIEW-008`
+**Rule Title:** AI-Assisted Review Guidelines
+**Applies To:** Reviews conducted with AI assistance
+**Purpose:** Provide guidelines for effectively using AI tools in the review process.
+**Scope:** AI-assisted review methodology.
+**Guideline:**
+    * **Context Gathering:**
+        * Provide the AI with comprehensive context, including:
+            * The artifact to be reviewed (code, design document, etc.)
+            * Relevant requirements or specifications
+            * Project-specific standards or guidelines
+            * Previous review findings if applicable
+        * Use code snippets, links, or file references to ensure the AI has access to the necessary information.
+    * **Prompt Construction:**
+        * Be specific about the type of review (code, design, security, documentation).
+        * Reference the appropriate checklist (DSTYS-REVIEW-003/004/005/006).
+        * Specify the desired output format (DSTYS-REVIEW-007).
+        * Include any specific areas of concern or focus.
+    * **Example Prompt Template:**
+        ```
+        Please conduct a [code/design/security/documentation] review of the following [artifact type]:
+        
+        [Insert code, design document, or reference to the artifact]
+        
+        Focus on the following aspects:
+        1. [Specific area of concern]
+        2. [Specific area of concern]
+        3. [Specific area of concern]
+        
+        Use the DSTyS [Code/Design/Security/Documentation] Review Checklist as a guide.
+        
+        Format your review according to the DSTyS Review Output Format, including:
+        - A summary of your findings
+        - Categorized issues (Critical, Major, Minor, Suggestions)
+        - Specific, actionable recommendations
+        - The completed checklist
+        
+        Additional context:
+        - [Relevant requirements or specifications]
+        - [Project-specific standards or guidelines]
+        - [Previous review findings if applicable]
+        ```
+    * **Review of AI Output:**
+        * Always review the AI's findings critically.
+        * Verify critical issues identified by the AI.
+        * Supplement the AI's review with human expertise, especially for:
+            * Context-specific considerations
+            * Business logic validation
+            * Security implications
+            * Performance optimizations
+        * Use the AI's findings as a starting point, not a final verdict.
+    * **Continuous Improvement:**
+        * Document effective prompts and approaches for future reference.
+        * Share insights about AI-assisted review effectiveness with the team.
+        * Refine prompts based on the quality and usefulness of AI outputs.
+**Rationale:** AI tools can enhance the review process, but their effective use requires careful prompt construction and critical evaluation of outputs.
+
+---
+**Rule ID:** `DSTYS-REVIEW-009`
+**Rule Title:** Review Integration with Development Workflow
+**Applies To:** All development activities
+**Purpose:** Define how reviews integrate with the overall development workflow.
+**Scope:** Development process.
+**Guideline:**
+    * **When to Conduct Reviews:**
+        * **Code Reviews:** Before merging pull requests, after implementing workplans.
+        * **Design Reviews:** Before implementation, after creating architecture or design documents.
+        * **Security Reviews:** Before deploying security-sensitive features, periodically for existing code.
+        * **Documentation Reviews:** Before publishing documentation, after significant updates.
+    * **Review Assignments:**
+        * Assign reviewers based on expertise and availability.
+        * Aim for at least one reviewer per artifact.
+        * For critical components, consider multiple reviewers with different perspectives.
+    * **Review Tracking:**
+        * Track reviews in the project management system (e.g., Linear).
+        * Link reviews to the relevant artifacts and issues.
+        * Monitor review status and follow-up actions.
+    * **Review Metrics:**
+        * Track review completion time.
+        * Monitor the number and severity of issues found.
+        * Analyze patterns in review findings to identify areas for improvement.
+    * **Continuous Improvement:**
+        * Regularly review and update review checklists based on findings.
+        * Share insights and lessons learned from reviews with the team.
+        * Incorporate feedback on the review process itself.
+**Rationale:** Integrating reviews into the development workflow ensures they are conducted consistently and effectively.
+
+---
+**Rule ID:** `DSTYS-REVIEW-010`
+**Rule Title:** Review Best Practices
+**Applies To:** All review activities
+**Purpose:** Provide general best practices for effective reviews.
+**Scope:** Review methodology.
+**Guideline:**
+    * **Reviewer Mindset:**
+        * Focus on improvement, not criticism.
+        * Be specific and constructive in feedback.
+        * Consider the context and constraints of the work.
+        * Acknowledge good practices and solutions.
+    * **Review Efficiency:**
+        * Prepare adequately before the review.
+        * Focus on the most critical aspects first.
+        * Use tools to automate routine checks where possible.
+        * Document findings clearly to avoid misunderstandings.
+    * **Communication:**
+        * Use clear, respectful language in review comments.
+        * Ask questions rather than making assumptions.
+        * Provide context and rationale for feedback.
+        * Be open to discussion and alternative perspectives.
+    * **Follow-up:**
+        * Verify that critical issues are addressed.
+        * Be available for clarification and discussion.
+        * Document lessons learned for future reference.
+        * Recognize improvements and progress.
+**Rationale:** Effective reviews require not just technical knowledge but also good communication and a constructive mindset.
+
+---
+## Usage Guidelines
+
+### When to Use This Rule
+- When planning or conducting any type of review (code, design, security, documentation)
+- When creating review checklists or templates
+- When documenting review findings
+- When integrating reviews into the development workflow
+- When using AI tools to assist with reviews
+
+### How to Use This Rule
+1. **Identify the Review Type:**
+   - Determine whether you're conducting a code, design, security, or documentation review.
+   - Reference the appropriate checklist (DSTYS-REVIEW-003/004/005/006).
+
+2. **Follow the Review Process:**
+   - Follow the workflow defined in DSTYS-REVIEW-002.
+   - Prepare by gathering context and selecting the appropriate checklist.
+   - Conduct the review systematically against the checklist.
+   - Document findings using the format in DSTYS-REVIEW-007.
+   - Follow up on issues and verify fixes.
+
+3. **For AI-Assisted Reviews:**
+   - Follow the guidelines in DSTYS-REVIEW-008.
+   - Provide comprehensive context to the AI.
+   - Construct specific, detailed prompts.
+   - Review the AI's output critically.
+   - Supplement with human expertise.
+
+4. **Integration with Development Workflow:**
+   - Schedule reviews at appropriate points in the development process (DSTYS-REVIEW-009).
+   - Track reviews and follow-up actions in the project management system.
+   - Monitor review metrics and patterns.
+   - Continuously improve the review process based on feedback and lessons learned.
+
+### Examples
+
+#### Example 1: Code Review Prompt for AI
+```
+Please conduct a code review of the following TypeScript implementation of the Signature class:
+
+[Insert code here]
+
+Focus on the following aspects:
+1. Type safety and proper use of TypeScript features
+2. Integration with Effect for error handling
+3. Adherence to functional programming principles
+4. Completeness of validation logic
+
+Use the DSTyS Code Review Checklist as a guide.
+
+Format your review according to the DSTyS Review Output Format, including:
+- A summary of your findings
+- Categorized issues (Critical, Major, Minor, Suggestions)
+- Specific, actionable recommendations
+- The completed checklist
+
+Additional context:
+- This implementation is based on the Python DSPy Signature class
+- It needs to support both runtime and compile-time type checking
+- It will be used as a core primitive throughout the library
+```
+
+#### Example 2: Design Review Documentation
+```markdown
+# Review: Architecture Document for DSTyS Core Primitives
+
+- **Review Type:** Design
+- **Reviewer:** Jane Doe
+- **Date:** 2025-05-15
+- **Artifact:** [Architecture Document](link-to-document)
+- **Version/Commit:** v1.0
+
+## Summary
+
+The architecture document provides a comprehensive overview of the core primitives in DSTyS. It is well-structured and covers most key aspects, but there are some areas that need clarification or additional detail.
+
+- **Overall Assessment:** Approved with Minor Issues
+- **Critical Issues:** 0
+- **Major Issues:** 1
+- **Minor Issues:** 3
+- **Suggestions:** 2
+
+## Findings
+
+### Major Issues
+
+1. **Unclear Error Handling Strategy**
+   - **Location:** Section 4.2, "Error Handling"
+   - **Description:** The document does not clearly define how errors should be propagated between composed modules.
+   - **Recommendation:** Add a subsection that explicitly defines the error propagation strategy, including how errors from one module affect downstream modules in a pipeline.
+   - **Rationale:** Clear error handling is critical for robust pipeline composition, especially in a functional programming context.
+
+### Minor Issues
+
+1. **Incomplete Type Definition Examples**
+   - **Location:** Section 3.1, "Type System"
+   - **Description:** The examples of type definitions are limited to simple cases and do not cover complex nested structures.
+   - **Recommendation:** Add examples of complex nested type definitions and how they are validated.
+   - **Rationale:** Complex type structures are common in real-world applications and need clear guidance.
+
+[Additional minor issues...]
+
+### Suggestions
+
+1. **Add Performance Considerations**
+   - **Location:** Overall document
+   - **Description:** The document does not address performance considerations for the core primitives.
+   - **Recommendation:** Add a section on performance considerations, including potential bottlenecks and optimization strategies.
+   - **Rationale:** Performance is an important aspect of the library, especially for large-scale applications.
+
+[Additional suggestions...]
+
+## Checklist
+
+[Include the Design Review Checklist with items marked]
+
+## Follow-up
+
+- **Verification Date:** Pending
+- **Verification Status:** Pending
+- **Lessons Learned:** 
+  - Architecture documents should include explicit sections on error handling strategies.
+  - Type system examples should cover a range of complexity levels.
+  - Performance considerations should be addressed early in the design process.
+```
+
+#### Example 3: Review Integration in Development Workflow
+```markdown
+# Review Process for Feature Implementation
+
+1. **Design Review:**
+   - Conduct after creating the design document and before implementation.
+   - Use the Design Review Checklist (DSTYS-REVIEW-004).
+   - Document findings using the Review Output Format (DSTYS-REVIEW-007).
+   - Address all critical and major issues before proceeding to implementation.
+
+2. **Code Review:**
+   - Conduct after implementation and before merging.
+   - Use the Code Review Checklist (DSTYS-REVIEW-003).
+   - Document findings using the Review Output Format (DSTYS-REVIEW-007).
+   - Address all critical issues and most major issues before merging.
+
+3. **Security Review (if applicable):**
+   - Conduct for security-sensitive features before deployment.
+   - Use the Security Review Checklist (DSTYS-REVIEW-005).
+   - Document findings using the Review Output Format (DSTYS-REVIEW-007).
+   - Address all security issues before deployment.
+
+4. **Documentation Review:**
+   - Conduct after documentation is created or updated.
+   - Use the Documentation Review Checklist (DSTYS-REVIEW-006).
+   - Document findings using the Review Output Format (DSTYS-REVIEW-007).
+   - Address all critical and major issues before publishing.
+
+5. **Review Tracking:**
+   - Create a Linear issue for each review.
+   - Link the review issue to the feature implementation issue.
+   - Track review status and follow-up actions in Linear.
+   - Close the review issue only when all critical and major issues are resolved.
+```
+
+## Limitations and Edge Cases
+
+- **Large Codebase Reviews:** For very large codebases or components, consider breaking the review into smaller, focused reviews to maintain quality and manageability.
+- **Urgent Fixes:** In emergency situations, a streamlined review process may be necessary. Document any deviations from the standard process and conduct a follow-up review when possible.
+- **Conflicting Feedback:** When multiple reviewers provide conflicting feedback, facilitate a discussion to reach consensus or escalate to a technical lead for resolution.
+- **AI Limitations:** AI-assisted reviews may miss context-specific issues or make incorrect assumptions. Always supplement AI reviews with human expertise, especially for critical components.
+- **Review Fatigue:** Long or frequent reviews can lead to decreased effectiveness. Monitor reviewer workload and consider rotating reviewers to maintain quality.
+

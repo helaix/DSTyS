@@ -20,8 +20,17 @@ export { Completion, Completions, Prediction }
 // Export Module system
 export * from './primitives/module.js'
 
+// Export trace system
+export * from './primitives/trace.js'
+
 // Export concrete modules
 export * from './modules/index.js'
+
+// Export teleprompt (optimizers)
+export * from './teleprompt/index.js'
+
+// Export clients (LM interfaces)
+export * from './clients/index.js'
 
 // Predict
 export { majority }
